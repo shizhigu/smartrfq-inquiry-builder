@@ -10,6 +10,8 @@ import { AppLayout } from "./components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import RfqItems from "./pages/RfqItems";
+import Suppliers from "./pages/Suppliers";
+import Emails from "./pages/Emails";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,8 @@ const App = () => (
             <Route index element={<Dashboard />} />
             <Route path="projects" element={<Projects />} />
             <Route path="rfq" element={<RfqItems />} />
+            <Route path="suppliers" element={<Suppliers />} />
+            <Route path="emails" element={<Emails />} />
             {/* Add more dashboard routes here */}
           </Route>
           
