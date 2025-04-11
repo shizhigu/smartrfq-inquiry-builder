@@ -32,16 +32,21 @@ interface ProjectState {
   // Status methods
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
+  resetState: () => void;
 }
+
+const initialState = {
+  projects: [],
+  selectedProjectId: null,
+  isLoading: false,
+  error: null,
+};
 
 export const useProjectStore = create<ProjectState>()(
   persist(
     immer((set) => ({
       // Initial state
-      projects: [],
-      selectedProjectId: null,
-      isLoading: false,
-      error: null,
+      ...initialState,
       
       // Data methods
       setProjects: (projects) => set((state) => {
@@ -82,6 +87,8 @@ export const useProjectStore = create<ProjectState>()(
         state.error = error;
         state.isLoading = false;
       }),
+      
+      resetState: () => set(initialState),
     })),
     {
       name: 'smartrfq-project-state',

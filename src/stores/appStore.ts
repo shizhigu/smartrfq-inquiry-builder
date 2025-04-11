@@ -4,31 +4,41 @@ import { persist } from 'zustand/middleware';
 
 interface AppState {
   // Navigation-related state
-  currentProjectId: string | null;
   currentPage: string;
   
+  // Theme-related state
+  isDarkMode: boolean;
+  
   // Navigation methods
-  setCurrentProject: (projectId: string) => void;
   setCurrentPage: (page: string) => void;
+  
+  // Theme methods
+  toggleDarkMode: () => void;
+  setDarkMode: (isDark: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       // Initial state
-      currentProjectId: null,
       currentPage: 'dashboard',
+      isDarkMode: false,
       
       // Navigation methods
-      setCurrentProject: (projectId) => 
-        set({ currentProjectId: projectId }),
       setCurrentPage: (page) => 
         set({ currentPage: page }),
+      
+      // Theme methods
+      toggleDarkMode: () => 
+        set((state) => ({ isDarkMode: !state.isDarkMode })),
+      
+      setDarkMode: (isDark) => 
+        set({ isDarkMode: isDark }),
     }),
     {
       name: 'smartrfq-app-state',
       partialize: (state) => ({
-        currentProjectId: state.currentProjectId,
+        isDarkMode: state.isDarkMode,
       }),
     }
   )
