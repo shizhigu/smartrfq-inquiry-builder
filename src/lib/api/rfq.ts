@@ -1,4 +1,3 @@
-
 // Base URL from new backend
 const BASE_URL = 'http://35.86.96.56:8003';
 import { ENABLE_MOCKS, mockRfqParts, mockRfqFiles } from '../mock/mockData';
@@ -25,6 +24,8 @@ export interface RfqFile {
   uploadedBy: string;
   projectId: string;
   url: string;
+  status: 'uploading' | 'processing' | 'completed' | 'failed';
+  error?: string;
 }
 
 // Fetch RFQ parts for a project

@@ -70,7 +70,7 @@ export async function fetchProject(token: string, projectId: string): Promise<Pr
 // Create a new project
 export async function createProject(
   token: string, 
-  projectData: { name: string; description?: string; status?: string }
+  projectData: { name: string; description?: string; status?: "active" | "completed" | "draft" | "open" | "archived" }
 ): Promise<Project> {
   // Use mock data if mocks are enabled
   if (ENABLE_MOCKS) {
@@ -82,7 +82,7 @@ export async function createProject(
       id: `proj_${Date.now()}`,
       name: projectData.name,
       description: projectData.description || '',
-      status: (projectData.status as any) || 'draft',
+      status: projectData.status || 'draft',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       partsCount: 0,
@@ -129,7 +129,7 @@ export async function updateProject(
       throw new Error('Project not found');
     }
     
-    const updatedProject = {
+    const updatedProject: Project = {
       ...mockProjects[projectIndex],
       ...projectData,
       updatedAt: new Date().toISOString()

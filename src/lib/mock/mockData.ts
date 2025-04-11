@@ -1,4 +1,3 @@
-
 // Mock user data
 export const mockUsers = [
   {
@@ -21,13 +20,13 @@ export const mockUsers = [
   }
 ];
 
-// Mock project data
+// Mock project data with correct status types
 export const mockProjects = [
   {
     id: "proj_1",
     name: "Automotive Components RFQ",
     description: "Request for quotes on custom automotive components for the new model line",
-    status: "active",
+    status: "active" as const,
     createdAt: "2023-03-10T09:15:00Z",
     updatedAt: "2023-04-05T14:20:00Z",
     partsCount: 12,
@@ -37,7 +36,7 @@ export const mockProjects = [
     id: "proj_2",
     name: "Electronics Manufacturing",
     description: "Sourcing electronic components for the new IoT product line",
-    status: "active",
+    status: "active" as const,
     createdAt: "2023-02-15T11:30:00Z",
     updatedAt: "2023-04-02T16:45:00Z",
     partsCount: 24,
@@ -47,7 +46,7 @@ export const mockProjects = [
     id: "proj_3",
     name: "Office Supplies Procurement",
     description: "Annual office supplies procurement for all locations",
-    status: "completed",
+    status: "completed" as const,
     createdAt: "2022-11-22T08:45:00Z",
     updatedAt: "2023-01-15T10:30:00Z",
     partsCount: 35,
@@ -57,7 +56,7 @@ export const mockProjects = [
     id: "proj_4",
     name: "Manufacturing Equipment",
     description: "RFQ for new manufacturing equipment for the eastern plant",
-    status: "draft",
+    status: "draft" as const,
     createdAt: "2023-04-01T13:20:00Z",
     updatedAt: "2023-04-01T13:20:00Z",
     partsCount: 8,
@@ -67,7 +66,7 @@ export const mockProjects = [
     id: "proj_5",
     name: "IT Infrastructure Upgrade",
     description: "Server and network equipment for the IT infrastructure upgrade",
-    status: "open",
+    status: "open" as const,
     createdAt: "2023-03-25T09:10:00Z",
     updatedAt: "2023-04-10T15:40:00Z",
     partsCount: 18,
@@ -171,7 +170,7 @@ export const mockRfqParts = {
   ]
 };
 
-// Mock RFQ Files data
+// Mock RFQ Files data with status property added
 export const mockRfqFiles = {
   "proj_1": [
     {
@@ -182,7 +181,8 @@ export const mockRfqFiles = {
       uploadedAt: "2023-03-15T10:30:00Z",
       uploadedBy: "John Doe",
       projectId: "proj_1",
-      url: "#"
+      url: "#",
+      status: "completed" as const
     },
     {
       id: "file_2",
@@ -192,7 +192,8 @@ export const mockRfqFiles = {
       uploadedAt: "2023-03-17T14:45:00Z",
       uploadedBy: "John Doe",
       projectId: "proj_1",
-      url: "#"
+      url: "#",
+      status: "completed" as const
     }
   ],
   "proj_2": [
@@ -204,7 +205,8 @@ export const mockRfqFiles = {
       uploadedAt: "2023-02-20T11:15:00Z",
       uploadedBy: "Sarah Smith",
       projectId: "proj_2",
-      url: "#"
+      url: "#",
+      status: "completed" as const
     },
     {
       id: "file_4",
@@ -214,7 +216,8 @@ export const mockRfqFiles = {
       uploadedAt: "2023-02-22T09:30:00Z",
       uploadedBy: "Sarah Smith",
       projectId: "proj_2",
-      url: "#"
+      url: "#",
+      status: "completed" as const
     }
   ]
 };
