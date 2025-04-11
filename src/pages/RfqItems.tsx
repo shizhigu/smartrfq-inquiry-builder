@@ -6,9 +6,12 @@ import { RfqPageHeader } from "@/components/rfq/RfqPageHeader";
 import { RfqPartsList } from "@/components/rfq/RfqPartsList";
 import { RfqFilesList } from "@/components/rfq/RfqFilesList";
 import { useRfqData } from "@/hooks/useRfqData";
+import { RfqUploadDialog } from "@/components/rfq/RfqUploadDialog";
 
 export default function RfqItems() {
   const [activeTab, setActiveTab] = useState("parts");
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  
   const { 
     project,
     parts,
@@ -21,7 +24,7 @@ export default function RfqItems() {
   } = useRfqData();
   
   const handleUploadFile = () => {
-    toast.info('File upload functionality will be implemented soon!');
+    setIsUploadDialogOpen(true);
   };
   
   const handleAddPart = () => {
@@ -84,6 +87,11 @@ export default function RfqItems() {
           />
         </TabsContent>
       </Tabs>
+      
+      <RfqUploadDialog
+        open={isUploadDialogOpen}
+        onOpenChange={setIsUploadDialogOpen}
+      />
     </div>
   );
 }
