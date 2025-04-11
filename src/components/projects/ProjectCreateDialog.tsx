@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createProject } from "@/lib/api/projects";
-import { useProjectStore } from "@/stores/projectStore";
+import { useProjectStore, Project } from "@/stores/projectStore";
 import { useAuth } from "@clerk/clerk-react";
 
 interface ProjectCreateDialogProps {
@@ -27,7 +27,11 @@ export function ProjectCreateDialog({ open, onOpenChange }: ProjectCreateDialogP
   const { getToken } = useAuth();
   const addProject = useProjectStore(state => state.addProject);
   
-  const [newProject, setNewProject] = useState({ 
+  const [newProject, setNewProject] = useState<{ 
+    name: string; 
+    description: string; 
+    status: Project['status']; 
+  }>({ 
     name: '', 
     description: '', 
     status: 'active' 

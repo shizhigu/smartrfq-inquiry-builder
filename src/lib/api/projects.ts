@@ -49,7 +49,7 @@ export async function fetchProject(token: string, projectId: string): Promise<Pr
       throw new Error('Project not found');
     }
     
-    return project;
+    return project as Project;
   }
   
   const response = await fetch(`${BASE_URL}/projects/${projectId}`, {
@@ -90,7 +90,7 @@ export async function createProject(
     };
     
     // Add to mock projects (in a real app, this would persist to the server)
-    mockProjects.push(newProject);
+    mockProjects.push(newProject as any);
     
     return newProject;
   }
@@ -129,13 +129,13 @@ export async function updateProject(
       throw new Error('Project not found');
     }
     
-    const updatedProject: Project = {
+    const updatedProject = {
       ...mockProjects[projectIndex],
       ...projectData,
       updatedAt: new Date().toISOString()
-    };
+    } as Project;
     
-    mockProjects[projectIndex] = updatedProject;
+    mockProjects[projectIndex] = updatedProject as any;
     
     return updatedProject;
   }
