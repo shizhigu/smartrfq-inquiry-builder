@@ -1,6 +1,6 @@
 
-// Use the global API URL
-const BASE_URL = window.API_URL || 'http://uqjpqskash.a.pinggy.link/api';
+// Base URL from environment variable
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 import { Project } from "@/stores/projectStore";
 
@@ -12,8 +12,6 @@ export async function fetchProjects(token: string, page = 1, pageSize = 20): Pro
   page_size: number,
   pages: number
 }> {
-  console.log(`Fetching projects from: ${BASE_URL}/projects`);
-  
   const response = await fetch(`${BASE_URL}/projects?page=${page}&page_size=${pageSize}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -31,8 +29,6 @@ export async function fetchProjects(token: string, page = 1, pageSize = 20): Pro
 
 // Get a single project
 export async function fetchProject(token: string, projectId: string): Promise<Project> {
-  console.log(`Fetching project from: ${BASE_URL}/projects/${projectId}`);
-  
   const response = await fetch(`${BASE_URL}/projects/${projectId}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -53,8 +49,6 @@ export async function createProject(
   token: string, 
   projectData: { name: string; description?: string; status?: string }
 ): Promise<Project> {
-  console.log(`Creating project at: ${BASE_URL}/projects`);
-  
   const response = await fetch(`${BASE_URL}/projects`, {
     method: 'POST',
     headers: {

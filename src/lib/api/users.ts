@@ -1,6 +1,6 @@
 
-// Use the global API URL
-const BASE_URL = window.API_URL || 'http://uqjpqskash.a.pinggy.link/api';
+// Base URL from environment variable
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 export interface User {
   id: string;
@@ -14,8 +14,6 @@ export interface User {
 
 // Get current user profile
 export async function fetchCurrentUser(token: string): Promise<User> {
-  console.log(`Fetching current user from: ${BASE_URL}/me`);
-  
   const response = await fetch(`${BASE_URL}/me`, {
     headers: {
       'Content-Type': 'application/json',
@@ -33,8 +31,6 @@ export async function fetchCurrentUser(token: string): Promise<User> {
 
 // Sync Clerk user with backend
 export async function syncUser(token: string): Promise<User> {
-  console.log(`Syncing user at: ${BASE_URL}/sync-user`);
-  
   const response = await fetch(`${BASE_URL}/sync-user`, {
     method: 'POST',
     headers: {
