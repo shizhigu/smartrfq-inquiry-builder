@@ -17,6 +17,9 @@ metaTag.name = 'api-url';
 metaTag.content = 'http://uqjpqskash.a.pinggy.link/api';
 document.head.appendChild(metaTag);
 
+// Define API URL globally
+window.API_URL = 'http://uqjpqskash.a.pinggy.link/api';
+
 createRoot(document.getElementById("root")!).render(
   <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
     <App />
