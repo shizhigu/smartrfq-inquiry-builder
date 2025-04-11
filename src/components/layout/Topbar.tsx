@@ -2,7 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { useProjectStore } from "@/stores/projectStore";
 import { useState } from "react";
-import { BellIcon, PlusIcon, SearchIcon, UserCircle } from "lucide-react";
+import { BellIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { UserButton, OrganizationSwitcher } from "@clerk/clerk-react";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +35,16 @@ export function Topbar() {
       </div>
       
       <div className="flex items-center space-x-3">
+        <OrganizationSwitcher 
+          hidePersonal
+          appearance={{
+            elements: {
+              rootBox: "h-9",
+              organizationSwitcherTrigger: "h-9 border rounded-md px-2"
+            }
+          }}
+        />
+        
         <Button variant="outline" size="sm" className="hidden md:flex">
           <PlusIcon className="h-4 w-4 mr-2" />
           New Project
@@ -43,22 +54,14 @@ export function Topbar() {
           <BellIcon className="h-5 w-5" />
         </Button>
         
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <UserCircle className="h-6 w-6" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Team</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Log out</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <UserButton 
+          afterSignOutUrl="/" 
+          appearance={{
+            elements: {
+              avatarBox: "h-8 w-8"
+            }
+          }}
+        />
       </div>
     </div>
   );

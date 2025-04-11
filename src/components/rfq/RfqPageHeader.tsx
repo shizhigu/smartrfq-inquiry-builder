@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { Project } from "@/stores/projectStore";
 import { FilePlus, Upload, Trash } from "lucide-react";
+import { useOrganization } from "@clerk/clerk-react";
 
 interface RfqPageHeaderProps {
   project: Project | undefined;
@@ -19,10 +20,16 @@ export function RfqPageHeader({
   onUploadFile,
   onDeleteSelected
 }: RfqPageHeaderProps) {
+  const { organization } = useOrganization();
+  
   return (
     <PageHeader
       title={project?.name || 'RFQ Items'}
-      description={project?.description || 'Manage parts and files for this project'}
+      description={
+        organization 
+          ? `Organization: ${organization.name} | ${project?.description || 'Manage parts and files for this project'}`
+          : project?.description || 'Manage parts and files for this project'
+      }
     >
       <Button variant="outline" className="mr-2" onClick={onDeleteSelected}
         disabled={selectedPartIds.length === 0}

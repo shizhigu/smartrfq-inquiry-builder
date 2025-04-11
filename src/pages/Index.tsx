@@ -2,9 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
 
 export default function Index() {
   const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white">
@@ -23,21 +25,41 @@ export default function Index() {
         </p>
         
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button 
-            size="lg" 
-            className="bg-brand-blue hover:bg-brand-blue-dark text-white px-8"
-            onClick={() => navigate('/dashboard')}
-          >
-            Enter Dashboard 
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="lg"
-            onClick={() => navigate('/dashboard/projects')}
-          >
-            View Projects
-          </Button>
+          <SignedIn>
+            <Button 
+              size="lg" 
+              className="bg-brand-blue hover:bg-brand-blue-dark text-white px-8"
+              onClick={() => navigate('/dashboard')}
+            >
+              Enter Dashboard 
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => navigate('/dashboard/projects')}
+            >
+              View Projects
+            </Button>
+          </SignedIn>
+          
+          <SignedOut>
+            <Button 
+              size="lg" 
+              className="bg-brand-blue hover:bg-brand-blue-dark text-white px-8"
+              onClick={() => navigate('/sign-in')}
+            >
+              Sign In
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => navigate('/sign-up')}
+            >
+              Create Account
+            </Button>
+          </SignedOut>
         </div>
         
         <div className="mt-16 max-w-5xl mx-auto">
