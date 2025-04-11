@@ -1,6 +1,5 @@
-
-// Base URL from environment variable
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Base URL from new backend
+const BASE_URL = 'http://35.86.96.56:8003';
 
 import { Project } from "@/stores/projectStore";
 
