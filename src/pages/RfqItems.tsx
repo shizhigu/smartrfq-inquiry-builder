@@ -1,4 +1,3 @@
-
 import { PageHeader } from "@/components/ui/page-header";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -57,23 +56,37 @@ export default function RfqItems() {
     
     const loadRfqData = async () => {
       try {
-        setLoading(true);
+        // Only fetch parts if they don't exist for this project
+        if (!parts[selectedProjectId] || parts[selectedProjectId].length === 0) {
+          console.log('Fetching parts from API as they are not in store');
+          setLoading(true);
+          
+          // Fetch parts for the selected project
+          const fetchedParts = await fetchRfqParts(
+            token || simulatedToken, 
+            orgId || simulatedOrgId,
+            selectedProjectId
+          );
+          setParts(selectedProjectId, fetchedParts);
+        } else {
+          console.log('Using parts from Zustand store');
+        }
         
-        // Fetch parts for the selected project
-        const fetchedParts = await fetchRfqParts(
-          token || simulatedToken, 
-          orgId || simulatedOrgId,
-          selectedProjectId
-        );
-        setParts(selectedProjectId, fetchedParts);
-        
-        // Fetch files for the selected project
-        const fetchedFiles = await fetchRfqFiles(
-          token || simulatedToken, 
-          orgId || simulatedOrgId,
-          selectedProjectId
-        );
-        setFiles(selectedProjectId, fetchedFiles);
+        // Only fetch files if they don't exist for this project
+        if (!files[selectedProjectId] || files[selectedProjectId].length === 0) {
+          console.log('Fetching files from API as they are not in store');
+          setLoading(true);
+          
+          // Fetch files for the selected project
+          const fetchedFiles = await fetchRfqFiles(
+            token || simulatedToken, 
+            orgId || simulatedOrgId,
+            selectedProjectId
+          );
+          setFiles(selectedProjectId, fetchedFiles);
+        } else {
+          console.log('Using files from Zustand store');
+        }
         
       } catch (error) {
         console.error('Failed to load RFQ data', error);
@@ -84,7 +97,7 @@ export default function RfqItems() {
     };
     
     loadRfqData();
-  }, [setCurrentPage, selectedProjectId, setParts, setFiles, setLoading, navigate, token, orgId]);
+  }, [setCurrentPage, selectedProjectId, setParts, setFiles, setLoading, navigate, token, orgId, parts, files]);
   
   const projectParts = parts[selectedProjectId || ''] || [];
   const projectFiles = files[selectedProjectId || ''] || [];
