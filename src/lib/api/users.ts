@@ -1,5 +1,7 @@
-// Base URL from new backend
-const BASE_URL = 'http://35.86.96.56:8003';
+// Base URL with CORS proxy
+const BACKEND_URL = 'http://35.86.96.56:8003';
+const PROXY_URL = 'https://cors-anywhere.herokuapp.com/';
+const BASE_URL = PROXY_URL + BACKEND_URL;
 
 export interface User {
   id: string;
@@ -17,6 +19,7 @@ export async function fetchCurrentUser(token: string): Promise<User> {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
+      'X-Requested-With': 'XMLHttpRequest',  // Required by cors-anywhere
     },
   });
 

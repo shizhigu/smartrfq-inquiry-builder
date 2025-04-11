@@ -1,5 +1,8 @@
-// Base URL from new backend
-const BASE_URL = 'http://35.86.96.56:8003';
+
+// Base URL with CORS proxy
+const BACKEND_URL = 'http://35.86.96.56:8003';
+const PROXY_URL = 'https://cors-anywhere.herokuapp.com/';
+const BASE_URL = PROXY_URL + BACKEND_URL;
 
 import { Project } from "@/stores/projectStore";
 
