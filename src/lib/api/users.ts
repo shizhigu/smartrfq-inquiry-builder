@@ -1,5 +1,7 @@
+
 // Base URL from new backend
 const BASE_URL = 'http://35.86.96.56:8003';
+import { ENABLE_MOCKS, mockUsers } from '../mock/mockData';
 
 export interface User {
   id: string;
@@ -13,6 +15,14 @@ export interface User {
 
 // Get current user profile
 export async function fetchCurrentUser(token: string): Promise<User> {
+  // Use mock data if mocks are enabled
+  if (ENABLE_MOCKS) {
+    console.log('Using mock data for fetchCurrentUser');
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return mockUsers[0];
+  }
+  
   const response = await fetch(`${BASE_URL}/me`, {
     headers: {
       'Content-Type': 'application/json',
@@ -30,6 +40,14 @@ export async function fetchCurrentUser(token: string): Promise<User> {
 
 // Sync Clerk user with backend
 export async function syncUser(token: string): Promise<User> {
+  // Use mock data if mocks are enabled
+  if (ENABLE_MOCKS) {
+    console.log('Using mock data for syncUser');
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return mockUsers[0];
+  }
+  
   const response = await fetch(`${BASE_URL}/sync-user`, {
     method: 'POST',
     headers: {
@@ -51,6 +69,18 @@ export async function updateUserProfile(
   token: string, 
   userData: { name?: string; avatar_url?: string }
 ): Promise<User> {
+  // Use mock data if mocks are enabled
+  if (ENABLE_MOCKS) {
+    console.log('Using mock data for updateUserProfile');
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 400));
+    const updatedUser = {
+      ...mockUsers[0],
+      ...userData
+    };
+    return updatedUser;
+  }
+  
   const response = await fetch(`${BASE_URL}/me`, {
     method: 'PATCH',
     headers: {

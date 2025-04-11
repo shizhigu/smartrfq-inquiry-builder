@@ -1,204 +1,131 @@
 
-import { RfqPart, RfqFile } from "@/stores/rfqStore";
+// Base URL from new backend
+const BASE_URL = 'http://35.86.96.56:8003';
+import { ENABLE_MOCKS, mockRfqParts, mockRfqFiles } from '../mock/mockData';
 
-// Simulated API calls for now - would connect to your backend later
-const mockParts: Record<string, RfqPart[]> = {
-  '1': [
-    {
-      id: 'part1',
-      name: 'Aluminum Bracket',
-      quantity: 50,
-      material: '6061-T6 Aluminum',
-      drawingNumber: 'DWG-2023-001',
-      projectId: '1',
-    },
-    {
-      id: 'part2',
-      name: 'Steel Shaft',
-      quantity: 25,
-      material: '1045 Steel',
-      drawingNumber: 'DWG-2023-002',
-      projectId: '1',
-    },
-    {
-      id: 'part3',
-      name: 'Bearing Housing',
-      quantity: 30,
-      material: '304 Stainless Steel',
-      drawingNumber: 'DWG-2023-003',
-      projectId: '1',
-    }
-  ],
-  '2': [
-    {
-      id: 'part4',
-      name: 'Plastic Enclosure Top',
-      quantity: 1000,
-      material: 'ABS',
-      drawingNumber: 'DWG-2023-101',
-      projectId: '2',
-    },
-    {
-      id: 'part5',
-      name: 'Plastic Enclosure Bottom',
-      quantity: 1000,
-      material: 'ABS',
-      drawingNumber: 'DWG-2023-102',
-      projectId: '2',
-    }
-  ]
-};
-
-const mockFiles: Record<string, RfqFile[]> = {
-  '1': [
-    {
-      id: 'file1',
-      name: 'assembly_drawings.pdf',
-      size: 2500000,
-      type: 'application/pdf',
-      projectId: '1',
-      status: 'completed',
-      uploadedAt: '2023-10-15T10:35:00Z',
-    },
-    {
-      id: 'file2',
-      name: 'part_specifications.xlsx',
-      size: 450000,
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      projectId: '1',
-      status: 'completed',
-      uploadedAt: '2023-10-15T10:40:00Z',
-    }
-  ],
-  '2': [
-    {
-      id: 'file3',
-      name: 'injection_mold_specs.pdf',
-      size: 1800000,
-      type: 'application/pdf',
-      projectId: '2',
-      status: 'completed',
-      uploadedAt: '2023-09-05T08:20:00Z',
-    }
-  ]
-};
-
-// API function to get all parts for a project
-export async function fetchRfqParts(token: string, orgId: string, projectId: string): Promise<RfqPart[]> {
-  // Simulate API request
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(mockParts[projectId] || []);
-    }, 800);
-  });
+export interface RfqPart {
+  id: string;
+  name: string;
+  partNumber: string;
+  description?: string;
+  quantity: number;
+  unit: string;
+  targetPrice?: number;
+  category?: string;
+  status: string;
+  projectId: string;
 }
 
-// API function to get all files for a project
-export async function fetchRfqFiles(token: string, orgId: string, projectId: string): Promise<RfqFile[]> {
-  // Simulate API request
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(mockFiles[projectId] || []);
-    }, 600);
-  });
+export interface RfqFile {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  projectId: string;
+  url: string;
 }
 
-// API function to upload and parse an RFQ file
-export async function uploadAndParseRfqFile(
-  token: string, 
-  orgId: string, 
-  projectId: string, 
-  file: File
-): Promise<RfqFile> {
-  // Simulate API request
-  return new Promise((resolve) => {
-    // First send back a "processing" status
-    setTimeout(() => {
-      const newFile: RfqFile = {
-        id: Math.random().toString(36).substring(2, 9),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        projectId: projectId,
-        status: 'processing',
-        uploadedAt: new Date().toISOString(),
-      };
-      resolve(newFile);
-      
-      // Then after a delay, we'd update the status to completed
-      // This would happen via a separate API call or WebSocket in a real app
-    }, 1000);
+// Fetch RFQ parts for a project
+export async function fetchRfqParts(
+  token: string,
+  organizationId: string,
+  projectId: string
+): Promise<RfqPart[]> {
+  // Use mock data if mocks are enabled
+  if (ENABLE_MOCKS) {
+    console.log('Using mock data for fetchRfqParts');
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return mockRfqParts[projectId] || [];
+  }
+  
+  const response = await fetch(`${BASE_URL}/organizations/${organizationId}/projects/${projectId}/parts`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
   });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error?.message || 'Failed to fetch RFQ parts');
+  }
+
+  return response.json();
 }
 
-// API function to add a new part
+// Fetch RFQ files for a project
+export async function fetchRfqFiles(
+  token: string,
+  organizationId: string,
+  projectId: string
+): Promise<RfqFile[]> {
+  // Use mock data if mocks are enabled
+  if (ENABLE_MOCKS) {
+    console.log('Using mock data for fetchRfqFiles');
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 400));
+    return mockRfqFiles[projectId] || [];
+  }
+  
+  const response = await fetch(`${BASE_URL}/organizations/${organizationId}/projects/${projectId}/files`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error?.message || 'Failed to fetch RFQ files');
+  }
+
+  return response.json();
+}
+
+// Add a new RFQ part
 export async function addRfqPart(
-  token: string, 
-  orgId: string, 
-  projectId: string, 
-  partData: Omit<RfqPart, 'id' | 'projectId'>
+  token: string,
+  organizationId: string,
+  projectId: string,
+  partData: Omit<RfqPart, 'id'>
 ): Promise<RfqPart> {
-  // Simulate API request
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newPart: RfqPart = {
-        id: Math.random().toString(36).substring(2, 9),
-        projectId: projectId,
-        ...partData,
-      };
-      resolve(newPart);
-    }, 800);
+  // Use mock data if mocks are enabled
+  if (ENABLE_MOCKS) {
+    console.log('Using mock data for addRfqPart');
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 700));
+    
+    const newPart: RfqPart = {
+      ...partData,
+      id: `part_${Date.now()}`,
+      projectId: projectId
+    };
+    
+    if (!mockRfqParts[projectId]) {
+      mockRfqParts[projectId] = [];
+    }
+    
+    mockRfqParts[projectId].push(newPart);
+    
+    return newPart;
+  }
+  
+  const response = await fetch(`${BASE_URL}/organizations/${organizationId}/projects/${projectId}/parts`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(partData),
   });
-}
 
-// API function to update a part
-export async function updateRfqPart(
-  token: string, 
-  orgId: string, 
-  partId: string, 
-  partData: Partial<RfqPart>
-): Promise<RfqPart> {
-  // Simulate API request
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // Find the part across all projects
-      let foundPart: RfqPart | undefined;
-      let projectId: string | undefined;
-      
-      for (const [pid, parts] of Object.entries(mockParts)) {
-        const part = parts.find(p => p.id === partId);
-        if (part) {
-          foundPart = part;
-          projectId = pid;
-          break;
-        }
-      }
-      
-      if (!foundPart || !projectId) {
-        reject(new Error('Part not found'));
-        return;
-      }
-      
-      const updatedPart: RfqPart = {
-        ...foundPart,
-        ...partData,
-      };
-      
-      resolve(updatedPart);
-    }, 800);
-  });
-}
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error?.message || 'Failed to add RFQ part');
+  }
 
-// API function to delete a part
-export async function deleteRfqPart(
-  token: string, 
-  orgId: string, 
-  partId: string
-): Promise<boolean> {
-  // Simulate API request
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(true);
-    }, 600);
-  });
+  return response.json();
 }
