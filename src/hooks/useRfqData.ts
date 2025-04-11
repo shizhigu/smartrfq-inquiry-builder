@@ -6,12 +6,13 @@ import { useRfqStore } from "@/stores/rfqStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useEffect } from "react";
+import { useAuth, useOrganization } from "@clerk/clerk-react";
 
 export function useRfqData() {
   const navigate = useNavigate();
-  const userId = useAppStore(state => state.userId);
-  const orgId = useAppStore(state => state.orgId);
-  const token = useAppStore(state => state.token);
+  const { userId, getToken } = useAuth();
+  const { organization } = useOrganization();
+  const orgId = organization?.id;
   const { selectedProjectId } = useProjectStore();
   const project = useProjectStore(state => 
     state.projects.find(p => p.id === state.selectedProjectId)
@@ -49,6 +50,9 @@ export function useRfqData() {
     
     const loadRfqData = async () => {
       try {
+        // Get token from Clerk if available
+        const token = await getToken() || simulatedToken;
+        
         // Only fetch parts if they don't exist for this project
         if (!parts[selectedProjectId] || parts[selectedProjectId].length === 0) {
           console.log('Fetching parts from API as they are not in store');
@@ -56,7 +60,7 @@ export function useRfqData() {
           
           // Fetch parts for the selected project
           const fetchedParts = await fetchRfqParts(
-            token || simulatedToken, 
+            token, 
             orgId || simulatedOrgId,
             selectedProjectId
           );
@@ -72,7 +76,7 @@ export function useRfqData() {
           
           // Fetch files for the selected project
           const fetchedFiles = await fetchRfqFiles(
-            token || simulatedToken, 
+            token, 
             orgId || simulatedOrgId,
             selectedProjectId
           );
@@ -90,7 +94,7 @@ export function useRfqData() {
     };
     
     loadRfqData();
-  }, [setCurrentPage, selectedProjectId, setParts, setFiles, setLoading, navigate, token, orgId, parts, files]);
+  }, [setCurrentPage, selectedProjectId, setParts, setFiles, setLoading, navigate, getToken, orgId, parts, files]);
 
   return {
     project,

@@ -9,12 +9,14 @@ import { useAppStore } from "@/stores/appStore";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth, useOrganization } from "@clerk/clerk-react";
 
 export default function Projects() {
   const navigate = useNavigate();
-  const userId = useAppStore(state => state.userId);
-  const orgId = useAppStore(state => state.orgId);
-  const token = useAppStore(state => state.token);
+  const { userId, getToken } = useAuth();
+  const { organization } = useOrganization();
+  const orgId = organization?.id;
+  
   const { 
     projects, 
     setProjects, 
@@ -34,8 +36,9 @@ export default function Projects() {
     
     const loadProjects = async () => {
       try {
+        const token = await getToken() || simulatedToken;
         const fetchedProjects = await fetchProjects(
-          token || simulatedToken, 
+          token, 
           orgId || simulatedOrgId
         );
         setProjects(fetchedProjects);
@@ -46,7 +49,7 @@ export default function Projects() {
     };
     
     loadProjects();
-  }, [setCurrentPage, setProjects, token, orgId]);
+  }, [setCurrentPage, setProjects, getToken, orgId]);
   
   const handleSelectProject = (projectId: string) => {
     selectProject(projectId);

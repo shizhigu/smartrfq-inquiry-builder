@@ -3,7 +3,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface AppState {
-  // Auth-related state (now managed by Clerk)
   // Navigation-related state
   currentProjectId: string | null;
   currentPage: string;

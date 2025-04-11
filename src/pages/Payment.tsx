@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, CreditCard, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { useAppStore } from "@/stores/appStore";
+import { useAuth } from "@clerk/clerk-react";
 
 type PricingPlan = {
   id: string;
@@ -73,7 +73,7 @@ export default function Payment() {
   const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
-  const userId = useAppStore(state => state.userId);
+  const { userId } = useAuth();
   
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId);

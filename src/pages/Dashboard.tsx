@@ -9,12 +9,14 @@ import { useAppStore } from "@/stores/appStore";
 import { Folder, FileText, Users, Mail, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth, useOrganization } from "@clerk/clerk-react";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const userId = useAppStore(state => state.userId);
-  const orgId = useAppStore(state => state.orgId);
-  const token = useAppStore(state => state.token);
+  const { userId, getToken } = useAuth();
+  const { organization } = useOrganization();
+  const orgId = organization?.id;
+  
   const { projects, setProjects, isLoading } = useProjectStore();
   const setCurrentPage = useAppStore(state => state.setCurrentPage);
   
@@ -29,8 +31,9 @@ export default function Dashboard() {
     
     const loadProjects = async () => {
       try {
+        const token = await getToken() || simulatedToken;
         const fetchedProjects = await fetchProjects(
-          token || simulatedToken, 
+          token, 
           orgId || simulatedOrgId
         );
         setProjects(fetchedProjects);
@@ -40,7 +43,7 @@ export default function Dashboard() {
     };
     
     loadProjects();
-  }, [setCurrentPage, setProjects, token, orgId]);
+  }, [setCurrentPage, setProjects, getToken, orgId]);
   
   // Calculate statistics
   const totalProjects = projects.length;
