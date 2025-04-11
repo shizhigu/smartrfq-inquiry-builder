@@ -1,14 +1,55 @@
-// Update this page (the content is just a fallback if you fail to update the page)
 
-const Index = () => {
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+
+export default function Index() {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+      <div className="container mx-auto px-4 py-16 text-center">
+        <div className="inline-block bg-brand-blue/10 px-4 py-1.5 rounded-full text-brand-blue font-medium text-sm mb-6">
+          Manufacturing RFQ Management Platform
+        </div>
+        
+        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+          Streamline your RFQ process with <span className="text-brand-blue">SmartRFQ</span>
+        </h1>
+        
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+          AI-powered platform to help manufacturing teams automate their Request-for-Quotation workflow.
+          Extract part data, manage suppliers, and send structured inquiries in one place.
+        </p>
+        
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Button 
+            size="lg" 
+            className="bg-brand-blue hover:bg-brand-blue-dark text-white px-8"
+            onClick={() => navigate('/dashboard')}
+          >
+            Enter Dashboard 
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="lg"
+            onClick={() => navigate('/dashboard/projects')}
+          >
+            View Projects
+          </Button>
+        </div>
+        
+        <div className="mt-16 max-w-5xl mx-auto">
+          <div className="rounded-lg overflow-hidden border shadow-lg">
+            <img 
+              src="https://placehold.co/1200x600/e5e7eb/818cf8?text=SmartRFQ+Dashboard+Preview" 
+              alt="SmartRFQ Dashboard" 
+              className="w-full h-auto"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
-};
-
-export default Index;
+}
