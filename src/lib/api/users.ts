@@ -1,6 +1,6 @@
 
-// Base URL from environment variable
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Base URL from environment variable or use the provided backend URL
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://uqjpqskash.a.pinggy.link/api';
 
 export interface User {
   id: string;
