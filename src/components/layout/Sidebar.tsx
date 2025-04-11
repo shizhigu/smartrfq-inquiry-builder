@@ -1,3 +1,4 @@
+
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { cn } from "@/lib/utils";
@@ -12,7 +13,10 @@ import {
   BarChart, 
   Menu,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  User,
+  Building,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -57,7 +61,21 @@ export function Sidebar() {
       name: "Reports",
       path: "/dashboard/reports",
       icon: <BarChart size={20} />,
-      disabled: !selectedProjectId,
+    },
+    {
+      name: "Users",
+      path: "/dashboard/users",
+      icon: <User size={20} />,
+    },
+    {
+      name: "Organizations",
+      path: "/dashboard/organizations",
+      icon: <Building size={20} />,
+    },
+    {
+      name: "Payment",
+      path: "/dashboard/payment",
+      icon: <CreditCard size={20} />,
     },
     {
       name: "Settings",

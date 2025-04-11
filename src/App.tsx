@@ -12,6 +12,11 @@ import Projects from "./pages/Projects";
 import RfqItems from "./pages/RfqItems";
 import Suppliers from "./pages/Suppliers";
 import Emails from "./pages/Emails";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import Users from "./pages/Users";
+import Organizations from "./pages/Organizations";
+import Payment from "./pages/Payment";
 
 const queryClient = new QueryClient();
 
@@ -31,7 +36,11 @@ const App = () => (
             <Route path="rfq" element={<RfqItems />} />
             <Route path="suppliers" element={<Suppliers />} />
             <Route path="emails" element={<Emails />} />
-            {/* Add more dashboard routes here */}
+            <Route path="reports" element={<Reports />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="users" element={<Users />} />
+            <Route path="organizations" element={<Organizations />} />
+            <Route path="payment" element={<Payment />} />
           </Route>
           
           {/* Catch-all route for 404 */}
