@@ -9,7 +9,7 @@ export interface Project {
   description?: string;
   createdAt: string;
   updatedAt: string;
-  status: 'active' | 'archived' | 'completed';
+  status: 'active' | 'archived' | 'completed' | 'draft' | 'open';
   partsCount?: number;
   suppliersCount?: number;
 }

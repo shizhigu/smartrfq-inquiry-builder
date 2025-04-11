@@ -18,8 +18,22 @@ import Settings from "./pages/Settings";
 import Users from "./pages/Users";
 import Organizations from "./pages/Organizations";
 import Payment from "./pages/Payment";
+import { useSyncUser } from "./hooks/useSyncUser";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+// Component to handle user synchronization with backend
+function UserSync({ children }: { children: React.ReactNode }) {
+  useSyncUser();
+  return <>{children}</>;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -38,7 +52,9 @@ const App = () => (
           <Route path="/dashboard" element={
             <>
               <SignedIn>
-                <AppLayout />
+                <UserSync>
+                  <AppLayout />
+                </UserSync>
               </SignedIn>
               <SignedOut>
                 <Navigate to="/sign-in" replace />

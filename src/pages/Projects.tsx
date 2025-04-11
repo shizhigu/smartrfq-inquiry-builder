@@ -9,7 +9,7 @@ import { useAppStore } from "@/stores/appStore";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuth, useOrganization } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/clerk-react";
 import { 
   Dialog, 
   DialogContent, 
@@ -21,12 +21,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { syncUser } from "@/lib/api/users";
 
 export default function Projects() {
   const navigate = useNavigate();
-  const { getToken } = useAuth();
-  const { organization } = useOrganization();
-  const orgId = organization?.id;
+  const { getToken, userId } = useAuth();
   
   const [isCreating, setIsCreating] = useState(false);
   const [newProject, setNewProject] = useState({ 
@@ -35,6 +34,8 @@ export default function Projects() {
     status: 'active' 
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   
   const { 
     projects, 
@@ -46,16 +47,34 @@ export default function Projects() {
     selectedProjectId,
     addProject
   } = useProjectStore();
-  const setCurrentPage = useAppStore(state => state.setCurrentPage);
+  const appSetCurrentPage = useAppStore(state => state.setCurrentPage);
+  
+  // Ensure user is synced with the backend when the component mounts
+  useEffect(() => {
+    const syncUserWithBackend = async () => {
+      if (!userId) return;
+      
+      try {
+        const token = await getToken();
+        if (!token) {
+          toast.error('Authentication error');
+          return;
+        }
+        
+        await syncUser(token);
+        console.log('User synced with backend');
+      } catch (error) {
+        console.error('Failed to sync user', error);
+        toast.error('Failed to connect with the backend');
+      }
+    };
+    
+    syncUserWithBackend();
+  }, [userId, getToken]);
   
   const loadProjects = async () => {
     try {
       setLoading(true);
-      
-      if (!orgId) {
-        toast.error('No organization selected');
-        return;
-      }
       
       const token = await getToken();
       if (!token) {
@@ -63,8 +82,10 @@ export default function Projects() {
         return;
       }
       
-      const fetchedProjects = await fetchProjects(token, orgId);
-      setProjects(fetchedProjects);
+      const result = await fetchProjects(token, currentPage);
+      setProjects(result.items);
+      setTotalPages(result.pages);
+      
     } catch (error) {
       console.error('Failed to load projects', error);
       toast.error('Failed to load projects');
@@ -75,9 +96,9 @@ export default function Projects() {
   };
   
   useEffect(() => {
-    setCurrentPage('projects');
+    appSetCurrentPage('projects');
     loadProjects();
-  }, [setCurrentPage, orgId]);
+  }, [appSetCurrentPage, currentPage]);
   
   const handleSelectProject = (projectId: string) => {
     selectProject(projectId);
@@ -96,18 +117,13 @@ export default function Projects() {
     try {
       setIsSubmitting(true);
       
-      if (!orgId) {
-        toast.error('No organization selected');
-        return;
-      }
-      
       const token = await getToken();
       if (!token) {
         toast.error('Authentication error');
         return;
       }
       
-      const createdProject = await createProject(token, orgId, newProject);
+      const createdProject = await createProject(token, newProject);
       addProject(createdProject);
       setIsCreating(false);
       setNewProject({ name: '', description: '', status: 'active' });
@@ -139,14 +155,40 @@ export default function Projects() {
           <p>Loading projects...</p>
         </div>
       ) : projects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map(project => (
-            <ProjectCard 
-              key={project.id} 
-              project={project} 
-              onSelect={handleSelectProject} 
-            />
-          ))}
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {projects.map(project => (
+              <ProjectCard 
+                key={project.id} 
+                project={project} 
+                onSelect={handleSelectProject} 
+              />
+            ))}
+          </div>
+          
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-4">
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                >
+                  Previous
+                </Button>
+                <span className="flex items-center px-4">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button 
+                  variant="outline" 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-center py-12">
