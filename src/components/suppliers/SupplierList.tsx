@@ -21,14 +21,23 @@ export const SupplierList = ({
     (supplier.tags && supplier.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
-  if (filteredSuppliers.length === 0) {
+  if (suppliers.length === 0) {
     return (
       <div className="col-span-3 text-center p-6 bg-muted/30 rounded-lg">
         <h3 className="text-lg font-medium">No Suppliers Found</h3>
         <p className="mt-2 text-muted-foreground">
-          {searchQuery 
-            ? "No suppliers match your search criteria." 
-            : "You haven't added any suppliers to this project yet."}
+          You haven't added any suppliers to this project yet.
+        </p>
+      </div>
+    );
+  }
+
+  if (filteredSuppliers.length === 0) {
+    return (
+      <div className="col-span-3 text-center p-6 bg-muted/30 rounded-lg">
+        <h3 className="text-lg font-medium">No Matching Suppliers</h3>
+        <p className="mt-2 text-muted-foreground">
+          No suppliers match your search criteria.
         </p>
       </div>
     );

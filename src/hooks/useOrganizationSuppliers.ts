@@ -21,9 +21,9 @@ export function useOrganizationSuppliers() {
   // Get org suppliers from store
   const orgSuppliers = suppliers['global'] || [];
 
-  const loadSuppliers = useCallback(async () => {
-    // Check if we already have data in the Zustand store
-    if (orgSuppliers.length > 0) {
+  const loadSuppliers = useCallback(async (forceRefresh = false) => {
+    // Check if we already have data in the Zustand store and no refresh is requested
+    if (!forceRefresh && orgSuppliers.length > 0) {
       console.log('Organization suppliers already loaded in Zustand store, skipping API call');
       return;
     }
@@ -63,7 +63,7 @@ export function useOrganizationSuppliers() {
   // Load suppliers when the component mounts (but only if not already loaded)
   useEffect(() => {
     if (orgSuppliers.length === 0) {
-      loadSuppliers();
+      loadSuppliers(false);
     } else {
       console.log('Using suppliers from Zustand store:', orgSuppliers.length);
     }

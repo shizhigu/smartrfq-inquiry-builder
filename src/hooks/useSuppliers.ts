@@ -1,4 +1,3 @@
-
 import { addSupplier, deleteSupplier, getSuppliers } from '@/lib/api/suppliers';
 import { useProjectStore } from '@/stores/projectStore';
 import { Supplier, useSupplierStore } from '@/stores/supplierStore';
@@ -14,24 +13,48 @@ export const useSuppliers = () => {
   const projects = useProjectStore(state => state.projects);
   const selectedProject = projects.find(p => p.id === selectedProjectId);
   
-  const { suppliers, setSuppliers, addSupplier: addSupplierToStore, deleteSupplier: deleteSupplierFromStore } = useSupplierStore();
-  const setLoading = useSupplierStore(state => state.setLoading);
-  const isLoading = useSupplierStore(state => state.isLoading);
+  const { 
+    suppliers, 
+    setSuppliers, 
+    addSupplier: addSupplierToStore, 
+    deleteSupplier: deleteSupplierFromStore,
+    isLoading: storeLoading,
+    setLoading
+  } = useSupplierStore();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingSupplier, setIsAddingSupplier] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Ensure projectSuppliers is always an array, even if undefined
+  const projectSuppliers = selectedProjectId && suppliers[selectedProjectId] 
+    ? suppliers[selectedProjectId] 
+    : [];
 
   // Load suppliers when project changes or organization changes
   useEffect(() => {
     if (selectedProjectId) {
-      loadSuppliers();
+      // Only load if we don't have data in the store for this project
+      if (!suppliers[selectedProjectId] || suppliers[selectedProjectId].length === 0) {
+        loadSuppliers();
+      } else {
+        console.log(`Using ${suppliers[selectedProjectId].length} suppliers from Zustand store for project ${selectedProjectId}`);
+      }
     }
-  }, [selectedProjectId, organization?.id]); // Added organization?.id dependency
+  }, [selectedProjectId, organization?.id]); 
 
-  const loadSuppliers = async () => {
+  const loadSuppliers = async (forceRefresh = false) => {
     if (!selectedProjectId) return;
     
+    // Skip if we already have data and no refresh is requested
+    if (!forceRefresh && suppliers[selectedProjectId] && suppliers[selectedProjectId].length > 0) {
+      console.log(`Using cached suppliers for project ${selectedProjectId}`);
+      return;
+    }
+    
     setLoading(true);
+    setIsRefreshing(forceRefresh);
+    
     try {
       // Get authentication token with organization context
       const token = await getToken({
@@ -55,13 +78,9 @@ export const useSuppliers = () => {
       }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
-
-  // Ensure projectSuppliers is always an array, even if undefined
-  const projectSuppliers = selectedProjectId && suppliers[selectedProjectId] 
-    ? suppliers[selectedProjectId] 
-    : [];
 
   const handleAddSupplier = async (newSupplierData: {
     name: string;
@@ -133,7 +152,8 @@ export const useSuppliers = () => {
   };
 
   return {
-    isLoading,
+    isLoading: storeLoading,
+    isRefreshing,
     projectSuppliers,
     searchQuery,
     setSearchQuery,
@@ -143,6 +163,7 @@ export const useSuppliers = () => {
     handleDeleteSupplier,
     selectedProject,
     selectedProjectId,
-    currentOrgId: organization?.id
+    currentOrgId: organization?.id,
+    refreshSuppliers: () => loadSuppliers(true)
   };
 };

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Search } from 'lucide-react';
+import { UserPlus, Search, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { SupplierForm } from '@/components/suppliers/SupplierForm';
 import { SupplierList } from '@/components/suppliers/SupplierList';
@@ -11,6 +11,7 @@ import { useSuppliers } from '@/hooks/useSuppliers';
 const Suppliers = () => {
   const {
     isLoading,
+    isRefreshing,
     projectSuppliers,
     searchQuery,
     setSearchQuery,
@@ -19,7 +20,8 @@ const Suppliers = () => {
     handleAddSupplier,
     handleDeleteSupplier,
     selectedProject,
-    selectedProjectId
+    selectedProjectId,
+    refreshSuppliers
   } = useSuppliers();
 
   if (!selectedProjectId) {
@@ -43,10 +45,21 @@ const Suppliers = () => {
         title="Suppliers"
         description={`Manage suppliers for ${selectedProject?.name || 'current project'}`}
       >
-        <Button onClick={() => setIsAddingSupplier(true)} disabled={isLoading}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Add Supplier
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={refreshSuppliers} 
+            disabled={isLoading}
+            className={isRefreshing ? "animate-spin" : ""}
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          <Button onClick={() => setIsAddingSupplier(true)} disabled={isLoading}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add Supplier
+          </Button>
+        </div>
       </PageHeader>
 
       <div className="mt-6 flex items-center space-x-2">
