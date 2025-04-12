@@ -29,18 +29,19 @@ export interface Email {
   to?: EmailSender;
 }
 
-// 模拟邮件数据
+// Mock email data
 const mockEmailsForConversation: Record<string, Email[]> = {
   'conv1': [
     {
       id: 'email1',
+      project_id: 'project_1',
       conversation_id: 'conv1',
       subject: 'RFQ for Project Components',
       content: 'Hello, I would like to request a quote for the following items...',
       from: { id: 'user', name: 'Me', email: 'me@company.com' },
       to: { id: '1', name: 'Acme Supplies', email: 'sales@acme.com' },
-      timestamp: new Date('2025-04-05T14:30:00').toISOString(),
-      read: true,
+      sent_at: new Date('2025-04-05T14:30:00').toISOString(),
+      status: 'sent',
       attachments: [
         {
           id: 'att1',
@@ -60,13 +61,14 @@ const mockEmailsForConversation: Record<string, Email[]> = {
     },
     {
       id: 'email2',
+      project_id: 'project_1',
       conversation_id: 'conv1',
       subject: 'RE: RFQ for Project Components',
       content: 'Thank you for your inquiry. We can provide the following quotes...',
       from: { id: '1', name: 'Acme Supplies', email: 'sales@acme.com' },
       to: { id: 'user', name: 'Me', email: 'me@company.com' },
-      timestamp: new Date('2025-04-06T09:45:00').toISOString(),
-      read: true,
+      sent_at: new Date('2025-04-06T09:45:00').toISOString(),
+      status: 'sent',
       attachments: [
         {
           id: 'att3',
@@ -79,24 +81,26 @@ const mockEmailsForConversation: Record<string, Email[]> = {
     },
     {
       id: 'email3',
+      project_id: 'project_1',
       conversation_id: 'conv1',
       subject: 'RE: RFQ for Project Components',
       content: 'Thank you for the quote. I have a few questions about the specifications...',
       from: { id: 'user', name: 'Me', email: 'me@company.com' },
       to: { id: '1', name: 'Acme Supplies', email: 'sales@acme.com' },
-      timestamp: new Date('2025-04-07T11:20:00').toISOString(),
-      read: true,
+      sent_at: new Date('2025-04-07T11:20:00').toISOString(),
+      status: 'sent',
       attachments: []
     },
     {
       id: 'email4',
+      project_id: 'project_1',
       conversation_id: 'conv1',
       subject: 'RE: RFQ for Project Components',
       content: 'Here are the answers to your questions about the specifications. Please let me know if you need any further clarification...',
       from: { id: '1', name: 'Acme Supplies', email: 'sales@acme.com' },
       to: { id: 'user', name: 'Me', email: 'me@company.com' },
-      timestamp: new Date('2025-04-09T14:30:00').toISOString(),
-      read: false,
+      sent_at: new Date('2025-04-09T14:30:00').toISOString(),
+      status: 'unread',
       attachments: [
         {
           id: 'att4',
@@ -111,24 +115,26 @@ const mockEmailsForConversation: Record<string, Email[]> = {
   'conv2': [
     {
       id: 'email5',
+      project_id: 'project_2',
       conversation_id: 'conv2',
       subject: 'Quote Request for Custom Parts',
       content: 'We are looking for custom parts with the following specifications...',
       from: { id: 'user', name: 'Me', email: 'me@company.com' },
       to: { id: '2', name: 'XYZ Manufacturing', email: 'info@xyzmanufacturing.com' },
-      timestamp: new Date('2025-04-08T08:15:00').toISOString(),
-      read: true,
+      sent_at: new Date('2025-04-08T08:15:00').toISOString(),
+      status: 'sent',
       attachments: []
     },
     {
       id: 'email6',
+      project_id: 'project_2',
       conversation_id: 'conv2',
       subject: 'RE: Quote Request for Custom Parts',
       content: 'We have reviewed your request and would like to discuss the specifications further...',
       from: { id: '2', name: 'XYZ Manufacturing', email: 'info@xyzmanufacturing.com' },
       to: { id: 'user', name: 'Me', email: 'me@company.com' },
-      timestamp: new Date('2025-04-08T09:15:00').toISOString(),
-      read: true,
+      sent_at: new Date('2025-04-08T09:15:00').toISOString(),
+      status: 'sent',
       attachments: []
     }
   ]
@@ -153,14 +159,7 @@ export async function getEmailsForConversation(
       throw new Error('No emails found for this conversation');
     }
     
-    // Adapt mock data to the new schema
-    return emails.map(email => ({
-      ...email,
-      project_id: email.from?.id === 'user' ? 'project_1' : 'project_2',
-      to_email: email.to?.email || '',
-      sent_at: email.timestamp,
-      status: 'sent'
-    }));
+    return emails;
   }
   
   // 实际 API 调用
