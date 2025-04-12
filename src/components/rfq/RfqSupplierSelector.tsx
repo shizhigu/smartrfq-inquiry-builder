@@ -79,10 +79,8 @@ export function RfqSupplierSelector({
           width: "var(--radix-popover-trigger-width)",
           position: 'absolute',
           marginTop: '1px',
-          backgroundColor: "white", // Ensure background is visible
+          backgroundColor: "white",
         }}
-        onEscapeKeyDown={() => setOpen(false)}
-        onInteractOutside={() => setOpen(false)}
       >
         <Command className="rounded-md border shadow-md">
           <CommandInput
