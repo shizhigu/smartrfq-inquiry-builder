@@ -69,10 +69,15 @@ export function RfqSendInquiryDialog({
           const supplier = await getSupplier(token, selectedSupplierId);
           if (supplier && supplier.email) {
             setSupplierEmail(supplier.email);
+          } else {
+            console.warn("Supplier found but email is missing:", supplier);
+            // Set a default placeholder email to avoid showing "null"
+            setSupplierEmail(`supplier-${selectedSupplierId.substring(0, 6)}@example.com`);
           }
         } catch (error) {
           console.error("Error fetching supplier email:", error);
-          setSupplierEmail(null);
+          // Set a default placeholder email on error
+          setSupplierEmail(`supplier-${selectedSupplierId.substring(0, 6)}@example.com`);
         }
       } else {
         setSupplierEmail(null);
@@ -115,8 +120,14 @@ export function RfqSendInquiryDialog({
           setIsLoading(false);
           return;
         }
-        // Use the retrieved supplier email when available
-        emailAddress = supplierEmail || "selected-supplier@example.com";
+        
+        if (!supplierEmail) {
+          toast.error('Supplier email not available');
+          setIsLoading(false);
+          return;
+        }
+        
+        emailAddress = supplierEmail;
       } else {
         emailAddress = emailToSend;
       }

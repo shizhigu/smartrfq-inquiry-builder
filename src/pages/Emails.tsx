@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useEmails, ConversationWithSupplier } from '@/hooks/useEmails';
 import { useProjectStore } from '@/stores/projectStore';
@@ -110,6 +109,33 @@ const Emails = () => {
     }
   };
 
+  const renderSupplierInfo = (conversation: ConversationWithSupplier) => {
+    if (conversation.supplierName && conversation.supplierName !== "Unknown Supplier") {
+      return (
+        <div className="text-sm text-muted-foreground">
+          <span className="font-medium">{conversation.supplierName}</span>
+          {conversation.supplierEmail && conversation.supplierEmail !== "No email available" && (
+            <span className="ml-1">({conversation.supplierEmail})</span>
+          )}
+        </div>
+      );
+    }
+    
+    if (conversation.supplierId) {
+      return (
+        <div className="text-sm text-muted-foreground">
+          <span className="font-medium">Supplier ID: {conversation.supplierId.substring(0, 8)}</span>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="text-sm text-muted-foreground">
+        <span className="italic">No supplier information</span>
+      </div>
+    );
+  };
+
   if (!selectedProjectId) {
     return (
       <div className="p-6">
@@ -183,9 +209,9 @@ const Emails = () => {
             </div>
           }
           description={
-            selectedConversation.supplierName 
-              ? `${selectedConversation.supplierName} (${selectedConversation.supplierEmail || 'No email'})`
-              : `Conversation with supplier ID: ${selectedConversation.supplierId}`
+            selectedConversation.supplierName && selectedConversation.supplierName !== "Unknown Supplier"
+              ? `${selectedConversation.supplierName} ${selectedConversation.supplierEmail ? `(${selectedConversation.supplierEmail})` : ''}`
+              : `Supplier ID: ${selectedConversation.supplierId?.substring(0, 8) || 'Unknown'}`
           }
         >
           <div className="flex items-center gap-2">
@@ -273,11 +299,7 @@ const Emails = () => {
                               {conversation.status && getStatusBadge(conversation.status)}
                             </div>
                             
-                            <div className="text-sm text-muted-foreground">
-                              {conversation.supplierName 
-                                ? `${conversation.supplierName} (${conversation.supplierEmail || 'No email'})`
-                                : `Supplier ID: ${conversation.supplierId}`}
-                            </div>
+                            {renderSupplierInfo(conversation)}
                             
                             {conversation.created_at && (
                               <div className="flex items-center text-xs text-muted-foreground">

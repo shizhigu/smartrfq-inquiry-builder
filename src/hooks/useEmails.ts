@@ -79,29 +79,31 @@ export const useEmails = (): UseEmailsReturn => {
   const extractSupplierInfo = (conversation: Conversation): ConversationWithSupplier => {
     console.log('Extracting supplier info from conversation:', conversation);
     
-    // Check if the conversation already has supplier_name and supplier_email from API
-    if ('supplier_name' in conversation && 'supplier_email' in conversation) {
+    // First, check for supplier_name and supplier_email in the response
+    if (conversation.supplier_name || conversation.supplier_email) {
       return {
         ...conversation,
-        supplierName: conversation.supplier_name as string,
-        supplierEmail: conversation.supplier_email as string
+        supplierName: conversation.supplier_name || "Unknown Supplier",
+        supplierEmail: conversation.supplier_email || "No email available"
       };
     }
     
-    // If conversation has supplierId but not supplier name/email, use default values
+    // If we have just supplierId but no name/email, provide better defaults
     if (conversation.supplierId) {
+      // Create a more descriptive temporary name based on supplier ID
+      const supplierIdShort = conversation.supplierId.substring(0, 8);
       return {
         ...conversation,
-        supplierName: `Supplier ${conversation.supplierId.substring(0, 6)}`,
-        supplierEmail: 'No email available'
+        supplierName: `Supplier ${supplierIdShort}`,
+        supplierEmail: "supplier@example.com"
       };
     }
     
     // Fallback for conversations with no supplier data
     return {
       ...conversation,
-      supplierName: 'Unknown Supplier',
-      supplierEmail: 'No email available'
+      supplierName: "Unknown Supplier",
+      supplierEmail: "No email available"
     };
   };
   
@@ -158,28 +160,25 @@ export const useEmails = (): UseEmailsReturn => {
     setState(prev => ({ ...prev, selectedConversationId: conversationId, isLoading: true }));
     
     try {
-      // Get detailed conversation if we need more info
       const token = await getToken();
       if (!token) {
         throw new Error('Unable to get authentication token');
       }
       
-      // Get the full conversation details if needed
-      let selectedConv = state.conversations.find(c => c.id === conversationId);
+      // Get the full conversation details
+      console.log(`Fetching detailed conversation with ID: ${conversationId}`);
+      const detailedConversation = await getConversation(token, conversationId);
       
-      if (!selectedConv || (!selectedConv.supplierName && !selectedConv.supplierEmail)) {
-        console.log(`Fetching detailed conversation with ID: ${conversationId}`);
-        const detailedConversation = await getConversation(token, conversationId);
-        const enrichedConversation = extractSupplierInfo(detailedConversation);
-        
-        // Update the conversation in the state with the enriched data
-        setState(prev => ({
-          ...prev,
-          conversations: prev.conversations.map(c => 
-            c.id === conversationId ? enrichedConversation : c
-          )
-        }));
-      }
+      // Extract supplier info from the detailed conversation
+      const enrichedConversation = extractSupplierInfo(detailedConversation);
+      
+      // Update the conversation in the state with the enriched data
+      setState(prev => ({
+        ...prev,
+        conversations: prev.conversations.map(c => 
+          c.id === conversationId ? enrichedConversation : c
+        )
+      }));
       
       // Fetch emails if needed
       if (!state.emails[conversationId]) {

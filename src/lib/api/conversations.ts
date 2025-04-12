@@ -50,15 +50,28 @@ export async function getConversations(
       conv => conv.projectId === projectId
     );
     
+    // Add supplier information to mock conversations if missing
+    const enhancedConversations = filteredConversations.map(conv => {
+      if (!conv.supplier_name) {
+        // If supplier name is missing, add some sample data
+        return {
+          ...conv,
+          supplier_name: `Sample Supplier ${conv.supplierId.substring(0, 6)}`,
+          supplier_email: `supplier-${conv.supplierId.substring(0, 6)}@example.com`
+        };
+      }
+      return conv;
+    });
+    
     // 创建分页响应
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    const paginatedItems = filteredConversations.slice(startIndex, endIndex);
-    const totalPages = Math.ceil(filteredConversations.length / pageSize);
+    const paginatedItems = enhancedConversations.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(enhancedConversations.length / pageSize);
     
     return {
       items: paginatedItems,
-      total: filteredConversations.length,
+      total: enhancedConversations.length,
       page,
       page_size: pageSize,
       pages: totalPages
@@ -118,22 +131,22 @@ export async function getConversation(
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 400));
     
-    const conversation = mockConversations.find(conv => conv.id === conversationId);
+    let conversation = mockConversations.find(conv => conv.id === conversationId);
     
     if (!conversation) {
       throw new Error(`Conversation not found with ID: ${conversationId}`);
     }
     
-    // Ensure supplierId is present in the response
-    if (!conversation.supplierId) {
-      console.warn(`Mock conversation ${conversationId} has no supplierId, adding placeholder`);
-      return {
+    // Ensure supplier information is available
+    if (!conversation.supplier_name || !conversation.supplier_email) {
+      // Add sample supplier data if missing
+      conversation = {
         ...conversation,
-        supplierId: `supplier_${conversationId.substring(0, 4)}`
+        supplier_name: `Sample Supplier ${conversation.supplierId.substring(0, 6)}`,
+        supplier_email: `supplier-${conversation.supplierId.substring(0, 6)}@example.com`
       };
     }
     
-    // Return the full conversation details including supplierId
     return conversation;
   }
   
