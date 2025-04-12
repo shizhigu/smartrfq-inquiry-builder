@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +30,11 @@ interface DashboardSummary {
 }
 
 export default function Dashboard() {
+  // Define all state hooks first to maintain consistent order
+  const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
+  
+  // Other hooks
   const navigate = useNavigate();
   const { getToken, userId } = useAuth();
   
@@ -40,9 +44,6 @@ export default function Dashboard() {
   // Use supplier store directly
   const orgSuppliers = useSupplierStore(state => state.suppliers['global'] || []);
   const suppliersLoading = useSupplierStore(state => state.isLoading);
-  
-  const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
-  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   
   // Use the hook to load suppliers, but always force a refresh when dashboard loads
   const { loadSuppliers } = useOrganizationSuppliers();
@@ -62,6 +63,11 @@ export default function Dashboard() {
     isLoading: itemsLoading,
     parts
   } = useProjectRfqItems();
+  
+  // Calculate dashboard stats
+  const totalProjects = projects.length;
+  const activeProjects = projects.filter(p => p.status === 'open').length;
+  const totalParts = getTotalItemCount();
   
   useEffect(() => {
     const syncUserWithBackend = async () => {
@@ -131,10 +137,6 @@ export default function Dashboard() {
       console.log('Dashboard: Projects exist and parts data exists in store, no need to reload');
     }
   }, [projects, loadAllProjectItems, parts]);
-  
-  const totalProjects = projects.length;
-  const activeProjects = projects.filter(p => p.status === 'open').length;
-  const totalParts = getTotalItemCount();
   
   // Log the state for debugging
   useEffect(() => {
