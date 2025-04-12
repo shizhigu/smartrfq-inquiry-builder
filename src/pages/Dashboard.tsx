@@ -13,6 +13,7 @@ import { useAuth } from "@clerk/clerk-react";
 import { toast } from "sonner";
 import { syncUser } from "@/lib/api/users";
 import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
+import { useProjectRfqItems } from "@/hooks/useProjectRfqItems";
 
 // Dashboard summary interface matching backend
 interface DashboardSummary {
@@ -38,8 +39,11 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   
-  // Use the new hook to get supplier data
+  // Use the supplier hook to get supplier data
   const { totalSuppliers, isLoading: isSuppliersLoading } = useOrganizationSuppliers();
+  
+  // Use the new hook to get RFQ items data
+  const { getTotalItemCount, getProjectItemCount, isLoading: isItemsLoading } = useProjectRfqItems();
   
   // Ensure user is synced with the backend when the component mounts
   useEffect(() => {
@@ -91,11 +95,10 @@ export default function Dashboard() {
     loadProjects();
   }, [setCurrentPage, setProjects, getToken, setLoading]);
   
-  // For now, we'll use the projects data to calculate stats
-  // In a real implementation, we would fetch from the dashboard API
+  // Calculate stats from the projects and other data
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'open').length;
-  const totalParts = projects.reduce((sum, project) => sum + (project.parts_count || 0), 0);
+  const totalParts = getTotalItemCount();
   
   // Recent projects are the 3 most recently updated projects
   const recentProjects = [...projects]
@@ -136,7 +139,7 @@ export default function Dashboard() {
             />
             <StatCard
               title="Total Parts"
-              value={totalParts}
+              value={isItemsLoading ? "..." : totalParts}
               icon={FileText}
               trend={totalParts > 0 ? { value: 8, isPositive: true } : undefined}
             />
@@ -169,7 +172,7 @@ export default function Dashboard() {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center">
                           <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
-                          <span>{project.parts_count || 0}</span>
+                          <span>{isItemsLoading ? "..." : getProjectItemCount(project.id)}</span>
                         </div>
                         <div className="flex items-center">
                           <Users className="h-4 w-4 mr-1 text-muted-foreground" />
