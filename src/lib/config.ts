@@ -39,4 +39,3 @@ export function setUseMockData(value: boolean): void {
   // Force page reload to apply the change
   window.location.reload();
 }
-
