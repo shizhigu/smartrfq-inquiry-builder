@@ -162,9 +162,9 @@ export function RfqSendInquiryDialog({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="message">Message (Optional)</Label>
+                <Label htmlFor="message-email">Message (Optional)</Label>
                 <Textarea 
-                  id="message"
+                  id="message-email"
                   placeholder="Additional notes or requirements..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
