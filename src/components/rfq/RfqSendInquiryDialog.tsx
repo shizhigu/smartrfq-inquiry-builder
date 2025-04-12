@@ -10,6 +10,7 @@ import { Supplier, useSupplierStore } from "@/stores/supplierStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { toast } from "sonner";
 import { Mail } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface RfqSendInquiryDialogProps {
   open: boolean;
@@ -29,6 +30,7 @@ export function RfqSendInquiryDialog({
   const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false);
   
   const { suppliers } = useSupplierStore();
+  const navigate = useNavigate();
   const projectName = useProjectStore(state => 
     state.projects.find(p => p.id === projectId)?.name || "Project"
   );
@@ -108,6 +110,11 @@ Best regards,
     onOpenChange(false);
   };
   
+  const handleRedirectToSuppliers = () => {
+    onOpenChange(false);
+    navigate("/dashboard/suppliers");
+  };
+  
   // Handle when there are no suppliers
   if (open && projectSuppliers.length === 0) {
     return (
@@ -123,11 +130,7 @@ Best regards,
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={() => {
-              onOpenChange(false);
-              // In a real app, we would navigate to suppliers page
-              toast.info("You will be redirected to add suppliers");
-            }}>
+            <Button onClick={handleRedirectToSuppliers}>
               Add Suppliers
             </Button>
           </div>

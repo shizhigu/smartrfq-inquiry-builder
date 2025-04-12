@@ -1,172 +1,122 @@
 
-// Base URL from new backend
-const BASE_URL = 'http://35.86.96.56:8003';
-import { ENABLE_MOCKS, mockSuppliers } from '../mock/mockData';
-import { Supplier } from '@/stores/supplierStore';
+import { Supplier } from "@/stores/supplierStore";
+import { ENABLE_MOCKS, mockSuppliers, createPaginatedResponse } from "../mock/mockData";
 
-// Fetch suppliers for a project
-export async function fetchProjectSuppliers(
-  token: string,
-  projectId: string
-): Promise<Supplier[]> {
-  // Use mock data if mocks are enabled
+// Get suppliers for a project
+export const getSuppliers = async (projectId: string, page = 1, pageSize = 20): Promise<Supplier[]> => {
+  console.info("Loading suppliers for project:", projectId);
+  
   if (ENABLE_MOCKS) {
-    console.log('Using mock data for fetchProjectSuppliers');
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 400));
-    return mockSuppliers[projectId] || [];
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+    const suppliers = mockSuppliers[projectId] || [];
+    return suppliers;
   }
   
-  const response = await fetch(`${BASE_URL}/projects/${projectId}/suppliers`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
+  const response = await fetch(`/api/projects/${projectId}/suppliers?page=${page}&pageSize=${pageSize}`);
+  
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error?.message || 'Failed to fetch suppliers');
+    throw new Error(`Failed to fetch suppliers: ${response.statusText}`);
   }
+  
+  const data = await response.json();
+  return data.items;
+};
 
-  return response.json();
-}
-
-// Add a supplier to a project
-export async function addSupplier(
-  token: string,
-  projectId: string,
-  supplierData: Omit<Supplier, 'id'>
-): Promise<Supplier> {
-  // Use mock data if mocks are enabled
+// Add a new supplier
+export const addSupplier = async (supplier: Supplier): Promise<Supplier> => {
+  console.info("Adding supplier:", supplier);
+  
   if (ENABLE_MOCKS) {
-    console.log('Using mock data for addSupplier');
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
     
-    const newSupplier: Supplier = {
-      ...supplierData,
-      id: `sup_${Date.now()}`,
-      projectId: projectId
-    };
-    
-    if (!mockSuppliers[projectId]) {
-      mockSuppliers[projectId] = [];
+    // In a real implementation, we would update the backend
+    // For now, just return the supplier as if it was saved
+    if (!mockSuppliers[supplier.projectId!]) {
+      mockSuppliers[supplier.projectId!] = [];
     }
     
-    mockSuppliers[projectId].push(newSupplier);
-    
-    return newSupplier;
+    mockSuppliers[supplier.projectId!].push(supplier);
+    return supplier;
   }
   
-  const response = await fetch(`${BASE_URL}/projects/${projectId}/suppliers`, {
+  const response = await fetch('/api/suppliers', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify(supplierData),
+    body: JSON.stringify(supplier),
   });
-
+  
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error?.message || 'Failed to add supplier');
+    throw new Error(`Failed to add supplier: ${response.statusText}`);
   }
-
+  
   return response.json();
-}
+};
 
-// Update a supplier
-export async function updateSupplier(
-  token: string,
-  supplierId: string,
-  supplierData: Partial<Omit<Supplier, 'id'>>
-): Promise<Supplier> {
-  // Use mock data if mocks are enabled
+// Update an existing supplier
+export const updateSupplier = async (id: string, data: Partial<Supplier>): Promise<Supplier> => {
+  console.info("Updating supplier:", id, data);
+  
   if (ENABLE_MOCKS) {
-    console.log('Using mock data for updateSupplier');
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
     
     // Find the supplier in our mock data
     let updatedSupplier: Supplier | null = null;
     
     Object.keys(mockSuppliers).forEach(projectId => {
-      const index = mockSuppliers[projectId].findIndex(s => s.id === supplierId);
+      const index = mockSuppliers[projectId].findIndex(s => s.id === id);
       if (index !== -1) {
         mockSuppliers[projectId][index] = {
           ...mockSuppliers[projectId][index],
-          ...supplierData
+          ...data
         };
         updatedSupplier = mockSuppliers[projectId][index];
       }
     });
     
     if (!updatedSupplier) {
-      throw new Error('Supplier not found');
+      throw new Error(`Supplier with ID ${id} not found`);
     }
     
     return updatedSupplier;
   }
   
-  const response = await fetch(`${BASE_URL}/suppliers/${supplierId}`, {
+  const response = await fetch(`/api/suppliers/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify(supplierData),
+    body: JSON.stringify(data),
   });
-
+  
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error?.message || 'Failed to update supplier');
-  }
-
-  return response.json();
-}
-
-// Delete a supplier
-export async function deleteSupplier(
-  token: string,
-  supplierId: string
-): Promise<boolean> {
-  // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
-    console.log('Using mock data for deleteSupplier');
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 600));
-    
-    // Find and remove the supplier in our mock data
-    let found = false;
-    
-    Object.keys(mockSuppliers).forEach(projectId => {
-      const index = mockSuppliers[projectId].findIndex(s => s.id === supplierId);
-      if (index !== -1) {
-        mockSuppliers[projectId].splice(index, 1);
-        found = true;
-      }
-    });
-    
-    if (!found) {
-      throw new Error('Supplier not found');
-    }
-    
-    return true;
+    throw new Error(`Failed to update supplier: ${response.statusText}`);
   }
   
-  const response = await fetch(`${BASE_URL}/suppliers/${supplierId}`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  });
+  return response.json();
+};
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error?.message || 'Failed to delete supplier');
+// Delete a supplier
+export const deleteSupplier = async (id: string): Promise<void> => {
+  console.info("Deleting supplier:", id);
+  
+  if (ENABLE_MOCKS) {
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+    
+    // Remove the supplier from our mock data
+    Object.keys(mockSuppliers).forEach(projectId => {
+      mockSuppliers[projectId] = mockSuppliers[projectId].filter(s => s.id !== id);
+    });
+    
+    return;
   }
-
-  return true;
-}
+  
+  const response = await fetch(`/api/suppliers/${id}`, {
+    method: 'DELETE',
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to delete supplier: ${response.statusText}`);
+  }
+};
