@@ -1,4 +1,3 @@
-
 import { RfqFile, RfqPart } from '../api/rfq';
 import { Supplier } from '@/stores/supplierStore';
 import { Project } from '@/stores/projectStore';
