@@ -1,5 +1,7 @@
+
 import { API_CONFIG, useMockData } from '../config';
 import { mockConversations } from '../mock/mockData';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface Conversation {
   id: string;
@@ -36,10 +38,11 @@ export async function getConversations(
 ): Promise<ConversationResponse> {
   // 使用模拟数据（如果启用）
   if (useMockData()) {
-    console.log('Using mock data for getConversations');
+    console.log('Using mock data for getConversations with projectId:', projectId);
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 600));
     
+    // For mock data, it's okay to use non-UUID project IDs like "project_2"
     // 按照项目ID过滤会话
     const filteredConversations = mockConversations.filter(
       conv => conv.projectId === projectId
@@ -60,7 +63,22 @@ export async function getConversations(
     };
   }
   
-  // 实际 API 调用
+  // 实际 API 调用 - validate UUID format for real API calls
+  // Check if projectId is a valid UUID before making the API call
+  const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(projectId);
+  
+  if (!isValidUUID) {
+    console.error('Invalid project ID format for API call:', projectId);
+    // Return empty response instead of making invalid API call
+    return {
+      items: [],
+      total: 0,
+      page,
+      page_size: pageSize,
+      pages: 0
+    };
+  }
+  
   const url = new URL(`${API_CONFIG.BASE_URL}/conversations`);
   
   // 添加查询参数

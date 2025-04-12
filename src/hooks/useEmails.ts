@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { useProjectStore } from '@/stores/projectStore';
 import { useAuth, useOrganization } from '@clerk/clerk-react';
 import { toast } from 'sonner';
@@ -29,6 +30,7 @@ interface EmailsState {
   page: number;
   pageSize: number;
   totalPages: number;
+  isRequestPending: boolean; // Add flag to prevent duplicate requests
 }
 
 // Hook 返回类型
@@ -76,17 +78,21 @@ export const useEmails = (): UseEmailsReturn => {
     totalConversations: 0,
     page: 1,
     pageSize: 20,
-    totalPages: 0
+    totalPages: 0,
+    isRequestPending: false // Initialize the request pending flag
   });
   
   // 获取会话列表
-  const fetchConversations = async (page: number = 1) => {
-    if (!selectedProjectId) {
-      setState(prev => ({ ...prev, error: 'No project selected' }));
+  const fetchConversations = useCallback(async (page: number = 1) => {
+    // Validate project ID and prevent duplicate requests
+    if (!selectedProjectId || state.isRequestPending) {
+      if (!selectedProjectId) {
+        setState(prev => ({ ...prev, error: 'No project selected', isLoading: false }));
+      }
       return;
     }
     
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setState(prev => ({ ...prev, isLoading: true, error: null, isRequestPending: true }));
     
     try {
       const token = await getToken();
@@ -103,18 +109,20 @@ export const useEmails = (): UseEmailsReturn => {
         page: response.page,
         pageSize: response.page_size,
         totalPages: response.pages,
-        isLoading: false
+        isLoading: false,
+        isRequestPending: false
       }));
     } catch (error) {
       console.error('Failed to fetch conversations:', error);
       setState(prev => ({ 
         ...prev, 
         error: error instanceof Error ? error.message : 'Failed to fetch conversations',
-        isLoading: false 
+        isLoading: false,
+        isRequestPending: false
       }));
       toast.error('Failed to fetch conversations');
     }
-  };
+  }, [getToken, selectedProjectId, state.pageSize, state.isRequestPending]);
   
   // 选择特定会话
   const selectConversation = async (conversationId: string) => {
@@ -351,7 +359,9 @@ export const useEmails = (): UseEmailsReturn => {
   
   // 当项目变更时，获取会话列表
   useEffect(() => {
+    // Check if there's a valid project ID before fetching
     if (selectedProjectId) {
+      // Use the memoized fetch function to avoid stale closures
       fetchConversations();
     } else {
       // 如果没有选择项目，清空状态
@@ -364,10 +374,13 @@ export const useEmails = (): UseEmailsReturn => {
         totalConversations: 0,
         page: 1,
         pageSize: 20,
-        totalPages: 0
+        totalPages: 0,
+        isRequestPending: false
       });
     }
-  }, [selectedProjectId]);
+    
+    // Add fetchConversations to dependencies to ensure it's always up to date
+  }, [selectedProjectId, fetchConversations]);
   
   // 找到选中的会话
   const selectedConversation = state.selectedConversationId

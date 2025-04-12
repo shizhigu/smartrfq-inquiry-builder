@@ -1,6 +1,7 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useEmails } from '@/hooks/useEmails';
+import { useProjectStore } from '@/stores/projectStore';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { 
@@ -12,7 +13,8 @@ import {
   Clock,
   ChevronRight,
   Building,
-  Tag
+  Tag,
+  AlertCircle
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { 
@@ -27,8 +29,8 @@ import { toast } from 'sonner';
 import { format, isValid, parseISO } from 'date-fns';
 import { EmailConversation } from '@/components/emails/EmailConversation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Emails = () => {
   const {
@@ -52,6 +54,7 @@ const Emails = () => {
     clearSelectedConversation
   } = useEmails();
 
+  const { selectedProjectId, projects } = useProjectStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   
@@ -119,10 +122,31 @@ const Emails = () => {
     }
   };
 
-  // Fetch conversations when the component mounts
+  // Show project selection message if no project is selected
+  if (!selectedProjectId) {
+    return (
+      <div className="p-6">
+        <PageHeader 
+          title="Emails" 
+          description="Manage email communications for your project"
+        />
+        <Alert className="mt-6" variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>No project selected</AlertTitle>
+          <AlertDescription>
+            Please select a project from the projects page to view its email communications.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Fetch conversations when the component mounts or when project changes
   useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
+    if (selectedProjectId) {
+      fetchConversations();
+    }
+  }, [selectedProjectId, fetchConversations]);
 
   if (isLoading && !conversations.length) {
     return (
@@ -145,10 +169,11 @@ const Emails = () => {
           title="Emails" 
           description="Manage your email communications"
         />
-        <div className="mt-8 text-center p-6 bg-destructive/10 rounded-lg">
-          <h3 className="text-lg font-medium text-destructive">Error Loading Emails</h3>
-          <p className="mt-2">{error}</p>
-        </div>
+        <Alert className="mt-6" variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error Loading Emails</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       </div>
     );
   }
