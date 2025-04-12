@@ -13,7 +13,7 @@ export interface MockConversation {
   supplierId: string;
   subject: string;
   lastMessagePreview: string;
-  lastMessageDate: Date;
+  lastMessageDate: string; // Changed from Date to string for consistency
   unreadCount: number;
   messageCount: number;
 }
@@ -26,7 +26,7 @@ export const mockConversations: MockConversation[] = [
     supplierId: 'supplier_1',
     subject: 'RFQ for Project Components',
     lastMessagePreview: 'Thank you for your inquiry. We can provide the following quotes...',
-    lastMessageDate: new Date('2025-04-09T14:30:00'),
+    lastMessageDate: new Date('2025-04-09T14:30:00').toISOString(), // Convert to ISO string
     unreadCount: 2,
     messageCount: 4
   },
@@ -36,7 +36,7 @@ export const mockConversations: MockConversation[] = [
     supplierId: 'supplier_2',
     subject: 'Quote Request for Custom Parts',
     lastMessagePreview: 'We have reviewed your request and would like to discuss the specifications further...',
-    lastMessageDate: new Date('2025-04-08T09:15:00'),
+    lastMessageDate: new Date('2025-04-08T09:15:00').toISOString(), // Convert to ISO string
     unreadCount: 0,
     messageCount: 3
   },
@@ -46,7 +46,7 @@ export const mockConversations: MockConversation[] = [
     supplierId: 'supplier_4',
     subject: 'Follow-up on Manufacturing Timeline',
     lastMessagePreview: 'Based on your requirements, we can deliver the components by the end of next month...',
-    lastMessageDate: new Date('2025-04-07T17:22:00'),
+    lastMessageDate: new Date('2025-04-07T17:22:00').toISOString(), // Convert to ISO string
     unreadCount: 1,
     messageCount: 5
   },

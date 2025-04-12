@@ -22,7 +22,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 import { EmailConversation } from '@/components/emails/EmailConversation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useEffect } from 'react';
@@ -78,6 +78,24 @@ const Emails = () => {
   
   const handleBackToList = () => {
     clearSelectedConversation();
+  };
+
+  // Safely format a date string, with a fallback for invalid dates
+  const safeFormatDate = (dateString: string, formatStr: string): string => {
+    try {
+      // Try to parse the ISO string
+      const date = parseISO(dateString);
+      
+      // Check if the date is valid
+      if (isValid(date)) {
+        return format(date, formatStr);
+      }
+      // If not valid, fallback to a default
+      return 'Invalid date';
+    } catch (err) {
+      console.error('Error formatting date:', err, dateString);
+      return 'Invalid date';
+    }
   };
 
   // Fetch conversations when the component mounts
@@ -142,7 +160,7 @@ const Emails = () => {
         </PageHeader>
         
         <div className="mt-6">
-          <EmailConversation emails={emails} />
+          <EmailConversation emails={emails} onDownloadAttachment={downloadEmailAttachment} />
         </div>
       </div>
     );
@@ -227,11 +245,15 @@ const Emails = () => {
                           <TableCell>
                             <div className="flex items-center space-x-1 text-muted-foreground">
                               <Calendar className="h-3 w-3" />
-                              <span className="text-xs">{format(new Date(conversation.lastMessageDate), 'MMM d, yyyy')}</span>
+                              <span className="text-xs">
+                                {safeFormatDate(conversation.lastMessageDate, 'MMM d, yyyy')}
+                              </span>
                             </div>
                             <div className="flex items-center space-x-1 text-muted-foreground mt-1">
                               <Clock className="h-3 w-3" />
-                              <span className="text-xs">{format(new Date(conversation.lastMessageDate), 'h:mm a')}</span>
+                              <span className="text-xs">
+                                {safeFormatDate(conversation.lastMessageDate, 'h:mm a')}
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -314,7 +336,7 @@ const Emails = () => {
                           </TableCell>
                           <TableCell>
                             <div className="text-xs text-muted-foreground">
-                              {format(new Date(conversation.lastMessageDate), 'MMM d, yyyy • h:mm a')}
+                              {safeFormatDate(conversation.lastMessageDate, 'MMM d, yyyy • h:mm a')}
                             </div>
                           </TableCell>
                           <TableCell>

@@ -1,4 +1,3 @@
-
 import { API_CONFIG, useMockData } from '../config';
 import { mockConversations } from '../mock/mockData';
 
@@ -50,10 +49,7 @@ export async function getConversations(
     const totalPages = Math.ceil(filteredConversations.length / pageSize);
     
     return {
-      items: paginatedItems.map(conv => ({
-        ...conv,
-        lastMessageDate: conv.lastMessageDate.toISOString()
-      })),
+      items: paginatedItems,
       total: filteredConversations.length,
       page,
       page_size: pageSize,
