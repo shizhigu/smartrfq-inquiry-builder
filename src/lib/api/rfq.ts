@@ -1,6 +1,5 @@
-
-// Base URL from new backend
-const BASE_URL = 'http://35.86.96.56:8003';
+// Import from configuration instead of hardcoding
+import { API_CONFIG } from '../config';
 import { ENABLE_MOCKS, mockRfqParts, mockRfqFiles } from '../mock/mockData';
 
 export interface RfqPart {
@@ -51,7 +50,7 @@ export async function fetchRfqParts(
     return mockRfqParts[projectId] || [];
   }
   
-  const response = await fetch(`${BASE_URL}/organizations/${organizationId}/projects/${projectId}/parts`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/organizations/${organizationId}/projects/${projectId}/parts`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -80,7 +79,7 @@ export async function fetchRfqFiles(
     return mockRfqFiles[projectId] || [];
   }
   
-  const response = await fetch(`${BASE_URL}/organizations/${organizationId}/projects/${projectId}/files`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/organizations/${organizationId}/projects/${projectId}/files`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -124,7 +123,7 @@ export async function addRfqPart(
     return newPart;
   }
   
-  const response = await fetch(`${BASE_URL}/organizations/${organizationId}/projects/${projectId}/parts`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/organizations/${organizationId}/projects/${projectId}/parts`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -161,7 +160,7 @@ export async function deleteRfqParts(
     return;
   }
   
-  const response = await fetch(`${BASE_URL}/organizations/${organizationId}/projects/${projectId}/parts/batch-delete`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/organizations/${organizationId}/projects/${projectId}/parts/batch-delete`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -192,7 +191,7 @@ export async function sendRfqInquiry(
     return;
   }
   
-  const response = await fetch(`${BASE_URL}/organizations/${organizationId}/projects/${projectId}/inquiries`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/organizations/${organizationId}/projects/${projectId}/inquiries`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

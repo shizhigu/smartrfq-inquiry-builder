@@ -1,9 +1,10 @@
-
 import { RfqFile, RfqPart } from '../api/rfq';
 import { Supplier } from '@/stores/supplierStore';
 import { Project } from '@/stores/projectStore';
+import { useMockData } from '../config';
 
-export const ENABLE_MOCKS = true;
+// Use the config to determine whether to enable mocks
+export const ENABLE_MOCKS = useMockData();
 
 // Mock users data
 export const mockUsers = [

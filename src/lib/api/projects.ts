@@ -1,6 +1,5 @@
-
-// Base URL from new backend
-const BASE_URL = 'http://35.86.96.56:8003';
+// Import from configuration instead of hardcoding
+import { API_CONFIG } from '../config';
 
 import { Project } from "@/stores/projectStore";
 import { ENABLE_MOCKS, mockProjects, createPaginatedResponse } from '../mock/mockData';
@@ -21,7 +20,7 @@ export async function fetchProjects(token: string, page = 1, pageSize = 20): Pro
     return createPaginatedResponse(mockProjects, page, pageSize);
   }
   
-  const response = await fetch(`${BASE_URL}/projects?page=${page}&page_size=${pageSize}`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects?page=${page}&page_size=${pageSize}`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -52,7 +51,7 @@ export async function fetchProject(token: string, projectId: string): Promise<Pr
     return project as Project;
   }
   
-  const response = await fetch(`${BASE_URL}/projects/${projectId}`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -95,7 +94,7 @@ export async function createProject(
     return newProject;
   }
   
-  const response = await fetch(`${BASE_URL}/projects`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -140,7 +139,7 @@ export async function updateProject(
     return updatedProject;
   }
   
-  const response = await fetch(`${BASE_URL}/projects/${projectId}`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -179,7 +178,7 @@ export async function deleteProject(
     return true;
   }
   
-  const response = await fetch(`${BASE_URL}/projects/${projectId}`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

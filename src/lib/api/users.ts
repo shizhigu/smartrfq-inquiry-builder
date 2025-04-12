@@ -1,6 +1,5 @@
-
 // Base URL from new backend
-const BASE_URL = 'http://35.86.96.56:8003';
+import { API_CONFIG, useMockData } from '../config';
 import { ENABLE_MOCKS, mockUsers } from '../mock/mockData';
 
 export interface User {
@@ -23,7 +22,7 @@ export async function fetchCurrentUser(token: string): Promise<User> {
     return mockUsers[0];
   }
   
-  const response = await fetch(`${BASE_URL}/me`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/me`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -48,7 +47,7 @@ export async function syncUser(token: string): Promise<User> {
     return mockUsers[0];
   }
   
-  const response = await fetch(`${BASE_URL}/sync-user`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/sync-user`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -81,7 +80,7 @@ export async function updateUserProfile(
     return updatedUser;
   }
   
-  const response = await fetch(`${BASE_URL}/me`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/me`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',

@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { ApiModeToggle } from "@/components/debug/ApiModeToggle";
 
 const monthlyRfqData = [
   { name: "Jan", count: 12 },
@@ -76,10 +77,13 @@ export default function Reports() {
           ? `Insights and analytics for ${selectedProject.name}` 
           : "View insights across your projects"}
       >
-        <Button onClick={handleExportReport}>
-          <Download className="h-4 w-4 mr-2" />
-          Export Report
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <ApiModeToggle />
+          <Button onClick={handleExportReport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export Report
+          </Button>
+        </div>
       </PageHeader>
 
       <Alert variant="destructive" className="mb-6">
