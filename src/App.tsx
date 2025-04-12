@@ -37,7 +37,8 @@ function UserSync({ children }: { children: React.ReactNode }) {
   // Reset and refetch queries when organization changes
   useEffect(() => {
     if (orgId) {
-      console.log('Organization changed in UserSync, refreshing queries');
+      console.log('Organization changed in UserSync component, refreshing all queries');
+      // Invalidate and refetch all queries to ensure data is up-to-date for the new org
       queryClient.invalidateQueries();
     }
   }, [orgId]);

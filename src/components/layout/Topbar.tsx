@@ -26,7 +26,7 @@ export function Topbar() {
   
   // Log organization changes
   useEffect(() => {
-    console.log('Organization changed:', orgId);
+    console.log('Organization changed in Topbar:', orgId);
   }, [orgId]);
   
   return (
@@ -46,7 +46,7 @@ export function Topbar() {
       
       <div className="flex items-center space-x-3">
         <OrganizationSwitcher 
-          hidePersonal
+          hidePersonal={false}
           appearance={{
             elements: {
               rootBox: "h-9",

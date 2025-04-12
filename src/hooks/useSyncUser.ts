@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { syncUser, fetchCurrentUser } from '@/lib/api/users';
@@ -30,9 +29,9 @@ export function useSyncUser() {
           // Otherwise, sync the Clerk user with the backend
           let user;
           if (currentUser) {
-            user = await fetchCurrentUser(token, mockOrgId);
+            user = await fetchCurrentUser(token);
           } else {
-            user = await syncUser(token, mockOrgId);
+            user = await syncUser(token);
           }
           
           setCurrentUser(user);
@@ -53,19 +52,25 @@ export function useSyncUser() {
       try {
         setLoading(true);
         
-        const token = await getToken();
+        // Get token with organization scope to include org information
+        const token = await getToken({ 
+          template: "org_membership"  // This template includes organization membership info
+        });
+        
         if (!token) {
           toast.error('Authentication error');
           return;
         }
         
+        console.log('Using token with org membership data, current org:', orgId);
+        
         // If we already have a user in the store, just fetch their profile
         // Otherwise, sync the Clerk user with the backend
         let user;
         if (currentUser) {
-          user = await fetchCurrentUser(token, orgId || undefined);
+          user = await fetchCurrentUser(token);
         } else {
-          user = await syncUser(token, orgId || undefined);
+          user = await syncUser(token);
         }
         
         setCurrentUser(user);

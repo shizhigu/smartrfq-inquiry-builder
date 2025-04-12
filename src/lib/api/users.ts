@@ -14,7 +14,7 @@ export interface User {
 }
 
 // Get current user profile
-export async function fetchCurrentUser(token: string, organizationId?: string): Promise<User> {
+export async function fetchCurrentUser(token: string): Promise<User> {
   // Use mock data if mocks are enabled
   if (useMockData()) {
     console.log('Using mock data for fetchCurrentUser');
@@ -27,11 +27,6 @@ export async function fetchCurrentUser(token: string, organizationId?: string): 
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
   };
-  
-  // Add organization ID to headers if available
-  if (organizationId) {
-    headers['X-Organization-ID'] = organizationId;
-  }
   
   const response = await fetch(`${API_CONFIG.BASE_URL}/me`, {
     headers,
@@ -46,7 +41,7 @@ export async function fetchCurrentUser(token: string, organizationId?: string): 
 }
 
 // Sync Clerk user with backend
-export async function syncUser(token: string, organizationId?: string): Promise<User> {
+export async function syncUser(token: string): Promise<User> {
   // Use mock data if mocks are enabled
   if (useMockData()) {
     console.log('Using mock data for syncUser');
@@ -59,11 +54,6 @@ export async function syncUser(token: string, organizationId?: string): Promise<
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
   };
-  
-  // Add organization ID to headers if available
-  if (organizationId) {
-    headers['X-Organization-ID'] = organizationId;
-  }
   
   const response = await fetch(`${API_CONFIG.BASE_URL}/sync-user`, {
     method: 'POST',
@@ -81,8 +71,7 @@ export async function syncUser(token: string, organizationId?: string): Promise<
 // Update user profile
 export async function updateUserProfile(
   token: string, 
-  userData: { name?: string; avatar_url?: string },
-  organizationId?: string
+  userData: { name?: string; avatar_url?: string }
 ): Promise<User> {
   // Use mock data if mocks are enabled
   if (useMockData()) {
@@ -100,11 +89,6 @@ export async function updateUserProfile(
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
   };
-  
-  // Add organization ID to headers if available
-  if (organizationId) {
-    headers['X-Organization-ID'] = organizationId;
-  }
   
   const response = await fetch(`${API_CONFIG.BASE_URL}/me`, {
     method: 'PATCH',

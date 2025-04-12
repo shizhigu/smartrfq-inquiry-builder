@@ -23,13 +23,18 @@ export default function Projects() {
       if (!userId) return;
       
       try {
-        const token = await getToken();
+        // Get token with organization information
+        const token = await getToken({
+          template: "org_membership"
+        });
+        
         if (!token) {
           toast.error('Authentication error');
           return;
         }
         
-        await syncUser(token, orgId || undefined);
+        console.log('Syncing user with org membership info in Projects.tsx');
+        await syncUser(token);
         console.log('User synced with backend');
       } catch (error) {
         console.error('Failed to sync user', error);

@@ -38,7 +38,7 @@ export const useSuppliers = () => {
         throw new Error('Unable to get authentication token');
       }
       
-      const response = await getSuppliers(token, selectedProjectId, orgId || undefined);
+      const response = await getSuppliers(token, selectedProjectId);
       setSuppliers(selectedProjectId, response);
     } catch (error) {
       console.error('Failed to load suppliers:', error);
@@ -90,7 +90,7 @@ export const useSuppliers = () => {
         throw new Error('Unable to get authentication token');
       }
       
-      await addSupplier(token, supplier, orgId || undefined);
+      await addSupplier(token, supplier);
       addSupplierToStore(supplier);
       setIsAddingSupplier(false);
       toast.success(`${supplier.name} has been added to your suppliers`);
@@ -110,7 +110,7 @@ export const useSuppliers = () => {
         throw new Error('Unable to get authentication token');
       }
       
-      await deleteSupplier(token, id, orgId || undefined);
+      await deleteSupplier(token, id);
       deleteSupplierFromStore(id);
       toast.success(`${name} has been removed from your suppliers`);
     } catch (error) {
