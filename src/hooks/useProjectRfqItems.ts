@@ -70,6 +70,21 @@ export function useProjectRfqItems() {
   const loadAllProjectItems = useCallback(async () => {
     if (projects.length === 0) return;
     
+    // Check if we already have data in the Zustand store
+    let hasAllProjectData = true;
+    for (const project of projects) {
+      if (!parts[project.id] || parts[project.id].length === 0) {
+        hasAllProjectData = false;
+        break;
+      }
+    }
+    
+    // If we already have all project data in Zustand, don't reload it
+    if (hasAllProjectData) {
+      console.log('All project RFQ items already loaded in Zustand store, skipping API calls');
+      return;
+    }
+    
     setIsLoading(true);
     setStatsLoading(true);
     setError(null);
@@ -83,6 +98,12 @@ export function useProjectRfqItems() {
         // We'll let the individual API calls handle the mock data
         const results = await Promise.all(
           projects.map(async (project) => {
+            // Check if we already have data for this project in the store
+            if (parts[project.id] && parts[project.id].length > 0) {
+              console.log(`Using cached data for project ${project.id}`);
+              return { projectId: project.id, items: parts[project.id] };
+            }
+            
             const items = await fetchRfqItemsForProject(project.id);
             return { projectId: project.id, items };
           })
@@ -99,6 +120,12 @@ export function useProjectRfqItems() {
         // Real API call for each project
         const results = await Promise.all(
           projects.map(async (project) => {
+            // Check if we already have data for this project in the store
+            if (parts[project.id] && parts[project.id].length > 0) {
+              console.log(`Using cached data for project ${project.id}`);
+              return { projectId: project.id, items: parts[project.id] };
+            }
+            
             const items = await fetchRfqItemsForProject(project.id);
             return { projectId: project.id, items };
           })
@@ -121,14 +148,29 @@ export function useProjectRfqItems() {
       setIsLoading(false);
       setStatsLoading(false);
     }
-  }, [projects, getToken, setAllProjectItems, setStatsLoading, setStatsError]);
+  }, [projects, getToken, setAllProjectItems, setStatsLoading, setStatsError, parts]);
 
-  // Load RFQ items when projects change
+  // Load RFQ items when projects change, but only if data is not already in the store
   useEffect(() => {
+    let shouldLoadItems = false;
+    
     if (projects.length > 0) {
-      loadAllProjectItems();
+      // Check if any project doesn't have data in the store
+      for (const project of projects) {
+        if (!parts[project.id] || parts[project.id].length === 0) {
+          shouldLoadItems = true;
+          break;
+        }
+      }
+      
+      if (shouldLoadItems) {
+        console.log('Some projects missing RFQ data in store, loading all project items');
+        loadAllProjectItems();
+      } else {
+        console.log('All projects have RFQ data in store, skipping load');
+      }
     }
-  }, [projects, loadAllProjectItems]);
+  }, [projects, loadAllProjectItems, parts]);
 
   return {
     isLoading,

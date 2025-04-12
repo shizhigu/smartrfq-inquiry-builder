@@ -1,3 +1,4 @@
+
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -40,9 +41,18 @@ export default function Dashboard() {
   
   const { totalSuppliers, isLoading: isSuppliersLoading } = useOrganizationSuppliers();
   
-  const { getTotalItemCount, getItemCountByProject, stats, parts } = useRfqStore();
+  const { 
+    getTotalItemCount, 
+    getItemCountByProject, 
+    stats,
+    parts: rfqParts
+  } = useRfqStore();
   
-  const { loadAllProjectItems, isLoading: isItemsLoading } = useProjectRfqItems();
+  const { 
+    loadAllProjectItems, 
+    isLoading: isItemsLoading,
+    parts
+  } = useProjectRfqItems();
   
   useEffect(() => {
     const syncUserWithBackend = async () => {
@@ -70,6 +80,12 @@ export default function Dashboard() {
     setCurrentPage('dashboard');
     
     const loadProjects = async () => {
+      // Check if we already have projects in Zustand store
+      if (projects.length > 0) {
+        console.log('Projects already loaded from Zustand, skipping API call');
+        return;
+      }
+      
       try {
         setLoading(true);
         
@@ -90,24 +106,28 @@ export default function Dashboard() {
     };
     
     loadProjects();
-  }, [setCurrentPage, setProjects, getToken, setLoading]);
+  }, [setCurrentPage, setProjects, getToken, setLoading, projects.length]);
   
   useEffect(() => {
-    if (projects.length > 0) {
-      console.log('Dashboard: Loading RFQ items for all projects');
+    if (projects.length > 0 && Object.keys(parts || {}).length === 0) {
+      console.log('Dashboard: Loading RFQ items for all projects because parts data is empty');
       loadAllProjectItems();
+    } else if (projects.length > 0) {
+      console.log('Dashboard: Projects exist and parts data exists in store, no need to reload');
     }
-  }, [projects, loadAllProjectItems]);
+  }, [projects, loadAllProjectItems, parts]);
   
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'open').length;
   const totalParts = getTotalItemCount();
   
+  // Log the state for debugging
   useEffect(() => {
+    console.log('Dashboard: Projects count:', projects.length);
     console.log('Dashboard: Total parts count from store:', totalParts);
     console.log('Dashboard: RFQ stats loading:', stats.isLoading);
-    console.log('Dashboard: RFQ parts data:', parts);
-  }, [totalParts, stats.isLoading, parts]);
+    console.log('Dashboard: RFQ parts data available:', Object.keys(rfqParts || {}).length > 0);
+  }, [totalParts, stats.isLoading, rfqParts, projects.length]);
   
   const recentProjects = [...projects]
     .sort((a, b) => {
