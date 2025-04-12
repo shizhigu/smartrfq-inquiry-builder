@@ -39,20 +39,20 @@ export const EmailConversation: React.FC<EmailConversationProps> = ({
   return (
     <div className="space-y-4">
       {emails.map((email) => (
-        <Card key={email.id} className={`overflow-hidden ${!email.read ? 'border-l-4 border-l-primary' : ''}`}>
+        <Card key={email.id} className="overflow-hidden">
           <CardContent className="p-4">
             <div className="flex items-start gap-4">
               <Avatar className="h-10 w-10 mt-1">
                 <div className="bg-primary text-primary-foreground h-full w-full flex items-center justify-center text-lg font-semibold">
-                  {email.from.name.charAt(0)}
+                  {email.from?.name ? email.from.name.charAt(0) : '?'}
                 </div>
               </Avatar>
               
               <div className="flex-1 space-y-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="font-medium">{email.from.name}</div>
-                    <div className="text-sm text-muted-foreground">{email.from.email}</div>
+                    <div className="font-medium">{email.from?.name || 'Unknown Sender'}</div>
+                    <div className="text-sm text-muted-foreground">{email.from?.email || 'No email address'}</div>
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {format(new Date(email.timestamp), 'MMM d, yyyy • h:mm a')}
@@ -65,7 +65,7 @@ export const EmailConversation: React.FC<EmailConversationProps> = ({
                   <p className="whitespace-pre-line">{email.content}</p>
                 </div>
                 
-                {email.attachments.length > 0 && (
+                {email.attachments && email.attachments.length > 0 && (
                   <div className="mt-4 pt-2 border-t">
                     <div className="flex items-center text-sm text-muted-foreground mb-2">
                       <Paperclip className="h-4 w-4 mr-2" />

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useEmails } from '@/hooks/useEmails';
 import { useProjectStore } from '@/stores/projectStore';
@@ -7,7 +8,6 @@ import {
   MailPlus, 
   Search, 
   Filter, 
-  MessageCircle, 
   Calendar,
   Clock,
   ChevronRight,
@@ -45,7 +45,6 @@ const Emails = () => {
     fetchConversations,
     selectConversation,
     createNewConversation,
-    markConversationRead,
     fetchEmails,
     sendNewEmail,
     markEmailRead,
@@ -62,8 +61,6 @@ const Emails = () => {
   }, [selectedProjectId]);
   
   const filteredConversations = conversations.filter(conv => {
-    if (activeTab === 'unread' && conv.unreadCount === 0) return false;
-    
     if (searchQuery) {
       return (
         conv.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -254,12 +251,9 @@ const Emails = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 mb-4">
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-1 mb-4">
             <TabsTrigger value="all">All Conversations</TabsTrigger>
-            <TabsTrigger value="unread">
-              Unread ({conversations.reduce((acc, conv) => acc + conv.unreadCount, 0)})
-            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="all" className="mt-0">
@@ -333,13 +327,9 @@ const Emails = () => {
                           <TableCell>
                             {conversation.status ? (
                               getStatusBadge(conversation.status)
-                            ) : conversation.unreadCount > 0 ? (
-                              <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                                {conversation.unreadCount} unread
-                              </div>
                             ) : (
                               <div className="text-xs text-muted-foreground">
-                                Read
+                                Messages: {conversation.messageCount}
                               </div>
                             )}
                           </TableCell>
@@ -373,81 +363,6 @@ const Emails = () => {
                   </Button>
                 </CardFooter>
               )}
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="unread" className="mt-0">
-            <Card>
-              <CardHeader className="px-4 py-3">
-                <div className="text-sm font-medium">
-                  {filteredConversations.length} Unread Conversation{filteredConversations.length !== 1 ? 's' : ''}
-                </div>
-              </CardHeader>
-              <Separator />
-              <CardContent className="p-0">
-                {filteredConversations.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Supplier</TableHead>
-                        <TableHead>Subject</TableHead>
-                        <TableHead>Last Message</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredConversations.map((conversation) => (
-                        <TableRow 
-                          key={conversation.id}
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSelectConversation(conversation.id)}
-                        >
-                          <TableCell className="font-medium">
-                            {conversation.supplierId}
-                            {conversation.organization_id && (
-                              <div className="text-xs text-muted-foreground flex items-center mt-1">
-                                <Building className="h-3 w-3 mr-1" />
-                                {conversation.organization_id}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>{conversation.subject}</TableCell>
-                          <TableCell className="max-w-[300px] truncate">
-                            {conversation.lastMessagePreview}
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-xs text-muted-foreground">
-                              {safeFormatDate(conversation.lastMessageDate, 'MMM d, yyyy • h:mm a')}
-                            </div>
-                            {conversation.created_at && (
-                              <div className="text-xs text-muted-foreground mt-1">
-                                Created: {safeFormatDate(conversation.created_at, 'MMM d, yyyy')}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {conversation.status ? (
-                              getStatusBadge(conversation.status)
-                            ) : (
-                              <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                                {conversation.unreadCount} unread
-                              </div>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <div className="text-center p-8">
-                    <h3 className="text-lg font-medium">No Unread Conversations</h3>
-                    <p className="mt-2 text-muted-foreground">
-                      You've read all your conversations.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
             </Card>
           </TabsContent>
         </Tabs>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '@/stores/projectStore';
 import { useAuth, useOrganization } from '@clerk/clerk-react';
@@ -6,13 +7,11 @@ import {
   getConversations, 
   getConversation,
   createConversation, 
-  markConversationAsRead,
   Conversation
 } from '@/lib/api/conversations';
 import { 
   getEmailsForConversation, 
   getEmail, 
-  markEmailAsRead, 
   sendEmail, 
   downloadAttachment,
   Email
@@ -45,7 +44,6 @@ interface UseEmailsReturn {
   fetchConversations: (page?: number) => Promise<void>;
   selectConversation: (conversationId: string) => Promise<void>;
   createNewConversation: (supplierId: string, subject: string, initialMessage: string) => Promise<void>;
-  markConversationRead: (conversationId: string) => Promise<void>;
   
   fetchEmails: (conversationId: string) => Promise<void>;
   sendNewEmail: (content: string, subject?: string, attachments?: File[]) => Promise<void>;
@@ -122,7 +120,7 @@ export const useEmails = (): UseEmailsReturn => {
         await fetchEmails(conversationId);
       }
       
-      await markConversationRead(conversationId);
+      setState(prev => ({ ...prev, isLoading: false }));
     } catch (error) {
       console.error('Error selecting conversation:', error);
       setState(prev => ({ 
@@ -248,46 +246,12 @@ export const useEmails = (): UseEmailsReturn => {
     }
   };
   
-  const markConversationRead = async (conversationId: string) => {
-    try {
-      const token = await getToken();
-      if (!token) {
-        throw new Error('Unable to get authentication token');
-      }
-      
-      await markConversationAsRead(token, conversationId);
-      
-      setState(prev => ({
-        ...prev,
-        conversations: prev.conversations.map(conv => 
-          conv.id === conversationId 
-            ? { ...conv, unreadCount: 0 } 
-            : conv
-        ),
-        isLoading: false
-      }));
-    } catch (error) {
-      console.error('Failed to mark conversation as read:', error);
-      setState(prev => ({
-        ...prev,
-        conversations: prev.conversations.map(conv => 
-          conv.id === conversationId 
-            ? { ...conv, unreadCount: 0 } 
-            : conv
-        ),
-        isLoading: false
-      }));
-    }
-  };
-  
   const markEmailRead = async (emailId: string) => {
     try {
       const token = await getToken();
       if (!token) {
         throw new Error('Unable to get authentication token');
       }
-      
-      await markEmailAsRead(token, emailId);
       
       setState(prev => {
         let updatedEmails = { ...prev.emails };
@@ -353,7 +317,7 @@ export const useEmails = (): UseEmailsReturn => {
         totalPages: 0
       });
     }
-  }, [selectedProjectId]);
+  }, [selectedProjectId, fetchConversations]);
   
   const selectedConversation = state.selectedConversationId
     ? state.conversations.find(c => c.id === state.selectedConversationId) || null
@@ -378,7 +342,6 @@ export const useEmails = (): UseEmailsReturn => {
     fetchConversations,
     selectConversation,
     createNewConversation,
-    markConversationRead,
     
     fetchEmails,
     sendNewEmail,
