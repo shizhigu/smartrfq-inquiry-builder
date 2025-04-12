@@ -12,7 +12,7 @@ import { RfqSendInquiryDialog } from "@/components/rfq/RfqSendInquiryDialog";
 import { RfqPart } from "@/stores/rfqStore";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Users } from "lucide-react";
+import { Plus } from "lucide-react";
 
 export default function RfqItems() {
   const [activeTab, setActiveTab] = useState("parts");
@@ -30,8 +30,7 @@ export default function RfqItems() {
     togglePartSelection,
     selectAllParts,
     clearPartSelection,
-    addPart,
-    navigateToSuppliers
+    addPart
   } = useRfqData();
   
   const handleAddPart = () => {
@@ -119,6 +118,15 @@ export default function RfqItems() {
           </TabsList>
           
           <TabsContent value="parts" className="mt-4 p-0 border-none">
+            <div className="mb-4">
+              <Button 
+                onClick={handleAddPart}
+                size="sm"
+                className="ml-1"
+              >
+                <Plus className="h-4 w-4 mr-1" /> Add Item
+              </Button>
+            </div>
             <RfqPartsList 
               isLoading={isLoading}
               parts={parts}
@@ -142,16 +150,6 @@ export default function RfqItems() {
             />
           </TabsContent>
         </Tabs>
-        
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={navigateToSuppliers}
-          className="text-xs"
-        >
-          <Users className="h-3 w-3 mr-1" />
-          Manage Suppliers
-        </Button>
       </div>
       
       <RfqUploadDialog
@@ -175,4 +173,3 @@ export default function RfqItems() {
     </div>
   );
 }
-
