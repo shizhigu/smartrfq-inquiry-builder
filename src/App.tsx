@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -36,11 +35,9 @@ function UserSync({ children }: { children: React.ReactNode }) {
   const { currentUser, organizationId } = useSyncUser();
   const { IdleDialog } = useAuthManager();
   
-  // Reset and refetch queries when organization changes
   useEffect(() => {
     if (organizationId) {
       console.log('Organization changed in UserSync component, refreshing all queries. Current org:', organizationId);
-      // Invalidate and refetch all queries to ensure data is up-to-date for the new org
       queryClient.invalidateQueries();
     }
   }, [organizationId]);
@@ -97,4 +94,3 @@ const App = () => (
 );
 
 export default App;
-

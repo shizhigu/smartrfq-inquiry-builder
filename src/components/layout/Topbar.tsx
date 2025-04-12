@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useProjectStore } from "@/stores/projectStore";
 import { useState, useEffect } from "react";
@@ -79,4 +78,3 @@ export function Topbar() {
     </div>
   );
 }
-
