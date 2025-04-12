@@ -9,7 +9,8 @@ import { useRfqData } from "@/hooks/useRfqData";
 import { RfqUploadDialog } from "@/components/rfq/RfqUploadDialog";
 import { RfqAddPartDialog } from "@/components/rfq/RfqAddPartDialog";
 import { RfqSendInquiryDialog } from "@/components/rfq/RfqSendInquiryDialog";
-import { RfqPart } from "@/stores/rfqStore";
+import { RfqParseConfirmDialog } from "@/components/rfq/RfqParseConfirmDialog";
+import { RfqFile, RfqPart } from "@/stores/rfqStore";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -20,6 +21,8 @@ export default function RfqItems() {
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
   const [isSendInquiryDialogOpen, setIsSendInquiryDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<RfqFile | null>(null);
+  const [isParseDialogOpen, setIsParseDialogOpen] = useState(false);
   
   const { 
     project,
@@ -77,6 +80,18 @@ export default function RfqItems() {
       clearPartSelection();
     } else {
       selectAllParts(project?.id || '');
+    }
+  };
+
+  const handleFileAction = (file: RfqFile) => {
+    // Check if file is already parsed
+    const isParsed = file.ocr_text && file.ocr_text.trim().length > 0;
+    
+    if (!isParsed) {
+      setSelectedFile(file);
+      setIsParseDialogOpen(true);
+    } else {
+      toast.info('This file has already been parsed');
     }
   };
   
@@ -170,6 +185,12 @@ export default function RfqItems() {
         onOpenChange={setIsSendInquiryDialogOpen}
         selectedParts={selectedParts}
         projectId={project?.id || ''}
+      />
+
+      <RfqParseConfirmDialog
+        open={isParseDialogOpen}
+        onOpenChange={setIsParseDialogOpen}
+        file={selectedFile}
       />
     </div>
   );

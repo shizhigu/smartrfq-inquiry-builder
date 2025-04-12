@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RfqFile } from "@/stores/rfqStore";
@@ -115,8 +114,9 @@ export function RfqFilesList({ isLoading, files, projectId, handleUploadFile }: 
     );
   }
   
+  // Modified to check for ocr_text instead of relying on status
   const isParsed = (file: RfqFile) => {
-    return file.status === 'completed' && file.ocr_text && file.ocr_text.trim().length > 0;
+    return file.ocr_text && file.ocr_text.trim().length > 0;
   };
   
   const getStatusIcon = (file: RfqFile) => {

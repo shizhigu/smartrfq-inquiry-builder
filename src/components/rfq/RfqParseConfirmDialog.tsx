@@ -55,9 +55,19 @@ export function RfqParseConfirmDialog({ open, onOpenChange, file }: RfqParseConf
   const { setAllProjectItems, parts, updateFile } = useRfqStore();
   const [isParsing, setIsParsing] = useState(false);
   
+  // Check if file is already parsed by checking for ocr_text
+  const isFileParsed = file?.ocr_text && file.ocr_text.trim().length > 0;
+  
   const handleParse = async () => {
     if (!file || !selectedProjectId) {
       toast.error('No file or project selected');
+      return;
+    }
+    
+    // Don't parse if already parsed
+    if (isFileParsed) {
+      toast.info('This file has already been parsed');
+      onOpenChange(false);
       return;
     }
     
@@ -159,9 +169,13 @@ export function RfqParseConfirmDialog({ open, onOpenChange, file }: RfqParseConf
           >
             Skip
           </Button>
-          <Button type="button" onClick={handleParse} disabled={isParsing}>
+          <Button 
+            type="button" 
+            onClick={handleParse} 
+            disabled={isParsing || isFileParsed}
+          >
             {isParsing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isParsing ? 'Parsing...' : 'Parse Document'}
+            {isParsing ? 'Parsing...' : isFileParsed ? 'Already Parsed' : 'Parse Document'}
           </Button>
         </DialogFooter>
       </DialogContent>
