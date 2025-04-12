@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Command, CommandInput } from "@/components/ui/command";
+import { Command, CommandInput, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { Supplier } from "@/stores/supplierStore";
@@ -71,18 +71,20 @@ export function RfqSupplierSelector({
             value={searchValue}
             onValueChange={setSearchValue}
           />
-          <SupplierSearchResults
-            suppliers={filteredSuppliers}
-            selectedSupplierId={selectedSupplierId}
-            onSupplierSelect={(id) => {
-              onSupplierSelect(id);
-              setOpen(false);
-            }}
-            onAddNewClick={() => {
-              setOpen(false);
-              onAddNew();
-            }}
-          />
+          <CommandList>
+            <SupplierSearchResults
+              suppliers={filteredSuppliers}
+              selectedSupplierId={selectedSupplierId}
+              onSupplierSelect={(id) => {
+                onSupplierSelect(id);
+                setOpen(false);
+              }}
+              onAddNewClick={() => {
+                setOpen(false);
+                onAddNew();
+              }}
+            />
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>
