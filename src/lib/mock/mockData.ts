@@ -3,9 +3,6 @@ import { Supplier } from '@/stores/supplierStore';
 import { Project } from '@/stores/projectStore';
 import { useMockData } from '../config';
 
-// Use the config to determine whether to enable mocks
-export const ENABLE_MOCKS = useMockData();
-
 // 定义会话类型
 export interface MockConversation {
   id: string;

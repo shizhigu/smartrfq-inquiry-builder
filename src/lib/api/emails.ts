@@ -1,5 +1,5 @@
-import { API_CONFIG } from '../config';
-import { ENABLE_MOCKS } from '../mock/mockData';
+
+import { API_CONFIG, useMockData } from '../config';
 
 export interface EmailSender {
   id: string;
@@ -141,7 +141,7 @@ export async function getEmailsForConversation(
   conversationId: string
 ): Promise<Email[]> {
   // 使用模拟数据（如果启用）
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for getEmailsForConversation');
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -182,7 +182,7 @@ export async function getEmail(
   emailId: string
 ): Promise<Email> {
   // 使用模拟数据（如果启用）
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for getEmail');
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -228,7 +228,7 @@ export async function markEmailAsRead(
   emailId: string
 ): Promise<void> {
   // 使用模拟数据（如果启用）
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for markEmailAsRead');
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 200));
@@ -277,7 +277,7 @@ export async function sendEmail(
   attachments?: File[]
 ): Promise<Email> {
   // 使用模拟数据（如果启用）
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for sendEmail');
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 800));
@@ -356,7 +356,7 @@ export async function downloadAttachment(
   attachmentId: string
 ): Promise<Blob> {
   // 使用模拟数据（如果启用）
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for downloadAttachment');
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 1000));

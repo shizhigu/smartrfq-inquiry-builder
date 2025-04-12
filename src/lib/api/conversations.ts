@@ -1,5 +1,6 @@
-import { API_CONFIG } from '../config';
-import { ENABLE_MOCKS, mockConversations } from '../mock/mockData';
+
+import { API_CONFIG, useMockData } from '../config';
+import { mockConversations } from '../mock/mockData';
 
 export interface Conversation {
   id: string;
@@ -32,7 +33,7 @@ export async function getConversations(
   pageSize: number = 20
 ): Promise<ConversationResponse> {
   // 使用模拟数据（如果启用）
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for getConversations');
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 600));
@@ -93,7 +94,7 @@ export async function getConversation(
   conversationId: string
 ): Promise<Conversation> {
   // 使用模拟数据（如果启用）
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for getConversation');
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 400));
@@ -140,7 +141,7 @@ export async function createConversation(
   initialMessage: string
 ): Promise<Conversation> {
   // 使用模拟数据（如果启用）
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for createConversation');
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 800));
@@ -201,7 +202,7 @@ export async function markConversationAsRead(
   conversationId: string
 ): Promise<void> {
   // 使用模拟数据（如果启用）
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for markConversationAsRead');
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -240,7 +241,7 @@ export async function archiveConversation(
   conversationId: string
 ): Promise<void> {
   // 使用模拟数据（如果启用）
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for archiveConversation');
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 500));
