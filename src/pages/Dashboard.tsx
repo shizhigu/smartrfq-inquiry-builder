@@ -12,7 +12,6 @@ import { useAuth } from "@clerk/clerk-react";
 import { toast } from "sonner";
 import { syncUser } from "@/lib/api/users";
 import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
-import { useProjectRfqItems } from "@/hooks/useProjectRfqItems";
 import { useRfqStore } from "@/stores/rfqStore";
 import { useSupplierStore } from "@/stores/supplierStore";
 
@@ -43,7 +42,7 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   
-  // Use the hook to trigger loading but directly access the store for data
+  // Use the hook to trigger loading
   const { loadSuppliers } = useOrganizationSuppliers();
   const totalSuppliers = globalSuppliers.length;
   
@@ -53,12 +52,6 @@ export default function Dashboard() {
     stats,
     parts: rfqParts
   } = useRfqStore();
-  
-  const { 
-    loadAllProjectItems, 
-    isLoading: isItemsLoading,
-    parts
-  } = useProjectRfqItems();
   
   useEffect(() => {
     const syncUserWithBackend = async () => {
@@ -122,15 +115,6 @@ export default function Dashboard() {
     loadSuppliers(true);
   }, [loadSuppliers]);
   
-  useEffect(() => {
-    if (projects.length > 0 && Object.keys(parts || {}).length === 0) {
-      console.log('Dashboard: Loading RFQ items for all projects because parts data is empty');
-      loadAllProjectItems();
-    } else if (projects.length > 0) {
-      console.log('Dashboard: Projects exist and parts data exists in store, no need to reload');
-    }
-  }, [projects, loadAllProjectItems, parts]);
-  
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'open').length;
   const totalParts = getTotalItemCount();
@@ -185,7 +169,7 @@ export default function Dashboard() {
             />
             <StatCard
               title="Total Parts"
-              value={isItemsLoading || stats.isLoading ? "..." : totalParts}
+              value={stats.isLoading ? "..." : totalParts}
               icon={FileText}
               trend={totalParts > 0 ? { value: 8, isPositive: true } : undefined}
             />
