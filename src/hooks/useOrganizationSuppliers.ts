@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { getSuppliers } from '@/lib/api/suppliers';
-import { Supplier, useSupplierStore } from '@/stores/supplierStore';
+import { useSupplierStore } from '@/stores/supplierStore';
 import { toast } from 'sonner';
 
 export function useOrganizationSuppliers() {
@@ -71,7 +71,7 @@ export function useOrganizationSuppliers() {
 
   return {
     suppliers: orgSuppliers,
-    isLoading,
+    isLoading: isLoading || useSupplierStore(state => state.isLoading),
     error,
     totalSuppliers: orgSuppliers.length,
     loadSuppliers

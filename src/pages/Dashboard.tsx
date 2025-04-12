@@ -37,12 +37,15 @@ export default function Dashboard() {
   const { projects, setProjects, isLoading, setLoading } = useProjectStore();
   const setCurrentPage = useAppStore(state => state.setCurrentPage);
   
+  // Use supplier store directly
+  const orgSuppliers = useSupplierStore(state => state.suppliers['global'] || []);
+  const suppliersLoading = useSupplierStore(state => state.isLoading);
+  
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   
-  // Get suppliers from the store instead of using useOrganizationSuppliers hook directly
-  const orgSuppliers = useSupplierStore(state => state.suppliers['global'] || []);
-  const { isLoading: isSuppliersLoading, loadSuppliers } = useOrganizationSuppliers();
+  // Use the hook to trigger loading but get data directly from store
+  const { loadSuppliers } = useOrganizationSuppliers();
   const totalSuppliers = orgSuppliers.length;
   
   const { 
@@ -114,13 +117,13 @@ export default function Dashboard() {
   
   // Load organization suppliers if they don't exist
   useEffect(() => {
-    if (orgSuppliers.length === 0 && !isSuppliersLoading) {
+    if (orgSuppliers.length === 0 && !suppliersLoading) {
       console.log('Dashboard: Loading organization suppliers because none exist in store');
       loadSuppliers();
     } else {
       console.log('Dashboard: Using organization suppliers from Zustand store, count:', orgSuppliers.length);
     }
-  }, [orgSuppliers.length, isSuppliersLoading, loadSuppliers]);
+  }, [orgSuppliers.length, suppliersLoading, loadSuppliers]);
   
   useEffect(() => {
     if (projects.length > 0 && Object.keys(parts || {}).length === 0) {
