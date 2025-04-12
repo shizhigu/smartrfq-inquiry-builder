@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { API_CONFIG, useMockData } from '@/lib/config';
 import { toast } from 'sonner';
 import { useProjectStore } from '@/stores/projectStore';
+import { useRfqStore } from '@/stores/rfqStore';
 
 export interface RfqItem {
   id: string;
@@ -14,11 +15,19 @@ export interface RfqItem {
 }
 
 export function useProjectRfqItems() {
-  const [projectItems, setProjectItems] = useState<Record<string, RfqItem[]>>({});
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { getToken } = useAuth();
   const { projects } = useProjectStore();
+  
+  // Use the RFQ store for stats
+  const { 
+    setAllProjectItems, 
+    setStatsLoading, 
+    setStatsError,
+    getItemCountByProject,
+    getTotalItemCount,
+    stats
+  } = useRfqStore();
 
   const fetchRfqItemsForProject = async (projectId: string) => {
     try {
@@ -51,7 +60,7 @@ export function useProjectRfqItems() {
   const loadAllProjectItems = useCallback(async () => {
     if (projects.length === 0) return;
     
-    setIsLoading(true);
+    setStatsLoading(true);
     setError(null);
     
     try {
@@ -73,7 +82,7 @@ export function useProjectRfqItems() {
           projectItemsMap[projectId] = items;
         });
         
-        setProjectItems(projectItemsMap);
+        setAllProjectItems(projectItemsMap);
       } else {
         // Real API call for each project
         const results = await Promise.all(
@@ -88,16 +97,17 @@ export function useProjectRfqItems() {
           projectItemsMap[projectId] = items;
         });
         
-        setProjectItems(projectItemsMap);
+        setAllProjectItems(projectItemsMap);
       }
     } catch (error) {
       console.error('Failed to load project RFQ items:', error);
       setError(error instanceof Error ? error.message : 'Failed to load RFQ items');
+      setStatsError(error instanceof Error ? error.message : 'Failed to load RFQ items');
       toast.error('Failed to load RFQ items data');
     } finally {
-      setIsLoading(false);
+      setStatsLoading(false);
     }
-  }, [projects, getToken]);
+  }, [projects, getToken, setAllProjectItems, setStatsLoading, setStatsError]);
 
   // Load RFQ items when projects change
   useEffect(() => {
@@ -106,19 +116,10 @@ export function useProjectRfqItems() {
     }
   }, [projects, loadAllProjectItems]);
 
-  const getProjectItemCount = (projectId: string): number => {
-    return projectItems[projectId]?.length || 0;
-  };
-
-  const getTotalItemCount = (): number => {
-    return Object.values(projectItems).reduce((total, items) => total + items.length, 0);
-  };
-
   return {
-    projectItems,
-    isLoading,
-    error,
-    getProjectItemCount,
+    isLoading: stats.isLoading,
+    error: stats.error || error,
+    getProjectItemCount: getItemCountByProject,
     getTotalItemCount,
     loadAllProjectItems
   };

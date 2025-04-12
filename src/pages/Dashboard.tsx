@@ -1,3 +1,4 @@
+
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 import { syncUser } from "@/lib/api/users";
 import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
 import { useProjectRfqItems } from "@/hooks/useProjectRfqItems";
+import { useRfqStore } from "@/stores/rfqStore";
 
 // Dashboard summary interface matching backend
 interface DashboardSummary {
@@ -41,13 +43,11 @@ export default function Dashboard() {
   // Use the supplier hook to get supplier data
   const { totalSuppliers, isLoading: isSuppliersLoading } = useOrganizationSuppliers();
   
-  // Use the project RFQ items hook to get parts data
-  const { 
-    getTotalItemCount, 
-    getProjectItemCount, 
-    isLoading: isItemsLoading,
-    loadAllProjectItems
-  } = useProjectRfqItems();
+  // Use the RFQ store for stats
+  const { getTotalItemCount, getItemCountByProject, stats } = useRfqStore();
+  
+  // Use the project RFQ items hook to load the data
+  const { loadAllProjectItems } = useProjectRfqItems();
   
   // Ensure user is synced with the backend when the component mounts
   useEffect(() => {
@@ -150,7 +150,7 @@ export default function Dashboard() {
             />
             <StatCard
               title="Total Parts"
-              value={isItemsLoading ? "..." : totalParts}
+              value={stats.isLoading ? "..." : totalParts}
               icon={FileText}
               trend={totalParts > 0 ? { value: 8, isPositive: true } : undefined}
             />
@@ -183,7 +183,7 @@ export default function Dashboard() {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center">
                           <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
-                          <span>{isItemsLoading ? "..." : getProjectItemCount(project.id)}</span>
+                          <span>{stats.isLoading ? "..." : getItemCountByProject(project.id)}</span>
                         </div>
                         <div className="flex items-center">
                           <Users className="h-4 w-4 mr-1 text-muted-foreground" />

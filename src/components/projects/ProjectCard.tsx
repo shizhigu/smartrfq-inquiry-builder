@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, FileText, Users } from "lucide-react";
 import { format } from "date-fns";
-import { useProjectRfqItems } from "@/hooks/useProjectRfqItems";
+import { useRfqStore } from "@/stores/rfqStore";
 
 interface ProjectCardProps {
   project: Project;
@@ -18,9 +18,9 @@ export function ProjectCard({ project, onSelect }: ProjectCardProps) {
     return format(date, "MMM d, yyyy");
   };
   
-  // Use the hook to get parts count for this specific project
-  const { getProjectItemCount, isLoading: isItemsLoading } = useProjectRfqItems();
-  const partsCount = getProjectItemCount(project.id);
+  // Use the RFQ store to get parts count for this specific project
+  const { getItemCountByProject, stats } = useRfqStore();
+  const partsCount = getItemCountByProject(project.id);
   
   return (
     <Card className="overflow-hidden h-full flex flex-col">
@@ -40,7 +40,7 @@ export function ProjectCard({ project, onSelect }: ProjectCardProps) {
         <div className="mt-4 grid grid-cols-2 gap-2">
           <div className="flex items-center text-sm text-muted-foreground">
             <FileText className="h-4 w-4 mr-1" />
-            <span>{isItemsLoading ? "..." : partsCount} parts</span>
+            <span>{stats.isLoading ? "..." : partsCount} parts</span>
           </div>
           <div className="flex items-center text-sm text-muted-foreground">
             <Users className="h-4 w-4 mr-1" />
