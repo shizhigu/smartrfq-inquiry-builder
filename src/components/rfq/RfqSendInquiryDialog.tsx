@@ -123,60 +123,62 @@ export function RfqSendInquiryDialog({
         </DialogHeader>
         
         <form onSubmit={handleSubmit}>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="supplier">Select Supplier</TabsTrigger>
-              <TabsTrigger value="email">Enter Email</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="supplier" className="space-y-4 py-4">
-              <div className="space-y-4">
-                <RfqSupplierSelector
-                  selectedSupplierId={selectedSupplierId}
-                  onSupplierSelect={setSelectedSupplierId}
-                />
-                
-                <div className="space-y-2">
-                  <Label htmlFor="message-supplier">Message (Optional)</Label>
-                  <Textarea 
-                    id="message-supplier"
-                    placeholder="Additional notes or requirements..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    rows={4}
+          <div className="mt-4">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="supplier">Select Supplier</TabsTrigger>
+                <TabsTrigger value="email">Enter Email</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="supplier" className="space-y-4 py-4">
+                <div className="space-y-4">
+                  <RfqSupplierSelector
+                    selectedSupplierId={selectedSupplierId}
+                    onSupplierSelect={setSelectedSupplierId}
                   />
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="message-supplier">Message (Optional)</Label>
+                    <Textarea 
+                      id="message-supplier"
+                      placeholder="Additional notes or requirements..."
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
                 </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="email" className="space-y-4 py-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="supplier@example.com"
-                    value={emailToSend}
-                    onChange={(e) => setEmailToSend(e.target.value)}
-                  />
+              </TabsContent>
+              
+              <TabsContent value="email" className="space-y-4 py-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      placeholder="supplier@example.com"
+                      value={emailToSend}
+                      onChange={(e) => setEmailToSend(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="message-email">Message (Optional)</Label>
+                    <Textarea 
+                      id="message-email"
+                      placeholder="Additional notes or requirements..."
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="message-email">Message (Optional)</Label>
-                  <Textarea 
-                    id="message-email"
-                    placeholder="Additional notes or requirements..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+              </TabsContent>
+            </Tabs>
+          </div>
           
-          <div className="border rounded-md p-4 mt-2">
+          <div className="border rounded-md p-4 mt-4">
             <h3 className="font-medium mb-2">Selected Parts ({selectedParts.length})</h3>
             <div className="max-h-[200px] overflow-y-auto">
               <table className="w-full text-sm">
