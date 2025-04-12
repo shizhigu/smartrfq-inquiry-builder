@@ -12,15 +12,14 @@ import {
   DialogFooter,
   DialogDescription
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { sendRfqInquiry } from "@/lib/api/rfq";
 import { useAuth, useOrganization } from "@clerk/clerk-react";
 import { ENABLE_MOCKS } from "@/lib/mock/mockData";
 import { useNavigate } from "react-router-dom";
-import { RfqSupplierSelector } from "./RfqSupplierSelector";
+import { RfqSupplierTabContent } from "./RfqSupplierTabContent";
+import { RfqEmailTabContent } from "./RfqEmailTabContent";
+import { RfqSelectedPartsTable } from "./RfqSelectedPartsTable";
 
 interface RfqSendInquiryDialogProps {
   open: boolean;
@@ -131,75 +130,27 @@ export function RfqSendInquiryDialog({
               </TabsList>
               
               <TabsContent value="supplier" className="space-y-4 py-4">
-                <div className="space-y-4">
-                  <RfqSupplierSelector
-                    selectedSupplierId={selectedSupplierId}
-                    onSupplierSelect={setSelectedSupplierId}
-                  />
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="message-supplier">Message (Optional)</Label>
-                    <Textarea 
-                      id="message-supplier"
-                      placeholder="Additional notes or requirements..."
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      rows={4}
-                    />
-                  </div>
-                </div>
+                <RfqSupplierTabContent
+                  selectedSupplierId={selectedSupplierId}
+                  onSupplierSelect={setSelectedSupplierId}
+                  message={message}
+                  onMessageChange={setMessage}
+                />
               </TabsContent>
               
               <TabsContent value="email" className="space-y-4 py-4">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="supplier@example.com"
-                      value={emailToSend}
-                      onChange={(e) => setEmailToSend(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="message-email">Message (Optional)</Label>
-                    <Textarea 
-                      id="message-email"
-                      placeholder="Additional notes or requirements..."
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      rows={4}
-                    />
-                  </div>
-                </div>
+                <RfqEmailTabContent
+                  email={emailToSend}
+                  onEmailChange={setEmailToSend}
+                  message={message}
+                  onMessageChange={setMessage}
+                />
               </TabsContent>
             </Tabs>
           </div>
           
-          <div className="border rounded-md p-4 mt-4">
-            <h3 className="font-medium mb-2">Selected Parts ({selectedParts.length})</h3>
-            <div className="max-h-[200px] overflow-y-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left p-2">Part Number</th>
-                    <th className="text-left p-2">Name</th>
-                    <th className="text-right p-2">Quantity</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedParts.map((part) => (
-                    <tr key={part.id} className="border-t">
-                      <td className="p-2">{part.partNumber}</td>
-                      <td className="p-2">{part.name}</td>
-                      <td className="p-2 text-right">{part.quantity} {part.unit}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="mt-4">
+            <RfqSelectedPartsTable selectedParts={selectedParts} />
           </div>
           
           <DialogFooter className="mt-6">
