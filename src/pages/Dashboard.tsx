@@ -40,19 +40,12 @@ export default function Dashboard() {
   const orgSuppliers = useSupplierStore(state => state.suppliers['global'] || []);
   const suppliersLoading = useSupplierStore(state => state.isLoading);
   
-  const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
-  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
+  // Get parts data directly from the RFQ store for better reactivity
+  const { parts, stats } = useRfqStore();
+  const rfqStatsLoading = useRfqStore(state => state.stats.isLoading);
   
-  const { 
-    getTotalItemCount, 
-    getItemCountByProject, 
-    stats,
-  } = useRfqStore();
-  
-  const { 
-    loadAllProjectItems, 
-    isLoading: isItemsLoading,
-  } = useProjectRfqItems();
+  // Load RFQ items to ensure data is available
+  const { loadAllProjectItems } = useProjectRfqItems();
   
   useEffect(() => {
     const syncUserWithBackend = async () => {
@@ -117,21 +110,36 @@ export default function Dashboard() {
   
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'open').length;
-  const totalParts = getTotalItemCount();
+  
+  // Calculate total parts directly from the store
+  const calculateTotalParts = () => {
+    let totalCount = 0;
+    Object.values(parts).forEach(projectParts => {
+      totalCount += projectParts.length;
+    });
+    return totalCount;
+  };
+  
+  const totalParts = calculateTotalParts();
   const totalSuppliers = orgSuppliers.length;
   
   // Log the state for debugging
   useEffect(() => {
     console.log('Dashboard: Projects count:', projects.length);
     console.log('Dashboard: Total parts count from store:', totalParts);
-    console.log('Dashboard: RFQ stats loading:', stats.isLoading);
-    console.log('Dashboard: Organization suppliers count from store:', orgSuppliers.length);
-  }, [totalParts, stats.isLoading, projects.length, orgSuppliers.length]);
+    console.log('Dashboard: Organization suppliers count from store:', totalSuppliers);
+  }, [totalParts, projects.length, totalSuppliers]);
   
+  // Get part count for a specific project directly from the store
+  const getProjectPartsCount = (projectId: string): number => {
+    return parts[projectId]?.length || 0;
+  };
+  
+  // Sort projects by part count then by update date
   const recentProjects = [...projects]
     .sort((a, b) => {
-      const partsA = getItemCountByProject(a.id);
-      const partsB = getItemCountByProject(b.id);
+      const partsA = getProjectPartsCount(a.id);
+      const partsB = getProjectPartsCount(b.id);
       return partsB - partsA || new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
     })
     .slice(0, 3);
@@ -169,7 +177,7 @@ export default function Dashboard() {
             />
             <StatCard
               title="Total Parts"
-              value={isItemsLoading || stats.isLoading ? "..." : totalParts}
+              value={rfqStatsLoading ? "..." : totalParts}
               icon={FileText}
               trend={totalParts > 0 ? { value: 8, isPositive: true } : undefined}
             />
@@ -201,7 +209,7 @@ export default function Dashboard() {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center">
                           <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
-                          <span>{isItemsLoading || stats.isLoading ? "..." : getItemCountByProject(project.id)}</span>
+                          <span>{rfqStatsLoading ? "..." : getProjectPartsCount(project.id)}</span>
                         </div>
                         <div className="flex items-center">
                           <Users className="h-4 w-4 mr-1 text-muted-foreground" />

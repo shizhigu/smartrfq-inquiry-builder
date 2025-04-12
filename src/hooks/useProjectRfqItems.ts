@@ -23,7 +23,7 @@ export function useProjectRfqItems() {
   const { getToken } = useAuth();
   const { projects } = useProjectStore();
   
-  // Use the RFQ store for stats
+  // Use the RFQ store for data management
   const { 
     setAllProjectItems, 
     setStatsLoading, 
@@ -71,21 +71,6 @@ export function useProjectRfqItems() {
 
   const loadAllProjectItems = useCallback(async () => {
     if (projects.length === 0) return;
-    
-    // Check if we already have data in the Zustand store
-    let hasAllProjectData = true;
-    for (const project of projects) {
-      if (!parts[project.id] || parts[project.id].length === 0) {
-        hasAllProjectData = false;
-        break;
-      }
-    }
-    
-    // If we already have all project data in Zustand, don't reload it
-    if (hasAllProjectData) {
-      console.log('All project RFQ items already loaded in Zustand store, skipping API calls');
-      return;
-    }
     
     setIsLoading(true);
     setStatsLoading(true);
@@ -152,27 +137,12 @@ export function useProjectRfqItems() {
     }
   }, [projects, getToken, setAllProjectItems, setStatsLoading, setStatsError, parts, fetchRfqItemsForProject]);
 
-  // Load RFQ items when projects change, but only if data is not already in the store
+  // Load RFQ items when projects change
   useEffect(() => {
-    let shouldLoadItems = false;
-    
     if (projects.length > 0) {
-      // Check if any project doesn't have data in the store
-      for (const project of projects) {
-        if (!parts[project.id] || parts[project.id].length === 0) {
-          shouldLoadItems = true;
-          break;
-        }
-      }
-      
-      if (shouldLoadItems) {
-        console.log('Some projects missing RFQ data in store, loading all project items');
-        loadAllProjectItems();
-      } else {
-        console.log('All projects have RFQ data in store, skipping load');
-      }
+      loadAllProjectItems();
     }
-  }, [projects, loadAllProjectItems, parts]);
+  }, [projects, loadAllProjectItems]);
 
   return {
     isLoading,
