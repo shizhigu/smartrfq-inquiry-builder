@@ -21,7 +21,7 @@ export function RfqSupplierTabContent({
   onMessageChange
 }: RfqSupplierTabContentProps) {
   const selectedProjectId = useProjectStore(state => state.selectedProjectId) || '';
-  const { suppliers = [], isLoading } = useSuppliers(selectedProjectId);
+  const { projectSuppliers, isLoading } = useSuppliers();
   const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
   
   return (
@@ -29,7 +29,7 @@ export function RfqSupplierTabContent({
       <div className="space-y-2">
         <Label htmlFor="supplier">Supplier</Label>
         <RfqSupplierSelector
-          suppliers={suppliers || []} // Ensure we always pass an array
+          suppliers={projectSuppliers || []} // Use projectSuppliers instead of suppliers
           selectedSupplierId={selectedSupplierId}
           onSupplierSelect={onSupplierSelect}
           onAddNew={() => setIsAddSupplierOpen(true)}
@@ -51,7 +51,10 @@ export function RfqSupplierTabContent({
       <SupplierAddSheet 
         open={isAddSupplierOpen} 
         onOpenChange={setIsAddSupplierOpen}
-        projectId={selectedProjectId}
+        onSave={(supplierData) => {
+          console.log("New supplier data:", supplierData);
+          setIsAddSupplierOpen(false);
+        }}
       />
     </div>
   );
