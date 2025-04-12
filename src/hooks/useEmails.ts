@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '@/stores/projectStore';
 import { useAuth, useOrganization } from '@clerk/clerk-react';
 import { toast } from 'sonner';
@@ -30,7 +29,6 @@ interface EmailsState {
   page: number;
   pageSize: number;
   totalPages: number;
-  isRequestPending: boolean; // Add flag to prevent duplicate requests
 }
 
 // Hook 返回类型
@@ -68,6 +66,7 @@ export const useEmails = (): UseEmailsReturn => {
   const { getToken } = useAuth();
   const { organization } = useOrganization();
   const selectedProjectId = useProjectStore(state => state.selectedProjectId);
+  const requestInProgress = useRef(false);
   
   const [state, setState] = useState<EmailsState>({
     conversations: [],
@@ -78,21 +77,22 @@ export const useEmails = (): UseEmailsReturn => {
     totalConversations: 0,
     page: 1,
     pageSize: 20,
-    totalPages: 0,
-    isRequestPending: false // Initialize the request pending flag
+    totalPages: 0
   });
   
-  // 获取会话列表
+  // 获取会话列表 - using useCallback with proper dependencies to prevent recreation
   const fetchConversations = useCallback(async (page: number = 1) => {
-    // Validate project ID and prevent duplicate requests
-    if (!selectedProjectId || state.isRequestPending) {
+    // Check if there's already a request in progress or if no project is selected
+    if (requestInProgress.current || !selectedProjectId) {
       if (!selectedProjectId) {
         setState(prev => ({ ...prev, error: 'No project selected', isLoading: false }));
       }
       return;
     }
     
-    setState(prev => ({ ...prev, isLoading: true, error: null, isRequestPending: true }));
+    // Set the request flag to prevent duplicate requests
+    requestInProgress.current = true;
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
     
     try {
       const token = await getToken();
@@ -109,20 +109,21 @@ export const useEmails = (): UseEmailsReturn => {
         page: response.page,
         pageSize: response.page_size,
         totalPages: response.pages,
-        isLoading: false,
-        isRequestPending: false
+        isLoading: false
       }));
     } catch (error) {
       console.error('Failed to fetch conversations:', error);
       setState(prev => ({ 
         ...prev, 
         error: error instanceof Error ? error.message : 'Failed to fetch conversations',
-        isLoading: false,
-        isRequestPending: false
+        isLoading: false
       }));
       toast.error('Failed to fetch conversations');
+    } finally {
+      // Always clear the request flag when done, regardless of success or failure
+      requestInProgress.current = false;
     }
-  }, [getToken, selectedProjectId, state.pageSize, state.isRequestPending]);
+  }, [getToken, selectedProjectId, state.pageSize]);
   
   // 选择特定会话
   const selectConversation = async (conversationId: string) => {
@@ -359,12 +360,15 @@ export const useEmails = (): UseEmailsReturn => {
   
   // 当项目变更时，获取会话列表
   useEffect(() => {
+    // Reset the request flag when project changes
+    requestInProgress.current = false;
+    
     // Check if there's a valid project ID before fetching
     if (selectedProjectId) {
-      // Use the memoized fetch function to avoid stale closures
+      // Fetch conversations only if not already loading
       fetchConversations();
     } else {
-      // 如果没有选择项目，清空状态
+      // If no project selected, reset state
       setState({
         conversations: [],
         emails: {},
@@ -374,13 +378,13 @@ export const useEmails = (): UseEmailsReturn => {
         totalConversations: 0,
         page: 1,
         pageSize: 20,
-        totalPages: 0,
-        isRequestPending: false
+        totalPages: 0
       });
     }
     
-    // Add fetchConversations to dependencies to ensure it's always up to date
-  }, [selectedProjectId, fetchConversations]);
+    // Only include selectedProjectId in the dependency array
+    // This prevents fetchConversations from causing re-renders
+  }, [selectedProjectId]);
   
   // 找到选中的会话
   const selectedConversation = state.selectedConversationId
@@ -421,4 +425,4 @@ export const useEmails = (): UseEmailsReturn => {
     // 界面操作
     clearSelectedConversation,
   };
-}; 
+};

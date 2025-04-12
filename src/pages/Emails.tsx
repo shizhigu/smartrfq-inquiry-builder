@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useEmails } from '@/hooks/useEmails';
 import { useProjectStore } from '@/stores/projectStore';
 import { PageHeader } from '@/components/ui/page-header';
@@ -58,12 +57,13 @@ const Emails = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   
-  // Filter conversations based on search query
+  useEffect(() => {
+    console.log("Project ID in Emails page:", selectedProjectId);
+  }, [selectedProjectId]);
+  
   const filteredConversations = conversations.filter(conv => {
-    // Filter by tab
     if (activeTab === 'unread' && conv.unreadCount === 0) return false;
     
-    // Filter by search query
     if (searchQuery) {
       return (
         conv.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -86,17 +86,13 @@ const Emails = () => {
     clearSelectedConversation();
   };
 
-  // Safely format a date string, with a fallback for invalid dates
   const safeFormatDate = (dateString: string, formatStr: string): string => {
     try {
-      // Try to parse the ISO string
       const date = parseISO(dateString);
       
-      // Check if the date is valid
       if (isValid(date)) {
         return format(date, formatStr);
       }
-      // If not valid, fallback to a default
       return 'Invalid date';
     } catch (err) {
       console.error('Error formatting date:', err, dateString);
@@ -104,7 +100,6 @@ const Emails = () => {
     }
   };
 
-  // Get status badge color based on status
   const getStatusBadge = (status: string | undefined) => {
     if (!status) return <Badge variant="outline">Unknown</Badge>;
     
@@ -122,7 +117,6 @@ const Emails = () => {
     }
   };
 
-  // Show project selection message if no project is selected
   if (!selectedProjectId) {
     return (
       <div className="p-6">
@@ -141,12 +135,11 @@ const Emails = () => {
     );
   }
 
-  // Fetch conversations when the component mounts or when project changes
-  useEffect(() => {
-    if (selectedProjectId) {
-      fetchConversations();
+  const handleLoadMore = useCallback(() => {
+    if (page < totalPages) {
+      fetchConversations(page + 1);
     }
-  }, [selectedProjectId, fetchConversations]);
+  }, [page, totalPages, fetchConversations]);
 
   if (isLoading && !conversations.length) {
     return (
@@ -179,7 +172,6 @@ const Emails = () => {
   }
 
   if (selectedConversation) {
-    // Show the conversation view
     return (
       <div className="p-6">
         <PageHeader
@@ -374,7 +366,7 @@ const Emails = () => {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => fetchConversations(page + 1)}
+                    onClick={handleLoadMore}
                     disabled={page >= totalPages}
                   >
                     View More
