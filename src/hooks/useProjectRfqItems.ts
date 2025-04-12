@@ -4,14 +4,17 @@ import { useAuth } from '@clerk/clerk-react';
 import { API_CONFIG, useMockData } from '@/lib/config';
 import { toast } from 'sonner';
 import { useProjectStore } from '@/stores/projectStore';
-import { useRfqStore } from '@/stores/rfqStore';
+import { useRfqStore, RfqPart } from '@/stores/rfqStore';
 
-export interface RfqItem {
+// Update the RfqItem interface to match RfqPart requirements
+export interface RfqItem extends Omit<RfqPart, 'id' | 'name' | 'partNumber' | 'quantity' | 'projectId'> {
   id: string;
   name: string;
   partNumber: string;
   quantity: number;
   projectId: string;
+  // Ensure unit is included as required by RfqPart
+  unit: string;
 }
 
 export function useProjectRfqItems() {
@@ -50,7 +53,12 @@ export function useProjectRfqItems() {
       }
 
       const data = await response.json();
-      return data;
+      
+      // Ensure each item has a unit property to satisfy RfqPart requirements
+      return data.map((item: any) => ({
+        ...item,
+        unit: item.unit || 'pcs' // Provide a default unit if not present
+      }));
     } catch (error) {
       console.error(`Failed to fetch RFQ items for project ${projectId}:`, error);
       return [];
@@ -77,9 +85,9 @@ export function useProjectRfqItems() {
           })
         );
         
-        const projectItemsMap: Record<string, RfqItem[]> = {};
+        const projectItemsMap: Record<string, RfqPart[]> = {};
         results.forEach(({ projectId, items }) => {
-          projectItemsMap[projectId] = items;
+          projectItemsMap[projectId] = items as RfqPart[];
         });
         
         setAllProjectItems(projectItemsMap);
@@ -92,9 +100,9 @@ export function useProjectRfqItems() {
           })
         );
         
-        const projectItemsMap: Record<string, RfqItem[]> = {};
+        const projectItemsMap: Record<string, RfqPart[]> = {};
         results.forEach(({ projectId, items }) => {
-          projectItemsMap[projectId] = items;
+          projectItemsMap[projectId] = items as RfqPart[];
         });
         
         setAllProjectItems(projectItemsMap);
