@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RfqFile } from "@/stores/rfqStore";
-import { FilePlus, Download, FileX, FileCheck, FileUp } from "lucide-react";
+import { Download, FileX, FileCheck, FileUp } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -44,10 +44,16 @@ export function RfqFilesList({ isLoading, files, projectId, handleUploadFile }: 
     }
   };
 
-  // Deduplicate files based on filename (for demo purposes)
-  const uniqueFiles = useMemo(() => {
+  // Filter out invalid files and deduplicate based on filename
+  const validFiles = useMemo(() => {
     const seen = new Set();
     return files.filter(file => {
+      // Check if file has required fields
+      if (!file.id || !file.filename) {
+        console.warn('Invalid file entry found:', file);
+        return false;
+      }
+      
       const duplicate = seen.has(file.filename);
       seen.add(file.filename);
       return !duplicate;
@@ -69,7 +75,7 @@ export function RfqFilesList({ isLoading, files, projectId, handleUploadFile }: 
       const url = URL.createObjectURL(fileBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = file.filename || 'download';
+      a.download = file.filename;
       document.body.appendChild(a);
       a.click();
       
@@ -94,7 +100,7 @@ export function RfqFilesList({ isLoading, files, projectId, handleUploadFile }: 
     );
   }
   
-  if (uniqueFiles.length === 0) {
+  if (validFiles.length === 0) {
     return (
       <div className="text-center py-12">
         <h3 className="text-lg font-medium mb-2">No files uploaded</h3>
@@ -136,7 +142,7 @@ export function RfqFilesList({ isLoading, files, projectId, handleUploadFile }: 
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {uniqueFiles.map((file) => (
+          {validFiles.map((file) => (
             <div 
               key={file.id} 
               className="flex items-center justify-between p-3 rounded-md hover:bg-muted transition-colors border"
