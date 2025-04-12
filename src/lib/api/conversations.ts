@@ -1,4 +1,3 @@
-
 import { API_CONFIG, useMockData } from '../config';
 import { mockConversations } from '../mock/mockData';
 import { v4 as uuidv4 } from 'uuid';
@@ -232,21 +231,35 @@ export async function markConversationAsRead(
     return;
   }
   
-  // 实际 API 调用
-  const response = await fetch(
-    `${API_CONFIG.BASE_URL}/conversations/${conversationId}/read`, 
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+  // 实际 API 调用 - wrapped in try/catch to handle 404 errors gracefully
+  try {
+    const response = await fetch(
+      `${API_CONFIG.BASE_URL}/conversations/${conversationId}/read`, 
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        }
       }
-    }
-  );
+    );
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error?.message || 'Failed to mark conversation as read');
+    if (!response.ok) {
+      // Check if it's a 404 specifically
+      if (response.status === 404) {
+        console.error('Endpoint not found: The /conversations/:id/read endpoint is not available');
+        // Still mark it as read locally
+        // We could implement a fallback method here if needed
+        return;
+      }
+      
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || 'Failed to mark conversation as read');
+    }
+  } catch (error) {
+    console.error('Failed to mark conversation as read:', error);
+    // Don't rethrow the error to avoid breaking the UI
+    // Just log it and continue
   }
 }
 

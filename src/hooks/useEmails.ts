@@ -18,7 +18,6 @@ import {
   Email
 } from '@/lib/api/emails';
 
-// 内部状态接口
 interface EmailsState {
   conversations: Conversation[];
   emails: Record<string, Email[]>;
@@ -31,34 +30,28 @@ interface EmailsState {
   totalPages: number;
 }
 
-// Hook 返回类型
 interface UseEmailsReturn {
-  // 数据
   conversations: Conversation[];
   emails: Email[];
   selectedConversation: Conversation | null;
   isLoading: boolean;
   error: string | null;
   
-  // 分页
   page: number;
   pageSize: number;
   totalPages: number;
   totalConversations: number;
   
-  // 会话操作
   fetchConversations: (page?: number) => Promise<void>;
   selectConversation: (conversationId: string) => Promise<void>;
   createNewConversation: (supplierId: string, subject: string, initialMessage: string) => Promise<void>;
   markConversationRead: (conversationId: string) => Promise<void>;
   
-  // 邮件操作
   fetchEmails: (conversationId: string) => Promise<void>;
   sendNewEmail: (content: string, subject?: string, attachments?: File[]) => Promise<void>;
   markEmailRead: (emailId: string) => Promise<void>;
   downloadEmailAttachment: (attachmentId: string, filename: string) => Promise<void>;
   
-  // 界面操作
   clearSelectedConversation: () => void;
 }
 
@@ -80,9 +73,7 @@ export const useEmails = (): UseEmailsReturn => {
     totalPages: 0
   });
   
-  // 获取会话列表 - using useCallback with proper dependencies to prevent recreation
   const fetchConversations = useCallback(async (page: number = 1) => {
-    // Check if there's already a request in progress or if no project is selected
     if (requestInProgress.current || !selectedProjectId) {
       if (!selectedProjectId) {
         setState(prev => ({ ...prev, error: 'No project selected', isLoading: false }));
@@ -90,7 +81,6 @@ export const useEmails = (): UseEmailsReturn => {
       return;
     }
     
-    // Set the request flag to prevent duplicate requests
     requestInProgress.current = true;
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     
@@ -120,26 +110,21 @@ export const useEmails = (): UseEmailsReturn => {
       }));
       toast.error('Failed to fetch conversations');
     } finally {
-      // Always clear the request flag when done, regardless of success or failure
       requestInProgress.current = false;
     }
   }, [getToken, selectedProjectId, state.pageSize]);
   
-  // 选择特定会话
   const selectConversation = async (conversationId: string) => {
     setState(prev => ({ ...prev, selectedConversationId: conversationId, isLoading: true }));
     
     try {
-      // 如果还没有获取过此会话的邮件，则获取它们
       if (!state.emails[conversationId]) {
         await fetchEmails(conversationId);
       }
       
-      // 将会话标记为已读
       await markConversationRead(conversationId);
     } catch (error) {
       console.error('Error selecting conversation:', error);
-      // 即使出错，我们仍然保持会话被选中，但会显示错误消息
       setState(prev => ({ 
         ...prev, 
         error: error instanceof Error ? error.message : 'Failed to load conversation',
@@ -148,7 +133,6 @@ export const useEmails = (): UseEmailsReturn => {
     }
   };
   
-  // 获取会话中的邮件
   const fetchEmails = async (conversationId: string) => {
     if (!conversationId) return;
     
@@ -178,7 +162,6 @@ export const useEmails = (): UseEmailsReturn => {
     }
   };
   
-  // 创建新会话
   const createNewConversation = async (supplierId: string, subject: string, initialMessage: string) => {
     if (!selectedProjectId) {
       setState(prev => ({ ...prev, error: 'No project selected' }));
@@ -201,10 +184,8 @@ export const useEmails = (): UseEmailsReturn => {
         initialMessage
       );
       
-      // 重新获取会话列表
       await fetchConversations();
       
-      // 选择新创建的会话
       await selectConversation(newConversation.id);
       
       toast.success('Conversation created successfully');
@@ -219,7 +200,6 @@ export const useEmails = (): UseEmailsReturn => {
     }
   };
   
-  // 发送新邮件
   const sendNewEmail = async (content: string, subject?: string, attachments?: File[]) => {
     if (!state.selectedConversationId) {
       toast.error('No conversation selected');
@@ -242,7 +222,6 @@ export const useEmails = (): UseEmailsReturn => {
         attachments
       );
       
-      // 更新本地状态
       setState(prev => {
         const conversationEmails = prev.emails[state.selectedConversationId!] || [];
         return {
@@ -255,7 +234,6 @@ export const useEmails = (): UseEmailsReturn => {
         };
       });
       
-      // 重新获取会话列表以更新最新消息预览
       await fetchConversations(state.page);
       
       toast.success('Email sent successfully');
@@ -270,7 +248,6 @@ export const useEmails = (): UseEmailsReturn => {
     }
   };
   
-  // 将会话标记为已读
   const markConversationRead = async (conversationId: string) => {
     try {
       const token = await getToken();
@@ -280,22 +257,29 @@ export const useEmails = (): UseEmailsReturn => {
       
       await markConversationAsRead(token, conversationId);
       
-      // 更新本地状态
       setState(prev => ({
         ...prev,
         conversations: prev.conversations.map(conv => 
           conv.id === conversationId 
             ? { ...conv, unreadCount: 0 } 
             : conv
-        )
+        ),
+        isLoading: false
       }));
     } catch (error) {
       console.error('Failed to mark conversation as read:', error);
-      // 不显示错误消息，因为这不是一个关键操作
+      setState(prev => ({
+        ...prev,
+        conversations: prev.conversations.map(conv => 
+          conv.id === conversationId 
+            ? { ...conv, unreadCount: 0 } 
+            : conv
+        ),
+        isLoading: false
+      }));
     }
   };
   
-  // 将邮件标记为已读
   const markEmailRead = async (emailId: string) => {
     try {
       const token = await getToken();
@@ -305,9 +289,7 @@ export const useEmails = (): UseEmailsReturn => {
       
       await markEmailAsRead(token, emailId);
       
-      // 更新本地状态
       setState(prev => {
-        // 找到邮件所在的会话
         let updatedEmails = { ...prev.emails };
         
         for (const conversationId in updatedEmails) {
@@ -320,11 +302,9 @@ export const useEmails = (): UseEmailsReturn => {
       });
     } catch (error) {
       console.error('Failed to mark email as read:', error);
-      // 不显示错误消息，因为这不是一个关键操作
     }
   };
   
-  // 下载附件
   const downloadEmailAttachment = async (attachmentId: string, filename: string) => {
     try {
       const token = await getToken();
@@ -334,7 +314,6 @@ export const useEmails = (): UseEmailsReturn => {
       
       const blob = await downloadAttachment(token, attachmentId);
       
-      // 创建下载链接
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -342,7 +321,6 @@ export const useEmails = (): UseEmailsReturn => {
       document.body.appendChild(a);
       a.click();
       
-      // 清理
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
@@ -353,22 +331,16 @@ export const useEmails = (): UseEmailsReturn => {
     }
   };
   
-  // 清除选中的会话
   const clearSelectedConversation = () => {
     setState(prev => ({ ...prev, selectedConversationId: null }));
   };
   
-  // 当项目变更时，获取会话列表
   useEffect(() => {
-    // Reset the request flag when project changes
     requestInProgress.current = false;
     
-    // Check if there's a valid project ID before fetching
     if (selectedProjectId) {
-      // Fetch conversations only if not already loading
       fetchConversations();
     } else {
-      // If no project selected, reset state
       setState({
         conversations: [],
         emails: {},
@@ -381,48 +353,38 @@ export const useEmails = (): UseEmailsReturn => {
         totalPages: 0
       });
     }
-    
-    // Only include selectedProjectId in the dependency array
-    // This prevents fetchConversations from causing re-renders
   }, [selectedProjectId]);
   
-  // 找到选中的会话
   const selectedConversation = state.selectedConversationId
     ? state.conversations.find(c => c.id === state.selectedConversationId) || null
     : null;
   
-  // 获取当前会话的邮件
   const emails = state.selectedConversationId 
     ? state.emails[state.selectedConversationId] || []
     : [];
   
   return {
-    // 数据
     conversations: state.conversations,
     emails,
     selectedConversation,
     isLoading: state.isLoading,
     error: state.error,
     
-    // 分页
     page: state.page,
     pageSize: state.pageSize,
     totalPages: state.totalPages,
     totalConversations: state.totalConversations,
     
-    // 会话操作
     fetchConversations,
     selectConversation,
     createNewConversation,
     markConversationRead,
     
-    // 邮件操作
     fetchEmails,
     sendNewEmail,
     markEmailRead,
     downloadEmailAttachment,
     
-    // 界面操作
     clearSelectedConversation,
   };
 };
