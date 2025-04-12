@@ -15,7 +15,6 @@ import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
 import { useProjectRfqItems } from "@/hooks/useProjectRfqItems";
 import { useRfqStore } from "@/stores/rfqStore";
 
-// Dashboard summary interface matching backend
 interface DashboardSummary {
   activeProjectCount: number;
   rfqItemCount: number;
@@ -39,16 +38,12 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   
-  // Use the supplier hook to get supplier data
   const { totalSuppliers, isLoading: isSuppliersLoading } = useOrganizationSuppliers();
   
-  // Use the RFQ store for stats
   const { getTotalItemCount, getItemCountByProject, stats, parts } = useRfqStore();
   
-  // Use the project RFQ items hook to load the data
   const { loadAllProjectItems, isLoading: isItemsLoading } = useProjectRfqItems();
   
-  // Ensure user is synced with the backend when the component mounts
   useEffect(() => {
     const syncUserWithBackend = async () => {
       if (!userId) return;
@@ -71,7 +66,6 @@ export default function Dashboard() {
     syncUserWithBackend();
   }, [userId, getToken]);
   
-  // Fetch projects data when component mounts
   useEffect(() => {
     setCurrentPage('dashboard');
     
@@ -98,7 +92,6 @@ export default function Dashboard() {
     loadProjects();
   }, [setCurrentPage, setProjects, getToken, setLoading]);
   
-  // Reload RFQ items when the component mounts or projects change
   useEffect(() => {
     if (projects.length > 0) {
       console.log('Dashboard: Loading RFQ items for all projects');
@@ -106,21 +99,22 @@ export default function Dashboard() {
     }
   }, [projects, loadAllProjectItems]);
   
-  // Calculate stats from the projects and other data
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'open').length;
   const totalParts = getTotalItemCount();
   
-  // For debugging
   useEffect(() => {
     console.log('Dashboard: Total parts count from store:', totalParts);
     console.log('Dashboard: RFQ stats loading:', stats.isLoading);
     console.log('Dashboard: RFQ parts data:', parts);
   }, [totalParts, stats.isLoading, parts]);
   
-  // Recent projects are the 3 most recently updated projects
   const recentProjects = [...projects]
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .sort((a, b) => {
+      const partsA = getItemCountByProject(a.id);
+      const partsB = getItemCountByProject(b.id);
+      return partsB - partsA || new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+    })
     .slice(0, 3);
   
   return (
@@ -141,7 +135,6 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
-          {/* Statistics Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
             <StatCard
               title="Total Projects"
@@ -169,10 +162,9 @@ export default function Dashboard() {
             />
           </div>
           
-          {/* Recent Projects */}
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="text-lg">Recent Projects</CardTitle>
+              <CardTitle className="text-lg">Top Projects by Parts Count</CardTitle>
             </CardHeader>
             <CardContent>
               {recentProjects.length > 0 ? (
@@ -208,7 +200,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           
-          {/* Activity Feed */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Recent Activity</CardTitle>

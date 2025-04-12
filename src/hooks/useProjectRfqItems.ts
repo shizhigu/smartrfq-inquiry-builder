@@ -30,7 +30,8 @@ export function useProjectRfqItems() {
     setStatsError,
     getItemCountByProject,
     getTotalItemCount,
-    stats
+    stats,
+    parts
   } = useRfqStore();
 
   const fetchRfqItemsForProject = async (projectId: string) => {
@@ -134,6 +135,7 @@ export function useProjectRfqItems() {
     error: stats.error || error,
     getProjectItemCount: getItemCountByProject,
     getTotalItemCount,
-    loadAllProjectItems
+    loadAllProjectItems,
+    parts
   };
 }
