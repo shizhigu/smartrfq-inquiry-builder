@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,11 +31,6 @@ interface DashboardSummary {
 }
 
 export default function Dashboard() {
-  // Define all state hooks first to maintain consistent order
-  const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
-  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
-  
-  // Other hooks
   const navigate = useNavigate();
   const { getToken, userId } = useAuth();
   
@@ -45,10 +41,11 @@ export default function Dashboard() {
   const orgSuppliers = useSupplierStore(state => state.suppliers['global'] || []);
   const suppliersLoading = useSupplierStore(state => state.isLoading);
   
-  // Use the hook to load suppliers, but always force a refresh when dashboard loads
-  const { loadSuppliers } = useOrganizationSuppliers();
+  const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   
-  // Get total suppliers directly from the store - this will update reactively
+  // Use the hook to trigger loading but get data directly from store
+  const { loadSuppliers } = useOrganizationSuppliers();
   const totalSuppliers = orgSuppliers.length;
   
   const { 
@@ -60,14 +57,9 @@ export default function Dashboard() {
   
   const { 
     loadAllProjectItems, 
-    isLoading: itemsLoading,
+    isLoading: isItemsLoading,
     parts
   } = useProjectRfqItems();
-  
-  // Calculate dashboard stats
-  const totalProjects = projects.length;
-  const activeProjects = projects.filter(p => p.status === 'open').length;
-  const totalParts = getTotalItemCount();
   
   useEffect(() => {
     const syncUserWithBackend = async () => {
@@ -123,11 +115,15 @@ export default function Dashboard() {
     loadProjects();
   }, [setCurrentPage, setProjects, getToken, setLoading, projects.length]);
   
-  // Force refresh suppliers when dashboard mounts to ensure we have the latest data
+  // Load organization suppliers if they don't exist
   useEffect(() => {
-    console.log('Dashboard: Loading organization suppliers on mount');
-    loadSuppliers(true); // Force refresh to ensure we have the latest data
-  }, [loadSuppliers]);
+    if (orgSuppliers.length === 0 && !suppliersLoading) {
+      console.log('Dashboard: Loading organization suppliers because none exist in store');
+      loadSuppliers();
+    } else {
+      console.log('Dashboard: Using organization suppliers from Zustand store, count:', orgSuppliers.length);
+    }
+  }, [orgSuppliers.length, suppliersLoading, loadSuppliers]);
   
   useEffect(() => {
     if (projects.length > 0 && Object.keys(parts || {}).length === 0) {
@@ -137,6 +133,10 @@ export default function Dashboard() {
       console.log('Dashboard: Projects exist and parts data exists in store, no need to reload');
     }
   }, [projects, loadAllProjectItems, parts]);
+  
+  const totalProjects = projects.length;
+  const activeProjects = projects.filter(p => p.status === 'open').length;
+  const totalParts = getTotalItemCount();
   
   // Log the state for debugging
   useEffect(() => {
@@ -188,7 +188,7 @@ export default function Dashboard() {
             />
             <StatCard
               title="Total Parts"
-              value={itemsLoading || stats.isLoading ? "..." : totalParts}
+              value={isItemsLoading || stats.isLoading ? "..." : totalParts}
               icon={FileText}
               trend={totalParts > 0 ? { value: 8, isPositive: true } : undefined}
             />
@@ -220,7 +220,7 @@ export default function Dashboard() {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center">
                           <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
-                          <span>{itemsLoading || stats.isLoading ? "..." : getItemCountByProject(project.id)}</span>
+                          <span>{isItemsLoading || stats.isLoading ? "..." : getItemCountByProject(project.id)}</span>
                         </div>
                         <div className="flex items-center">
                           <Users className="h-4 w-4 mr-1 text-muted-foreground" />
@@ -285,3 +285,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

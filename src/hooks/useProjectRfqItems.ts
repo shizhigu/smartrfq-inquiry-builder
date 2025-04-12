@@ -18,7 +18,6 @@ export interface RfqItem extends Omit<RfqPart, 'id' | 'name' | 'partNumber' | 'q
 }
 
 export function useProjectRfqItems() {
-  // Ensure all useState hooks are called unconditionally at the top level
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { getToken } = useAuth();
