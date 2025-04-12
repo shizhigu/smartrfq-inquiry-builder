@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useProjectStore } from "@/stores/projectStore";
 import { useState, useEffect } from "react";
@@ -13,6 +14,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSyncUser } from "@/hooks/useSyncUser";
 import { useAuthManager } from "@/hooks/useAuthManager";
+import { useAppStore } from "@/stores/appStore";
+import { useUserStore } from "@/stores/userStore";
+import { useSupplierStore } from "@/stores/supplierStore";
+import { useRfqStore } from "@/stores/rfqStore";
+import { toast } from "sonner";
 
 export function Topbar() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,9 +30,37 @@ export function Topbar() {
   
   const { currentUser, organizationId } = useSyncUser();
   
+  // Get reset methods from all stores
+  const resetAppState = useAppStore((state) => state.resetState);
+  const resetUserState = useUserStore((state) => state.resetState);
+  const resetProjectState = useProjectStore((state) => state.resetState);
+  const resetSupplierState = useSupplierStore((state) => state.resetState);
+  const resetRfqState = useRfqStore((state) => state.resetState);
+  
+  // Previous organization ID ref
+  const [previousOrgId, setPreviousOrgId] = useState<string | undefined>(organizationId);
+  
   useEffect(() => {
     console.log('Organization changed in Topbar:', organization?.id);
-  }, [organization?.id]);
+    
+    // If this is not the initial load and the organization has changed
+    if (previousOrgId && previousOrgId !== organization?.id) {
+      console.log('Organization switched, resetting all stores');
+      
+      // Reset all Zustand stores
+      resetAppState();
+      resetUserState();
+      resetProjectState();
+      resetSupplierState();
+      resetRfqState();
+      
+      // Show notification to user
+      toast.info('Switched organization. Data has been reset.');
+    }
+    
+    // Update previous org ID
+    setPreviousOrgId(organization?.id);
+  }, [organization?.id, previousOrgId, resetAppState, resetUserState, resetProjectState, resetSupplierState, resetRfqState]);
   
   return (
     <div className="h-16 border-b border-border flex items-center justify-between px-4 bg-background">
