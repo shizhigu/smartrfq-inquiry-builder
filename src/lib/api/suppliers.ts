@@ -131,3 +131,41 @@ export const deleteSupplier = async (token: string, id: string): Promise<void> =
     throw new Error(`Failed to delete supplier: ${response.statusText}`);
   }
 };
+
+// Get a single supplier by ID
+export const getSupplier = async (token: string, supplierId: string): Promise<Supplier> => {
+  console.info("Loading supplier details for:", supplierId);
+  
+  if (useMockData()) {
+    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
+    
+    // Find the supplier in our mock data
+    let foundSupplier: Supplier | null = null;
+    
+    Object.keys(mockSuppliers).forEach(projectId => {
+      const supplier = mockSuppliers[projectId].find(s => s.id === supplierId);
+      if (supplier) {
+        foundSupplier = supplier;
+      }
+    });
+    
+    if (!foundSupplier) {
+      throw new Error(`Supplier with ID ${supplierId} not found`);
+    }
+    
+    return foundSupplier;
+  }
+  
+  const response = await fetch(`${API_CONFIG.BASE_URL}/suppliers/${supplierId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch supplier: ${response.statusText}`);
+  }
+  
+  return response.json();
+};

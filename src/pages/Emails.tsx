@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useEmails } from '@/hooks/useEmails';
+import { useEmails, ConversationWithSupplier } from '@/hooks/useEmails';
 import { useProjectStore } from '@/stores/projectStore';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -58,7 +58,9 @@ const Emails = () => {
     if (searchQuery) {
       return (
         conv.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        conv.lastMessagePreview.toLowerCase().includes(searchQuery.toLowerCase())
+        conv.lastMessagePreview.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (conv.supplierName && conv.supplierName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (conv.supplierEmail && conv.supplierEmail.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
     

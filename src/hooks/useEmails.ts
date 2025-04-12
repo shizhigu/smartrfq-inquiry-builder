@@ -16,9 +16,16 @@ import {
   downloadAttachment,
   Email
 } from '@/lib/api/emails';
+import { getSupplier } from '@/lib/api/suppliers';
+
+// Extended conversation type with supplier details
+export interface ConversationWithSupplier extends Conversation {
+  supplierName?: string;
+  supplierEmail?: string;
+}
 
 interface EmailsState {
-  conversations: Conversation[];
+  conversations: ConversationWithSupplier[];
   emails: Record<string, Email[]>;
   selectedConversationId: string | null;
   isLoading: boolean;
@@ -30,9 +37,9 @@ interface EmailsState {
 }
 
 interface UseEmailsReturn {
-  conversations: Conversation[];
+  conversations: ConversationWithSupplier[];
   emails: Email[];
-  selectedConversation: Conversation | null;
+  selectedConversation: ConversationWithSupplier | null;
   isLoading: boolean;
   error: string | null;
   
@@ -69,6 +76,38 @@ export const useEmails = (): UseEmailsReturn => {
     totalPages: 0
   });
   
+  // Function to fetch supplier details for conversations
+  const enrichConversationsWithSupplierInfo = async (
+    token: string,
+    conversations: Conversation[]
+  ): Promise<ConversationWithSupplier[]> => {
+    const enrichedConversations: ConversationWithSupplier[] = [];
+    
+    for (const conversation of conversations) {
+      try {
+        // Get supplier details
+        const supplier = await getSupplier(token, conversation.supplierId);
+        
+        // Enrich conversation with supplier details
+        enrichedConversations.push({
+          ...conversation,
+          supplierName: supplier.name,
+          supplierEmail: supplier.email
+        });
+      } catch (error) {
+        console.error(`Failed to fetch supplier details for ID ${conversation.supplierId}:`, error);
+        // Still include the conversation, but without supplier details
+        enrichedConversations.push({
+          ...conversation,
+          supplierName: 'Unknown Supplier',
+          supplierEmail: 'No email available'
+        });
+      }
+    }
+    
+    return enrichedConversations;
+  };
+  
   const fetchConversations = useCallback(async (page: number = 1) => {
     if (requestInProgress.current || !selectedProjectId) {
       if (!selectedProjectId) {
@@ -88,9 +127,12 @@ export const useEmails = (): UseEmailsReturn => {
       
       const response = await getConversations(token, selectedProjectId, page, state.pageSize);
       
+      // Enrich conversations with supplier details
+      const enrichedConversations = await enrichConversationsWithSupplierInfo(token, response.items);
+      
       setState(prev => ({
         ...prev,
-        conversations: response.items,
+        conversations: enrichedConversations,
         totalConversations: response.total,
         page: response.page,
         pageSize: response.page_size,
