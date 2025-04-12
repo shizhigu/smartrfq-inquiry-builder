@@ -1,11 +1,16 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { Command, CommandInput, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Loader2, ChevronsUpDown, Plus } from "lucide-react";
 import { Supplier } from "@/stores/supplierStore";
-import { SupplierSearchResults } from "./suppliers/SupplierSearchResults";
+import { 
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 
 interface RfqSupplierSelectorProps {
   suppliers: Supplier[];
@@ -16,92 +21,79 @@ interface RfqSupplierSelectorProps {
 }
 
 export function RfqSupplierSelector({
-  suppliers = [], // Add a default empty array
+  suppliers = [], 
   selectedSupplierId,
   onSupplierSelect,
   onAddNew,
   isLoading = false
 }: RfqSupplierSelectorProps) {
-  const [open, setOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  
-  // Ensure suppliers is always an array before filtering
+  // Ensure suppliers is always an array
   const safeSuppliers = Array.isArray(suppliers) ? suppliers : [];
   
-  // Filter suppliers based on search value
-  const filteredSuppliers = safeSuppliers.filter((supplier) => {
-    if (!searchValue) return true;
-    
-    const searchLower = searchValue.toLowerCase();
-    return (
-      supplier.name.toLowerCase().includes(searchLower) ||
-      supplier.email.toLowerCase().includes(searchLower)
-    );
-  });
-  
-  // Find the selected supplier - we know the ID is valid here because it comes from our component props
+  // Find the selected supplier
   const selectedSupplier = safeSuppliers.find(s => s.id === selectedSupplierId);
-
-  const handleSupplierSelect = (supplierId: string) => {
-    onSupplierSelect(supplierId);
-    setOpen(false);
-  };
+  
+  console.log("Rendering RfqSupplierSelector with", safeSuppliers.length, "suppliers");
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-          type="button"
-        >
-          {isLoading ? (
-            <div className="flex items-center">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              <span>Loading suppliers...</span>
-            </div>
-          ) : selectedSupplier ? (
-            <span>{selectedSupplier.name}</span>
-          ) : (
-            <span className="text-muted-foreground">Select a supplier</span>
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+    <div className="w-full">
+      {isLoading ? (
+        <Button variant="outline" disabled className="w-full justify-start">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <span>Loading suppliers...</span>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent 
-        className="p-0 w-full" 
-        align="start" 
-        sideOffset={5} 
-        style={{ 
-          zIndex: 50,
-          width: "var(--radix-popover-trigger-width)",
-          position: 'absolute',
-          marginTop: '1px',
-          backgroundColor: "white",
-        }}
-      >
-        <Command className="rounded-md border shadow-md">
-          <CommandInput
-            placeholder="Search suppliers..."
-            value={searchValue}
-            onValueChange={setSearchValue}
-            className="border-none focus:ring-0"
-          />
-          <CommandList className="max-h-[200px] overflow-y-auto">
-            <SupplierSearchResults
-              suppliers={filteredSuppliers}
-              selectedSupplierId={selectedSupplierId}
-              onSupplierSelect={handleSupplierSelect}
-              onAddNewClick={() => {
-                setOpen(false);
-                onAddNew();
-              }}
-            />
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+      ) : (
+        <Select
+          value={selectedSupplierId || ""}
+          onValueChange={onSupplierSelect}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a supplier" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {safeSuppliers.length === 0 ? (
+                <div className="py-3 px-4 text-center text-sm">
+                  <p>No suppliers found.</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full mt-2"
+                    onClick={onAddNew}
+                    type="button"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add new supplier
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {safeSuppliers.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{supplier.name}</span>
+                        <span className="text-xs text-muted-foreground">{supplier.email}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                  <div className="py-2 px-2 border-t mt-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={onAddNew}
+                      type="button"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add new supplier
+                    </Button>
+                  </div>
+                </>
+              )}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      )}
+    </div>
   );
 }
