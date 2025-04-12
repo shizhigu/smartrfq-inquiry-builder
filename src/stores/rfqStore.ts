@@ -6,13 +6,18 @@ import { immer } from 'zustand/middleware/immer';
 export interface RfqPart {
   id: string;
   name: string;
+  partNumber: string;
   quantity: number;
+  unit: string;
   material?: string;
+  surfaceFinish?: string;
+  process?: string;
+  deliveryTime?: string;
+  tolerance?: string;
   drawingNumber?: string;
-  notes?: string;
-  supplierId?: string;
+  remarks?: string;
   projectId: string;
-  selected?: boolean;
+  supplierId?: string;
 }
 
 export interface RfqFile {

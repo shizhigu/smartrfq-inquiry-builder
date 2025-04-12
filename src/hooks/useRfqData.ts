@@ -2,7 +2,7 @@
 import { fetchRfqFiles, fetchRfqParts } from "@/lib/api/rfq";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
-import { useRfqStore } from "@/stores/rfqStore";
+import { RfqPart, useRfqStore } from "@/stores/rfqStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useEffect } from "react";
@@ -28,7 +28,8 @@ export function useRfqData() {
     selectedPartIds,
     togglePartSelection,
     selectAllParts,
-    clearPartSelection
+    clearPartSelection,
+    addPart
   } = useRfqStore();
   
   const setCurrentPage = useAppStore(state => state.setCurrentPage);
@@ -105,6 +106,7 @@ export function useRfqData() {
     selectedPartIds,
     togglePartSelection,
     selectAllParts,
-    clearPartSelection
+    clearPartSelection,
+    addPart
   };
 }

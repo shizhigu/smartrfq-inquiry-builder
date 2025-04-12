@@ -1,3 +1,4 @@
+
 // Base URL from new backend
 const BASE_URL = 'http://35.86.96.56:8003';
 import { ENABLE_MOCKS, mockRfqParts, mockRfqFiles } from '../mock/mockData';
@@ -13,6 +14,14 @@ export interface RfqPart {
   category?: string;
   status: string;
   projectId: string;
+  material?: string;
+  surfaceFinish?: string;
+  process?: string;
+  deliveryTime?: string;
+  tolerance?: string;
+  drawingNumber?: string;
+  remarks?: string;
+  supplierId?: string;
 }
 
 export interface RfqFile {
@@ -102,7 +111,8 @@ export async function addRfqPart(
     const newPart: RfqPart = {
       ...partData,
       id: `part_${Date.now()}`,
-      projectId: projectId
+      projectId: projectId,
+      status: 'active'
     };
     
     if (!mockRfqParts[projectId]) {
@@ -129,4 +139,70 @@ export async function addRfqPart(
   }
 
   return response.json();
+}
+
+// Delete RFQ parts
+export async function deleteRfqParts(
+  token: string,
+  organizationId: string,
+  projectId: string,
+  partIds: string[]
+): Promise<void> {
+  // Use mock data if mocks are enabled
+  if (ENABLE_MOCKS) {
+    console.log('Using mock data for deleteRfqParts');
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    if (mockRfqParts[projectId]) {
+      mockRfqParts[projectId] = mockRfqParts[projectId].filter(part => !partIds.includes(part.id));
+    }
+    
+    return;
+  }
+  
+  const response = await fetch(`${BASE_URL}/organizations/${organizationId}/projects/${projectId}/parts/batch-delete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ partIds }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error?.message || 'Failed to delete RFQ parts');
+  }
+}
+
+// Send inquiry to supplier
+export async function sendRfqInquiry(
+  token: string,
+  organizationId: string,
+  projectId: string,
+  partIds: string[],
+  supplierEmail: string
+): Promise<void> {
+  // Use mock data if mocks are enabled
+  if (ENABLE_MOCKS) {
+    console.log('Using mock data for sendRfqInquiry');
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    return;
+  }
+  
+  const response = await fetch(`${BASE_URL}/organizations/${organizationId}/projects/${projectId}/inquiries`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ partIds, supplierEmail }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error?.message || 'Failed to send RFQ inquiry');
+  }
 }
