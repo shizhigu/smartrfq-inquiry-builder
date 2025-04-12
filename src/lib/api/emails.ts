@@ -1,4 +1,3 @@
-
 import { API_CONFIG, useMockData } from '../config';
 
 export interface EmailSender {
@@ -18,14 +17,16 @@ export interface EmailAttachment {
 
 export interface Email {
   id: string;
+  project_id: string;
   conversation_id: string;
+  to_email: string;
   subject: string;
   content: string;
-  from: EmailSender;
-  to: EmailSender;
-  timestamp: string;
-  read: boolean;
-  attachments: EmailAttachment[];
+  status: string;
+  sent_at: string;
+  attachments?: EmailAttachment[];
+  from?: EmailSender;
+  to?: EmailSender;
 }
 
 // 模拟邮件数据
@@ -152,7 +153,14 @@ export async function getEmailsForConversation(
       throw new Error('No emails found for this conversation');
     }
     
-    return emails;
+    // Adapt mock data to the new schema
+    return emails.map(email => ({
+      ...email,
+      project_id: email.from?.id === 'user' ? 'project_1' : 'project_2',
+      to_email: email.to?.email || '',
+      sent_at: email.timestamp,
+      status: 'sent'
+    }));
   }
   
   // 实际 API 调用
@@ -297,15 +305,17 @@ export async function sendEmail(
     // 创建新邮件
     const newEmail: Email = {
       id: `email_${Date.now()}`,
+      project_id: 'project_1',
       conversation_id: conversationId,
+      to_email: to.email,
       subject: subject || (lastEmail.subject.startsWith('RE: ') 
         ? lastEmail.subject 
         : `RE: ${lastEmail.subject}`),
       content,
+      status: 'sent',
+      sent_at: new Date().toISOString(),
       from,
       to,
-      timestamp: new Date().toISOString(),
-      read: true,
       attachments: []
     };
     
@@ -384,4 +394,4 @@ export async function downloadAttachment(
 }
 
 // 导出模拟数据以供在其他文件中使用
-export { mockEmailsForConversation }; 
+export { mockEmailsForConversation };

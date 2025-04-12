@@ -36,6 +36,16 @@ export const EmailConversation: React.FC<EmailConversationProps> = ({
     return megabytes.toFixed(1) + ' MB';
   };
 
+  // Function to safely format date
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy • h:mm a');
+    } catch (error) {
+      console.error('Invalid date:', dateString);
+      return 'Invalid date';
+    }
+  };
+
   return (
     <div className="space-y-4">
       {emails.map((email) => (
@@ -52,10 +62,17 @@ export const EmailConversation: React.FC<EmailConversationProps> = ({
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="font-medium">{email.from?.name || 'Unknown Sender'}</div>
-                    <div className="text-sm text-muted-foreground">{email.from?.email || 'No email address'}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {email.from?.email || email.to_email || 'No email address'}
+                    </div>
+                    {email.status && (
+                      <div className="text-xs mt-1 inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                        {email.status}
+                      </div>
+                    )}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {format(new Date(email.timestamp), 'MMM d, yyyy • h:mm a')}
+                    {formatDate(email.sent_at)}
                   </div>
                 </div>
                 

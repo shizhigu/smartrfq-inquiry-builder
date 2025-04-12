@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '@/stores/projectStore';
-import { useAuth, useOrganization } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 import { 
   getConversations, 
@@ -47,7 +47,6 @@ interface UseEmailsReturn {
   
   fetchEmails: (conversationId: string) => Promise<void>;
   sendNewEmail: (content: string, subject?: string, attachments?: File[]) => Promise<void>;
-  markEmailRead: (emailId: string) => Promise<void>;
   downloadEmailAttachment: (attachmentId: string, filename: string) => Promise<void>;
   
   clearSelectedConversation: () => void;
@@ -55,7 +54,6 @@ interface UseEmailsReturn {
 
 export const useEmails = (): UseEmailsReturn => {
   const { getToken } = useAuth();
-  const { organization } = useOrganization();
   const selectedProjectId = useProjectStore(state => state.selectedProjectId);
   const requestInProgress = useRef(false);
   
@@ -246,29 +244,6 @@ export const useEmails = (): UseEmailsReturn => {
     }
   };
   
-  const markEmailRead = async (emailId: string) => {
-    try {
-      const token = await getToken();
-      if (!token) {
-        throw new Error('Unable to get authentication token');
-      }
-      
-      setState(prev => {
-        let updatedEmails = { ...prev.emails };
-        
-        for (const conversationId in updatedEmails) {
-          updatedEmails[conversationId] = updatedEmails[conversationId].map(email => 
-            email.id === emailId ? { ...email, read: true } : email
-          );
-        }
-        
-        return { ...prev, emails: updatedEmails };
-      });
-    } catch (error) {
-      console.error('Failed to mark email as read:', error);
-    }
-  };
-  
   const downloadEmailAttachment = async (attachmentId: string, filename: string) => {
     try {
       const token = await getToken();
@@ -345,7 +320,6 @@ export const useEmails = (): UseEmailsReturn => {
     
     fetchEmails,
     sendNewEmail,
-    markEmailRead,
     downloadEmailAttachment,
     
     clearSelectedConversation,
