@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
@@ -69,7 +68,7 @@ const plans: PricingPlan[] = [
   }
 ];
 
-export default function Payment() {
+export default function ManageSubscription() {
   const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
@@ -124,7 +123,7 @@ export default function Payment() {
   return (
     <div className="page-container">
       <PageHeader 
-        title="Subscription" 
+        title="Manage Subscription" 
         description="Manage your subscription plan"
       />
 

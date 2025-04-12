@@ -1,4 +1,3 @@
-
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { cn } from "@/lib/utils";
@@ -14,8 +13,6 @@ import {
   Menu,
   ChevronRight,
   ChevronLeft,
-  User,
-  Building,
   CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -63,18 +60,8 @@ export function Sidebar() {
       icon: <BarChart size={20} />,
     },
     {
-      name: "Users",
-      path: "/dashboard/users",
-      icon: <User size={20} />,
-    },
-    {
-      name: "Organizations",
-      path: "/dashboard/organizations",
-      icon: <Building size={20} />,
-    },
-    {
-      name: "Payment",
-      path: "/dashboard/payment",
+      name: "Manage Subscription",
+      path: "/dashboard/subscription",
       icon: <CreditCard size={20} />,
     },
     {

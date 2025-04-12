@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,9 +14,7 @@ import Suppliers from "./pages/Suppliers";
 import Emails from "./pages/Emails";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
-import Users from "./pages/Users";
-import Organizations from "./pages/Organizations";
-import Payment from "./pages/Payment";
+import ManageSubscription from "./pages/ManageSubscription";
 import { useSyncUser } from "./hooks/useSyncUser";
 
 const queryClient = new QueryClient({
@@ -29,7 +26,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Component to handle user synchronization with backend
 function UserSync({ children }: { children: React.ReactNode }) {
   useSyncUser();
   return <>{children}</>;
@@ -44,11 +40,9 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           
-          {/* Auth Routes */}
           <Route path="/sign-in/*" element={<SignIn routing="path" path="/sign-in" />} />
           <Route path="/sign-up/*" element={<SignUp routing="path" path="/sign-up" />} />
           
-          {/* Dashboard Routes - Protected */}
           <Route path="/dashboard" element={
             <>
               <SignedIn>
@@ -68,12 +62,9 @@ const App = () => (
             <Route path="emails" element={<Emails />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
-            <Route path="users" element={<Users />} />
-            <Route path="organizations" element={<Organizations />} />
-            <Route path="payment" element={<Payment />} />
+            <Route path="subscription" element={<ManageSubscription />} />
           </Route>
           
-          {/* Catch-all route for 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
