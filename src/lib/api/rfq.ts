@@ -1,4 +1,3 @@
-
 // Import from configuration instead of hardcoding
 import { API_CONFIG, useMockData } from '../config';
 import { mockRfqParts, mockRfqFiles } from '../mock/mockData';
@@ -36,6 +35,34 @@ export interface RfqFile {
   organization_id?: string;
   type?: string;
   uploadedBy?: string;
+}
+
+// Interface for parsed items from RFQ document
+export interface ParsedRfqItem {
+  index_no: number;
+  part_number: string;
+  name: string;
+  quantity: string;
+  material?: string;
+  size?: string;
+  process?: string;
+  delivery_time?: string;
+  unit: string;
+  tolerance?: string;
+  drawing_url?: string;
+  surface_finish?: string;
+  remarks?: string;
+  other?: Record<string, any>;
+  id: string;
+  project_id: string;
+  created_at: string;
+}
+
+export interface ParseRfqResponse {
+  items: ParsedRfqItem[];
+  file_id: string;
+  project_id: string;
+  message: string;
 }
 
 // Fetch RFQ parts for a project
@@ -233,4 +260,102 @@ export async function sendRfqInquiry(
     const errorData = await response.json();
     throw new Error(errorData.error?.message || 'Failed to send RFQ inquiry');
   }
+}
+
+// Parse RFQ file
+export async function parseRfqFile(
+  token: string,
+  projectId: string,
+  fileId: string
+): Promise<ParseRfqResponse> {
+  // Use mock data if mocks are enabled
+  if (useMockData()) {
+    console.log('Using mock data for parseRfqFile');
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Create mock parsed items
+    const mockItems: ParsedRfqItem[] = [
+      {
+        index_no: 1,
+        part_number: "P-10001",
+        name: "Aluminum Housing",
+        quantity: "50",
+        material: "Aluminum 6061",
+        size: "100mm x 50mm x 25mm",
+        process: "CNC Machining",
+        delivery_time: "2 weeks",
+        unit: "pcs",
+        tolerance: "±0.05mm",
+        drawing_url: "drawing_10001.pdf",
+        surface_finish: "Anodized",
+        remarks: "Critical component",
+        other: {},
+        id: `parsed_item_${Date.now()}_1`,
+        project_id: projectId,
+        created_at: new Date().toISOString()
+      },
+      {
+        index_no: 2,
+        part_number: "P-10002",
+        name: "Steel Bracket",
+        quantity: "100",
+        material: "Stainless Steel 304",
+        size: "75mm x 30mm x 3mm",
+        process: "Laser Cutting, Bending",
+        delivery_time: "10 days",
+        unit: "pcs",
+        tolerance: "±0.1mm",
+        drawing_url: "drawing_10002.pdf",
+        surface_finish: "Brushed",
+        remarks: "",
+        other: {},
+        id: `parsed_item_${Date.now()}_2`,
+        project_id: projectId,
+        created_at: new Date().toISOString()
+      },
+      {
+        index_no: 3,
+        part_number: "P-10003",
+        name: "Rubber Gasket",
+        quantity: "200",
+        material: "EPDM Rubber",
+        size: "Diameter 45mm, Thickness 2mm",
+        process: "Molding",
+        delivery_time: "2 weeks",
+        unit: "pcs",
+        tolerance: "±0.2mm",
+        drawing_url: "drawing_10003.pdf",
+        surface_finish: "N/A",
+        remarks: "Must be oil resistant",
+        other: {},
+        id: `parsed_item_${Date.now()}_3`,
+        project_id: projectId,
+        created_at: new Date().toISOString()
+      }
+    ];
+    
+    return {
+      items: mockItems,
+      file_id: fileId,
+      project_id: projectId,
+      message: "RFQ解析成功"
+    };
+  }
+  
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/parse-rfq`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ file_id: fileId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to parse RFQ file');
+  }
+
+  return response.json();
 }

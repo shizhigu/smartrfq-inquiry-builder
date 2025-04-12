@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RfqFile } from "@/stores/rfqStore";
-import { Download, FileX, FileCheck, FileUp } from "lucide-react";
+import { Download, FileX, FileCheck, FileUp, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -116,19 +116,27 @@ export function RfqFilesList({ isLoading, files, projectId, handleUploadFile }: 
   }
   
   const isParsed = (file: RfqFile) => {
-    return file.ocr_text && file.ocr_text.trim().length > 0;
+    return file.status === 'completed' && file.ocr_text && file.ocr_text.trim().length > 0;
   };
   
   const getStatusIcon = (file: RfqFile) => {
-    return isParsed(file) 
-      ? <FileCheck className="h-5 w-5 text-green-500" />
-      : <FileX className="h-5 w-5 text-amber-500" />;
+    if (isParsed(file)) {
+      return <FileCheck className="h-5 w-5 text-green-500" />;
+    } else if (file.status === 'failed') {
+      return <FileX className="h-5 w-5 text-destructive" />;
+    } else {
+      return <FileText className="h-5 w-5 text-amber-500" />;
+    }
   };
   
   const getStatusBadge = (file: RfqFile) => {
-    return isParsed(file)
-      ? <Badge variant="outline" className="text-green-500 border-green-200 bg-green-50">Parsed</Badge>
-      : <Badge variant="outline" className="text-amber-500 border-amber-200 bg-amber-50">Not Parsed</Badge>;
+    if (isParsed(file)) {
+      return <Badge variant="outline" className="text-green-500 border-green-200 bg-green-50">Parsed</Badge>;
+    } else if (file.status === 'failed') {
+      return <Badge variant="outline" className="text-destructive border-destructive/20 bg-destructive/10">Failed</Badge>;
+    } else {
+      return <Badge variant="outline" className="text-amber-500 border-amber-200 bg-amber-50">Not Parsed</Badge>;
+    }
   };
   
   return (

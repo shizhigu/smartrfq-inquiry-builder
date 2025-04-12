@@ -17,6 +17,7 @@ import { useRfqStore, RfqFile } from "@/stores/rfqStore";
 import { useAuth, useOrganization } from "@clerk/clerk-react";
 import { useProjectStore } from "@/stores/projectStore";
 import { v4 as uuidv4 } from "uuid";
+import { RfqParseConfirmDialog } from "./RfqParseConfirmDialog";
 
 interface RfqUploadDialogProps {
   open: boolean;
@@ -32,6 +33,8 @@ export function RfqUploadDialog({ open, onOpenChange }: RfqUploadDialogProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedFile, setUploadedFile] = useState<RfqFile | null>(null);
+  const [showParseDialog, setShowParseDialog] = useState(false);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -77,19 +80,24 @@ export function RfqUploadDialog({ open, onOpenChange }: RfqUploadDialogProps) {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       toast.success(`File "${selectedFile.name}" uploaded successfully`);
-      onOpenChange(false);
-      setSelectedFile(null);
+      
+      setUploadedFile(newFile);
+      setShowParseDialog(true);
       
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
       
+      // Close the upload dialog
+      onOpenChange(false);
+      
     } catch (error) {
       console.error('Failed to upload file', error);
       toast.error('Failed to upload file');
     } finally {
       setIsUploading(false);
+      setSelectedFile(null);
     }
   };
 
@@ -100,72 +108,87 @@ export function RfqUploadDialog({ open, onOpenChange }: RfqUploadDialogProps) {
     }
   };
 
+  const handleParseDialogClose = (open: boolean) => {
+    setShowParseDialog(open);
+    if (!open) {
+      setUploadedFile(null);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Upload RFQ Document</DialogTitle>
-          <DialogDescription>
-            Upload RFQ documents to extract parts automatically.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleUpload}>
-          <div className="grid gap-6 py-4">
-            {!selectedFile ? (
-              <div className="grid gap-2">
-                <Label htmlFor="file">Select File</Label>
-                <Input
-                  id="file"
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.dwg"
-                  className="cursor-pointer"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Supported formats: PDF, Word, Excel, CSV, CAD drawings
-                </p>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between p-3 rounded-md bg-muted">
-                <div className="flex items-center">
-                  <div className="h-10 w-10 rounded bg-background flex items-center justify-center mr-3">
-                    <Upload className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{selectedFile.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Upload RFQ Document</DialogTitle>
+            <DialogDescription>
+              Upload RFQ documents to extract parts automatically.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpload}>
+            <div className="grid gap-6 py-4">
+              {!selectedFile ? (
+                <div className="grid gap-2">
+                  <Label htmlFor="file">Select File</Label>
+                  <Input
+                    id="file"
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.dwg"
+                    className="cursor-pointer"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Supported formats: PDF, Word, Excel, CSV, CAD drawings
+                  </p>
                 </div>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={removeSelectedFile}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isUploading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={!selectedFile || isUploading}>
-              {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isUploading ? 'Uploading...' : 'Upload'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+              ) : (
+                <div className="flex items-center justify-between p-3 rounded-md bg-muted">
+                  <div className="flex items-center">
+                    <div className="h-10 w-10 rounded bg-background flex items-center justify-center mr-3">
+                      <Upload className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{selectedFile.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={removeSelectedFile}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isUploading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!selectedFile || isUploading}>
+                {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isUploading ? 'Uploading...' : 'Upload'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <RfqParseConfirmDialog
+        open={showParseDialog}
+        onOpenChange={handleParseDialogClose}
+        file={uploadedFile}
+      />
+    </>
   );
 }
