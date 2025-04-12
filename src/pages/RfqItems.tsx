@@ -118,11 +118,35 @@ export default function RfqItems() {
       />
       
       <div className="flex justify-between items-center mb-4">
-        <Tabs defaultValue="parts" className="mb-0" onValueChange={setActiveTab} value={activeTab}>
+        <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="parts">Parts</TabsTrigger>
             <TabsTrigger value="files">Files</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="parts" className="mt-4 p-0 border-none">
+            <RfqPartsList 
+              isLoading={isLoading}
+              parts={parts}
+              selectedPartIds={selectedPartIds}
+              togglePartSelection={togglePartSelection}
+              handleSelectAll={handleSelectAll}
+              handleAddPart={handleAddPart}
+              handleDeleteSelected={handleDeleteSelected}
+              isPartSelected={isPartSelected}
+              isEditMode={isEditMode}
+              setIsEditMode={setIsEditMode}
+              handleSendInquiry={handleSendInquiry}
+            />
+          </TabsContent>
+          
+          <TabsContent value="files" className="mt-4 p-0 border-none">
+            <RfqFilesList 
+              isLoading={isLoading}
+              files={files}
+              handleUploadFile={handleUploadFile}
+            />
+          </TabsContent>
         </Tabs>
         
         <Button 
@@ -136,30 +160,6 @@ export default function RfqItems() {
           <ArrowRight className="h-3 w-3 ml-1" />
         </Button>
       </div>
-      
-      <TabsContent value="parts" className="mt-4 p-0 border-none">
-        <RfqPartsList 
-          isLoading={isLoading}
-          parts={parts}
-          selectedPartIds={selectedPartIds}
-          togglePartSelection={togglePartSelection}
-          handleSelectAll={handleSelectAll}
-          handleAddPart={handleAddPart}
-          handleDeleteSelected={handleDeleteSelected}
-          isPartSelected={isPartSelected}
-          isEditMode={isEditMode}
-          setIsEditMode={setIsEditMode}
-          handleSendInquiry={handleSendInquiry}
-        />
-      </TabsContent>
-      
-      <TabsContent value="files" className="mt-4 p-0 border-none">
-        <RfqFilesList 
-          isLoading={isLoading}
-          files={files}
-          handleUploadFile={handleUploadFile}
-        />
-      </TabsContent>
       
       <RfqUploadDialog
         open={isUploadDialogOpen}

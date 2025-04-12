@@ -124,7 +124,7 @@ export function RfqSendInquiryDialog({
         
         <form onSubmit={handleSubmit}>
           <div className="mt-4">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="supplier">Select Supplier</TabsTrigger>
                 <TabsTrigger value="email">Enter Email</TabsTrigger>
