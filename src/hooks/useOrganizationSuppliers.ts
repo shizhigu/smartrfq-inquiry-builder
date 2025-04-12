@@ -18,7 +18,7 @@ export function useOrganizationSuppliers() {
     setError: setStoreError
   } = useSupplierStore();
   
-  // Get org suppliers from store (always get fresh data)
+  // Get org suppliers from store
   const orgSuppliers = suppliers['global'] || [];
 
   const loadSuppliers = useCallback(async (forceRefresh = false) => {
@@ -62,8 +62,12 @@ export function useOrganizationSuppliers() {
 
   // Load suppliers when the component mounts (but only if not already loaded)
   useEffect(() => {
-    loadSuppliers(false);
-  }, [loadSuppliers]);
+    if (orgSuppliers.length === 0) {
+      loadSuppliers(false);
+    } else {
+      console.log('Using suppliers from Zustand store:', orgSuppliers.length);
+    }
+  }, [loadSuppliers, orgSuppliers.length]);
 
   return {
     suppliers: orgSuppliers,
