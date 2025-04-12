@@ -1,4 +1,3 @@
-
 import { Supplier } from "@/stores/supplierStore";
 import { mockSuppliers, createPaginatedResponse } from "../mock/mockData";
 import { API_CONFIG, useMockData } from '../config';
@@ -26,6 +25,37 @@ export const getSuppliers = async (token: string, projectId: string, page = 1, p
   
   const data = await response.json();
   return data.items || data; // 返回 items 或整个数据，取决于后端的响应格式
+};
+
+// Get all suppliers for the current organization
+export const getOrganizationSuppliers = async (token: string): Promise<Supplier[]> => {
+  console.info("Loading all suppliers for organization");
+  
+  if (useMockData()) {
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+    
+    // Collect all suppliers from all projects for the mock data
+    let allSuppliers: Supplier[] = [];
+    Object.keys(mockSuppliers).forEach(projectId => {
+      allSuppliers = [...allSuppliers, ...mockSuppliers[projectId]];
+    });
+    
+    return allSuppliers;
+  }
+  
+  const response = await fetch(`${API_CONFIG.BASE_URL}/organization/suppliers`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch organization suppliers: ${response.statusText}`);
+  }
+  
+  const data = await response.json();
+  return data.items || data;
 };
 
 // Add a new supplier

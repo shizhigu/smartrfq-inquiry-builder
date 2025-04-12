@@ -6,12 +6,13 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { useProjectStore } from "@/stores/projectStore";
 import { fetchProjects } from "@/lib/api/projects";
 import { useAppStore } from "@/stores/appStore";
-import { Folder, FileText, Users, Mail, Clock, Loader2 } from "lucide-react";
+import { Folder, FileText, Users, Mail, Clock, Loader2, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@clerk/clerk-react";
 import { toast } from "sonner";
 import { syncUser } from "@/lib/api/users";
+import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
 
 // Dashboard summary interface matching backend
 interface DashboardSummary {
@@ -36,6 +37,9 @@ export default function Dashboard() {
   
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
+  
+  // Use the new hook to get supplier data
+  const { totalSuppliers, isLoading: isSuppliersLoading } = useOrganizationSuppliers();
   
   // Ensure user is synced with the backend when the component mounts
   useEffect(() => {
@@ -92,7 +96,6 @@ export default function Dashboard() {
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'open').length;
   const totalParts = projects.reduce((sum, project) => sum + (project.parts_count || 0), 0);
-  const totalSuppliers = projects.reduce((sum, project) => sum + (project.suppliers_count || 0), 0);
   
   // Recent projects are the 3 most recently updated projects
   const recentProjects = [...projects]
@@ -138,9 +141,9 @@ export default function Dashboard() {
               trend={totalParts > 0 ? { value: 8, isPositive: true } : undefined}
             />
             <StatCard
-              title="Suppliers"
-              value={totalSuppliers}
-              icon={Users}
+              title="Organization Suppliers"
+              value={isSuppliersLoading ? "..." : totalSuppliers}
+              icon={Building2}
               trend={totalSuppliers > 0 ? { value: 3, isPositive: true } : undefined}
             />
           </div>
