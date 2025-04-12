@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,16 +36,11 @@ export default function Dashboard() {
   const { projects, setProjects, isLoading, setLoading } = useProjectStore();
   const setCurrentPage = useAppStore(state => state.setCurrentPage);
   
-  // Use supplier store directly
   const orgSuppliers = useSupplierStore(state => state.suppliers['global'] || []);
   const suppliersLoading = useSupplierStore(state => state.isLoading);
-  
-  const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
-  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
-  
-  // Use the hook to trigger loading but get data directly from store
-  const { loadSuppliers } = useOrganizationSuppliers();
   const totalSuppliers = orgSuppliers.length;
+  
+  const { loadSuppliers } = useOrganizationSuppliers();
   
   const { 
     getTotalItemCount, 
@@ -57,8 +51,8 @@ export default function Dashboard() {
   
   const { 
     loadAllProjectItems, 
-    isLoading: isItemsLoading,
-    parts
+    parts,
+    isLoading: isRfqItemsLoading
   } = useProjectRfqItems();
   
   useEffect(() => {
@@ -87,7 +81,6 @@ export default function Dashboard() {
     setCurrentPage('dashboard');
     
     const loadProjects = async () => {
-      // Check if we already have projects in Zustand store
       if (projects.length > 0) {
         console.log('Projects already loaded from Zustand, skipping API call');
         return;
@@ -115,15 +108,10 @@ export default function Dashboard() {
     loadProjects();
   }, [setCurrentPage, setProjects, getToken, setLoading, projects.length]);
   
-  // Load organization suppliers if they don't exist
   useEffect(() => {
-    if (orgSuppliers.length === 0 && !suppliersLoading) {
-      console.log('Dashboard: Loading organization suppliers because none exist in store');
-      loadSuppliers();
-    } else {
-      console.log('Dashboard: Using organization suppliers from Zustand store, count:', orgSuppliers.length);
-    }
-  }, [orgSuppliers.length, suppliersLoading, loadSuppliers]);
+    console.log('Dashboard: Forcing refresh of organization suppliers');
+    loadSuppliers(true);
+  }, [loadSuppliers]);
   
   useEffect(() => {
     if (projects.length > 0 && Object.keys(parts || {}).length === 0) {
@@ -138,7 +126,6 @@ export default function Dashboard() {
   const activeProjects = projects.filter(p => p.status === 'open').length;
   const totalParts = getTotalItemCount();
   
-  // Log the state for debugging
   useEffect(() => {
     console.log('Dashboard: Projects count:', projects.length);
     console.log('Dashboard: Total parts count from store:', totalParts);
@@ -188,7 +175,7 @@ export default function Dashboard() {
             />
             <StatCard
               title="Total Parts"
-              value={isItemsLoading || stats.isLoading ? "..." : totalParts}
+              value={isRfqItemsLoading || stats.isLoading ? "..." : totalParts}
               icon={FileText}
               trend={totalParts > 0 ? { value: 8, isPositive: true } : undefined}
             />
@@ -220,7 +207,7 @@ export default function Dashboard() {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center">
                           <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
-                          <span>{isItemsLoading || stats.isLoading ? "..." : getItemCountByProject(project.id)}</span>
+                          <span>{isRfqItemsLoading || stats.isLoading ? "..." : getItemCountByProject(project.id)}</span>
                         </div>
                         <div className="flex items-center">
                           <Users className="h-4 w-4 mr-1 text-muted-foreground" />
@@ -285,4 +272,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
