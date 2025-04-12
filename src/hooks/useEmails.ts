@@ -75,7 +75,58 @@ export const useEmails = (): UseEmailsReturn => {
     totalPages: 0
   });
   
-  // Function to fetch supplier details for conversations
+  // Function to fetch supplier details for a conversation
+  const enrichConversationWithSupplierInfo = async (
+    token: string,
+    conversation: Conversation
+  ): Promise<ConversationWithSupplier> => {
+    try {
+      if (!conversation.supplierId) {
+        console.warn(`Conversation ${conversation.id} has no supplierId, fetching conversation details`);
+        
+        // Get detailed conversation info which should include supplierId
+        const detailedConversation = await getConversation(token, conversation.id);
+        
+        if (detailedConversation.supplierId) {
+          // Now we have the supplierId, get supplier details
+          const supplier = await getSupplier(token, detailedConversation.supplierId);
+          
+          return {
+            ...conversation,
+            supplierId: detailedConversation.supplierId, // Update with the correct supplierId
+            supplierName: supplier.name,
+            supplierEmail: supplier.email
+          };
+        }
+      } else {
+        // If we already have supplierId, use it directly
+        const supplier = await getSupplier(token, conversation.supplierId);
+        
+        return {
+          ...conversation,
+          supplierName: supplier.name,
+          supplierEmail: supplier.email
+        };
+      }
+      
+      // If we couldn't get supplier details, return conversation with placeholder
+      return {
+        ...conversation,
+        supplierName: 'Unknown Supplier',
+        supplierEmail: 'No email available'
+      };
+      
+    } catch (error) {
+      console.error(`Failed to fetch supplier details for conversation ${conversation.id}:`, error);
+      return {
+        ...conversation,
+        supplierName: 'Error Loading Supplier',
+        supplierEmail: 'Could not load email'
+      };
+    }
+  };
+  
+  // Function to fetch supplier details for multiple conversations
   const enrichConversationsWithSupplierInfo = async (
     token: string,
     conversations: Conversation[]
@@ -83,38 +134,8 @@ export const useEmails = (): UseEmailsReturn => {
     const enrichedConversations: ConversationWithSupplier[] = [];
     
     for (const conversation of conversations) {
-      try {
-        // Only attempt to fetch supplier details if supplierId exists and is valid
-        if (conversation.supplierId) {
-          console.log(`Fetching supplier details for ID: ${conversation.supplierId}`);
-          
-          // Get supplier details
-          const supplier = await getSupplier(token, conversation.supplierId);
-          
-          // Add supplier details to conversation
-          enrichedConversations.push({
-            ...conversation,
-            supplierName: supplier.name,
-            supplierEmail: supplier.email
-          });
-        } else {
-          // If there's no supplierId, just add the conversation with placeholder data
-          console.warn(`Conversation ${conversation.id} has no supplierId`);
-          enrichedConversations.push({
-            ...conversation,
-            supplierName: 'Unknown Supplier',
-            supplierEmail: 'No email available'
-          });
-        }
-      } catch (error) {
-        console.error(`Failed to fetch supplier details for conversation ${conversation.id}:`, error);
-        // Still include the conversation, but with error indication
-        enrichedConversations.push({
-          ...conversation,
-          supplierName: 'Error Loading Supplier',
-          supplierEmail: 'Could not load email'
-        });
-      }
+      const enrichedConversation = await enrichConversationWithSupplierInfo(token, conversation);
+      enrichedConversations.push(enrichedConversation);
     }
     
     return enrichedConversations;
@@ -144,7 +165,9 @@ export const useEmails = (): UseEmailsReturn => {
       
       setState(prev => ({
         ...prev,
-        conversations: enrichedConversations,
+        conversations: page === 1 
+          ? enrichedConversations 
+          : [...prev.conversations, ...enrichedConversations],
         totalConversations: response.total,
         page: response.page,
         pageSize: response.page_size,

@@ -136,6 +136,10 @@ export const deleteSupplier = async (token: string, id: string): Promise<void> =
 export const getSupplier = async (token: string, supplierId: string): Promise<Supplier> => {
   console.info("Loading supplier details for:", supplierId);
   
+  if (!supplierId) {
+    throw new Error("Cannot fetch supplier: supplierId is undefined or empty");
+  }
+  
   if (useMockData()) {
     await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
     
@@ -150,12 +154,23 @@ export const getSupplier = async (token: string, supplierId: string): Promise<Su
     });
     
     if (!foundSupplier) {
-      throw new Error(`Supplier with ID ${supplierId} not found`);
+      console.warn(`Supplier with ID ${supplierId} not found in mock data, creating placeholder`);
+      // Return a placeholder supplier for mock mode
+      return {
+        id: supplierId,
+        name: `Supplier ${supplierId.substring(0, 4)}`,
+        email: `supplier-${supplierId.substring(0, 4)}@example.com`,
+        phone: "000-000-0000",
+        address: "Mock Address",
+        projectId: "unknown"
+      };
     }
     
     return foundSupplier;
   }
   
+  // Real API call
+  console.log(`Making API call to fetch supplier with ID: ${supplierId}`);
   const response = await fetch(`${API_CONFIG.BASE_URL}/suppliers/${supplierId}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -167,5 +182,5 @@ export const getSupplier = async (token: string, supplierId: string): Promise<Su
     throw new Error(`Failed to fetch supplier: ${response.statusText}`);
   }
   
-  return response.json();
+  return await response.json();
 };

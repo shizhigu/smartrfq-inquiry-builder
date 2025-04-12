@@ -1,4 +1,3 @@
-
 import { API_CONFIG, useMockData } from '../config';
 import { mockConversations } from '../mock/mockData';
 import { v4 as uuidv4 } from 'uuid';
@@ -112,23 +111,22 @@ export async function getConversation(
 ): Promise<Conversation> {
   // 使用模拟数据（如果启用）
   if (useMockData()) {
-    console.log('Using mock data for getConversation');
+    console.log('Using mock data for getConversation with ID:', conversationId);
     // 模拟 API 延迟
     await new Promise(resolve => setTimeout(resolve, 400));
     
     const conversation = mockConversations.find(conv => conv.id === conversationId);
     
     if (!conversation) {
-      throw new Error('Conversation not found');
+      throw new Error(`Conversation not found with ID: ${conversationId}`);
     }
     
-    return {
-      ...conversation,
-      // lastMessageDate is already a string, no need to convert
-    };
+    // Return the full conversation details including supplierId
+    return conversation;
   }
   
   // 实际 API 调用
+  console.log(`Fetching detailed conversation with ID: ${conversationId}`);
   const response = await fetch(
     `${API_CONFIG.BASE_URL}/conversations/${conversationId}`, 
     {
@@ -141,7 +139,7 @@ export async function getConversation(
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error?.message || 'Failed to fetch conversation');
+    throw new Error(errorData.error?.message || `Failed to fetch conversation: ${response.statusText}`);
   }
 
   return await response.json();
