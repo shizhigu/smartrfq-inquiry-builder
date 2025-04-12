@@ -12,7 +12,7 @@ import { RfqSendInquiryDialog } from "@/components/rfq/RfqSendInquiryDialog";
 import { RfqPart } from "@/stores/rfqStore";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Users } from "lucide-react";
+import { Users } from "lucide-react";
 
 export default function RfqItems() {
   const [activeTab, setActiveTab] = useState("parts");
@@ -34,17 +34,12 @@ export default function RfqItems() {
     navigateToSuppliers
   } = useRfqData();
   
-  const handleUploadFile = () => {
-    setIsUploadDialogOpen(true);
-  };
-  
   const handleAddPart = () => {
     setIsAddPartDialogOpen(true);
   };
 
   const handleSubmitNewPart = (partData: Omit<RfqPart, "id">) => {
     try {
-      // In a real app, this would call an API to create the part
       const newPartWithId: RfqPart = {
         ...partData,
         id: `part_${Date.now()}`, // Generate a temporary ID for the new part
@@ -64,7 +59,6 @@ export default function RfqItems() {
       return;
     }
     
-    // In a real app, this would call an API to delete the parts
     toast.success(`${selectedPartIds.length} parts deleted successfully`);
     clearPartSelection();
     setIsEditMode(false);
@@ -113,8 +107,8 @@ export default function RfqItems() {
         project={project}
         selectedPartIds={selectedPartIds}
         onAddPart={handleAddPart}
-        onUploadFile={handleUploadFile}
         onDeleteSelected={handleDeleteSelected}
+        onUploadFile={() => setIsUploadDialogOpen(true)}
       />
       
       <div className="flex justify-between items-center mb-4">
@@ -144,7 +138,7 @@ export default function RfqItems() {
             <RfqFilesList 
               isLoading={isLoading}
               files={files}
-              handleUploadFile={handleUploadFile}
+              handleUploadFile={() => setIsUploadDialogOpen(true)}
             />
           </TabsContent>
         </Tabs>
@@ -157,7 +151,6 @@ export default function RfqItems() {
         >
           <Users className="h-3 w-3 mr-1" />
           Manage Suppliers
-          <ArrowRight className="h-3 w-3 ml-1" />
         </Button>
       </div>
       
@@ -182,3 +175,4 @@ export default function RfqItems() {
     </div>
   );
 }
+

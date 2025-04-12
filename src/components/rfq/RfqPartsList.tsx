@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RfqPart } from "@/stores/rfqStore";
-import { ListFilter, Download, Trash, Edit, Mail, X, Send, FileUp, Pencil } from "lucide-react";
+import { ListFilter, Download, Trash, Edit, X, Send, FileUp, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -62,8 +61,6 @@ export function RfqPartsList({
     if (!currentPart) return;
     
     try {
-      // In a real app, this would call an API to update the part
-      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800));
       toast.success(`Part ${currentPart.name} updated successfully`);
       setIsEditDialogOpen(false);
@@ -75,18 +72,15 @@ export function RfqPartsList({
   };
 
   const handleExport = () => {
-    // Simulate file download
     toast.success('Exporting parts data...');
     setTimeout(() => {
       toast.success('Parts data exported successfully');
     }, 1500);
   };
   
-  // Get unique materials and categories for filter dropdowns
   const uniqueMaterials = Array.from(new Set(parts.map(part => part.material).filter(Boolean) as string[]));
   const uniqueCategories = Array.from(new Set(parts.map(part => part.process).filter(Boolean) as string[]));
   
-  // Apply filters to parts
   const filteredParts = parts.filter(part => {
     const materialMatch = !filterMaterial || part.material === filterMaterial;
     const categoryMatch = !filterCategory || part.process === filterCategory;
@@ -109,10 +103,6 @@ export function RfqPartsList({
           Upload an RFQ document or add parts manually to get started.
         </p>
         <div className="flex justify-center space-x-4">
-          <Button variant="outline" onClick={() => toast.info('File upload functionality will be implemented soon!')}>
-            <FileUp className="h-4 w-4 mr-2" />
-            Upload RFQ
-          </Button>
           <Button onClick={handleAddPart}>
             <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" x2="12" y1="18" y2="12"/><line x1="9" x2="15" y1="15" y2="15"/></svg>
             Add Part
@@ -138,6 +128,12 @@ export function RfqPartsList({
                 <ListFilter className="h-4 w-4 mr-2" />
                 Filter
               </Button>
+              {isEditMode && (
+                <Button variant="outline" size="sm" onClick={handleAddPart}>
+                  <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" x2="12" y1="18" y2="12"/><line x1="9" x2="15" y1="15" y2="15"/></svg>
+                  Add Part
+                </Button>
+              )}
             </div>
             <div className="flex items-center space-x-2">
               {isEditMode ? (
@@ -170,10 +166,6 @@ export function RfqPartsList({
                 </>
               ) : (
                 <>
-                  <Button variant="outline" size="sm" onClick={handleExport}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -292,7 +284,6 @@ export function RfqPartsList({
         </CardContent>
       </Card>
       
-      {/* Edit Part Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
