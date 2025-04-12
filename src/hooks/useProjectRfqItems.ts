@@ -34,7 +34,7 @@ export function useProjectRfqItems() {
     parts
   } = useRfqStore();
 
-  const fetchRfqItemsForProject = async (projectId: string) => {
+  const fetchRfqItemsForProject = useCallback(async (projectId: string) => {
     try {
       const token = await getToken();
       
@@ -65,7 +65,7 @@ export function useProjectRfqItems() {
       console.error(`Failed to fetch RFQ items for project ${projectId}:`, error);
       return [];
     }
-  };
+  }, [getToken]);
 
   const loadAllProjectItems = useCallback(async () => {
     if (projects.length === 0) return;
@@ -148,7 +148,7 @@ export function useProjectRfqItems() {
       setIsLoading(false);
       setStatsLoading(false);
     }
-  }, [projects, getToken, setAllProjectItems, setStatsLoading, setStatsError, parts]);
+  }, [projects, getToken, setAllProjectItems, setStatsLoading, setStatsError, parts, fetchRfqItemsForProject]);
 
   // Load RFQ items when projects change, but only if data is not already in the store
   useEffect(() => {

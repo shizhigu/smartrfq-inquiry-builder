@@ -15,6 +15,7 @@ import { syncUser } from "@/lib/api/users";
 import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
 import { useProjectRfqItems } from "@/hooks/useProjectRfqItems";
 import { useRfqStore } from "@/stores/rfqStore";
+import { useSupplierStore } from "@/stores/supplierStore";
 
 interface DashboardSummary {
   activeProjectCount: number;
@@ -39,7 +40,10 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   
-  const { totalSuppliers, isLoading: isSuppliersLoading } = useOrganizationSuppliers();
+  // Get suppliers from the store instead of using useOrganizationSuppliers hook directly
+  const orgSuppliers = useSupplierStore(state => state.suppliers['global'] || []);
+  const { isLoading: isSuppliersLoading, loadSuppliers } = useOrganizationSuppliers();
+  const totalSuppliers = orgSuppliers.length;
   
   const { 
     getTotalItemCount, 
@@ -108,6 +112,16 @@ export default function Dashboard() {
     loadProjects();
   }, [setCurrentPage, setProjects, getToken, setLoading, projects.length]);
   
+  // Load organization suppliers if they don't exist
+  useEffect(() => {
+    if (orgSuppliers.length === 0 && !isSuppliersLoading) {
+      console.log('Dashboard: Loading organization suppliers because none exist in store');
+      loadSuppliers();
+    } else {
+      console.log('Dashboard: Using organization suppliers from Zustand store, count:', orgSuppliers.length);
+    }
+  }, [orgSuppliers.length, isSuppliersLoading, loadSuppliers]);
+  
   useEffect(() => {
     if (projects.length > 0 && Object.keys(parts || {}).length === 0) {
       console.log('Dashboard: Loading RFQ items for all projects because parts data is empty');
@@ -127,7 +141,8 @@ export default function Dashboard() {
     console.log('Dashboard: Total parts count from store:', totalParts);
     console.log('Dashboard: RFQ stats loading:', stats.isLoading);
     console.log('Dashboard: RFQ parts data available:', Object.keys(rfqParts || {}).length > 0);
-  }, [totalParts, stats.isLoading, rfqParts, projects.length]);
+    console.log('Dashboard: Organization suppliers count from store:', orgSuppliers.length);
+  }, [totalParts, stats.isLoading, rfqParts, projects.length, orgSuppliers.length]);
   
   const recentProjects = [...projects]
     .sort((a, b) => {
