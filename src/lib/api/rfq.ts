@@ -50,7 +50,7 @@ export async function fetchRfqParts(
     return mockRfqParts[projectId] || [];
   }
   
-  const response = await fetch(`${API_CONFIG.BASE_URL}/organizations/${organizationId}/projects/${projectId}/parts`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/rfq-items`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -79,7 +79,7 @@ export async function fetchRfqFiles(
     return mockRfqFiles[projectId] || [];
   }
   
-  const response = await fetch(`${API_CONFIG.BASE_URL}/organizations/${organizationId}/projects/${projectId}/files`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/rfq-files`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -105,13 +105,13 @@ export async function addRfqPart(
   if (ENABLE_MOCKS) {
     console.log('Using mock data for addRfqPart');
     // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 700));
+    await new Promise(resolve => setTimeout(resolve, 600));
     
     const newPart: RfqPart = {
       ...partData,
       id: `part_${Date.now()}`,
       projectId: projectId,
-      status: 'active'
+      status: 'open'
     };
     
     if (!mockRfqParts[projectId]) {
@@ -123,7 +123,7 @@ export async function addRfqPart(
     return newPart;
   }
   
-  const response = await fetch(`${API_CONFIG.BASE_URL}/organizations/${organizationId}/projects/${projectId}/parts`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/rfq-items`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -160,13 +160,13 @@ export async function deleteRfqParts(
     return;
   }
   
-  const response = await fetch(`${API_CONFIG.BASE_URL}/organizations/${organizationId}/projects/${projectId}/parts/batch-delete`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/rfq-items/batch-delete`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ partIds }),
+    body: JSON.stringify({ item_ids: partIds }),
   });
 
   if (!response.ok) {
@@ -191,13 +191,13 @@ export async function sendRfqInquiry(
     return;
   }
   
-  const response = await fetch(`${API_CONFIG.BASE_URL}/organizations/${organizationId}/projects/${projectId}/inquiries`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/inquiries`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ partIds, supplierEmail }),
+    body: JSON.stringify({ item_ids: partIds, supplier_email: supplierEmail }),
   });
 
   if (!response.ok) {

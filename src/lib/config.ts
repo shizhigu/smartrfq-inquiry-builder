@@ -6,11 +6,11 @@
 // API Configuration
 export const API_CONFIG = {
   // Base URL for the backend API
-  BASE_URL: 'http://35.86.96.56:8003',
+  BASE_URL: 'http://localhost:8003/api',
   
   // Set to false to use real API endpoints instead of mock data
   // This can be overridden by localStorage for development convenience
-  USE_MOCK_DATA: true,
+  USE_MOCK_DATA: false,
 };
 
 /**

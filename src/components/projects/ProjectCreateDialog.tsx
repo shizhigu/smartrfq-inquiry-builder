@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -34,7 +33,7 @@ export function ProjectCreateDialog({ open, onOpenChange }: ProjectCreateDialogP
   }>({ 
     name: '', 
     description: '', 
-    status: 'active' 
+    status: 'draft' 
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -58,7 +57,7 @@ export function ProjectCreateDialog({ open, onOpenChange }: ProjectCreateDialogP
       const createdProject = await createProject(token, newProject);
       addProject(createdProject);
       onOpenChange(false);
-      setNewProject({ name: '', description: '', status: 'active' });
+      setNewProject({ name: '', description: '', status: 'draft' });
       
       toast.success('Project created successfully');
     } catch (error) {

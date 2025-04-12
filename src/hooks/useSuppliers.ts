@@ -1,12 +1,13 @@
-
 import { addSupplier, deleteSupplier, getSuppliers } from '@/lib/api/suppliers';
 import { useProjectStore } from '@/stores/projectStore';
 import { Supplier, useSupplierStore } from '@/stores/supplierStore';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from '@clerk/clerk-react';
 
 export const useSuppliers = () => {
+  const { getToken } = useAuth();
   const selectedProjectId = useProjectStore(state => state.selectedProjectId);
   const projects = useProjectStore(state => state.projects);
   const selectedProject = projects.find(p => p.id === selectedProjectId);
@@ -30,7 +31,13 @@ export const useSuppliers = () => {
     
     setLoading(true);
     try {
-      const response = await getSuppliers(selectedProjectId);
+      // 获取认证令牌
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Unable to get authentication token');
+      }
+      
+      const response = await getSuppliers(token, selectedProjectId);
       setSuppliers(selectedProjectId, response);
     } catch (error) {
       console.error('Failed to load suppliers:', error);
@@ -69,7 +76,13 @@ export const useSuppliers = () => {
 
     setLoading(true);
     try {
-      await addSupplier(supplier);
+      // 获取认证令牌
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Unable to get authentication token');
+      }
+      
+      await addSupplier(token, supplier);
       addSupplierToStore(supplier);
       setIsAddingSupplier(false);
       toast.success(`${supplier.name} has been added to your suppliers`);
@@ -84,7 +97,13 @@ export const useSuppliers = () => {
   const handleDeleteSupplier = async (id: string, name: string) => {
     setLoading(true);
     try {
-      await deleteSupplier(id);
+      // 获取认证令牌
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Unable to get authentication token');
+      }
+      
+      await deleteSupplier(token, id);
       deleteSupplierFromStore(id);
       toast.success(`${name} has been removed from your suppliers`);
     } catch (error) {

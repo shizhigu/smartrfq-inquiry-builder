@@ -16,7 +16,7 @@ export function ProjectCard({ project, onSelect }: ProjectCardProps) {
     const date = new Date(dateString);
     return format(date, "MMM d, yyyy");
   };
-
+  console.log("project", project);
   return (
     <Card className="overflow-hidden h-full flex flex-col">
       <CardHeader className="pb-2">
@@ -35,15 +35,15 @@ export function ProjectCard({ project, onSelect }: ProjectCardProps) {
         <div className="mt-4 grid grid-cols-2 gap-2">
           <div className="flex items-center text-sm text-muted-foreground">
             <FileText className="h-4 w-4 mr-1" />
-            <span>{project.partsCount || 0} parts</span>
+            <span>{project.parts_count || 0} parts</span>
           </div>
           <div className="flex items-center text-sm text-muted-foreground">
             <Users className="h-4 w-4 mr-1" />
-            <span>{project.suppliersCount || 0} suppliers</span>
+            <span>{project.suppliers_count || 0} suppliers</span>
           </div>
           <div className="flex items-center text-sm text-muted-foreground col-span-2">
             <Calendar className="h-4 w-4 mr-1" />
-            <span>Created: {formatDate(project.createdAt)}</span>
+            <span>Created: {formatDate(project.created_at)}</span>
           </div>
         </div>
       </CardContent>

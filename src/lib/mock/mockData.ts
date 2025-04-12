@@ -6,6 +6,52 @@ import { useMockData } from '../config';
 // Use the config to determine whether to enable mocks
 export const ENABLE_MOCKS = useMockData();
 
+// 定义会话类型
+export interface MockConversation {
+  id: string;
+  projectId: string;
+  supplierId: string;
+  subject: string;
+  lastMessagePreview: string;
+  lastMessageDate: Date;
+  unreadCount: number;
+  messageCount: number;
+}
+
+// Mock conversations data
+export const mockConversations: MockConversation[] = [
+  {
+    id: 'conv1',
+    projectId: 'project_1',
+    supplierId: 'supplier_1',
+    subject: 'RFQ for Project Components',
+    lastMessagePreview: 'Thank you for your inquiry. We can provide the following quotes...',
+    lastMessageDate: new Date('2025-04-09T14:30:00'),
+    unreadCount: 2,
+    messageCount: 4
+  },
+  {
+    id: 'conv2',
+    projectId: 'project_1',
+    supplierId: 'supplier_2',
+    subject: 'Quote Request for Custom Parts',
+    lastMessagePreview: 'We have reviewed your request and would like to discuss the specifications further...',
+    lastMessageDate: new Date('2025-04-08T09:15:00'),
+    unreadCount: 0,
+    messageCount: 3
+  },
+  {
+    id: 'conv3',
+    projectId: 'project_2',
+    supplierId: 'supplier_4',
+    subject: 'Follow-up on Manufacturing Timeline',
+    lastMessagePreview: 'Based on your requirements, we can deliver the components by the end of next month...',
+    lastMessageDate: new Date('2025-04-07T17:22:00'),
+    unreadCount: 1,
+    messageCount: 5
+  },
+];
+
 // Mock users data
 export const mockUsers = [
   {
@@ -34,31 +80,31 @@ export const mockProjects: Project[] = [
     id: 'project_1',
     name: 'Manufacturing Project A',
     description: 'Mechanical parts for the new assembly line',
-    createdAt: '2024-01-15T10:00:00.000Z',
-    updatedAt: '2024-02-01T14:30:00.000Z',
-    status: 'active',
-    partsCount: 3,
-    suppliersCount: 3
+    created_at: '2024-01-15T10:00:00.000Z',
+    updated_at: '2024-02-01T14:30:00.000Z',
+    status: 'open',
+    parts_count: 3,
+    suppliers_count: 3
   },
   {
     id: 'project_2',
     name: 'Electronics Project B',
     description: 'PCB and electronic components for the IoT device',
-    createdAt: '2024-02-05T09:15:00.000Z',
-    updatedAt: '2024-02-20T11:45:00.000Z',
-    status: 'active',
-    partsCount: 2,
-    suppliersCount: 2
+    created_at: '2024-02-05T09:15:00.000Z',
+    updated_at: '2024-02-20T11:45:00.000Z',
+    status: 'open',
+    parts_count: 2,
+    suppliers_count: 2
   },
   {
     id: 'project_3',
     name: 'Prototype C',
     description: 'Early stage prototype for client review',
-    createdAt: '2024-03-01T08:30:00.000Z',
-    updatedAt: '2024-03-10T16:20:00.000Z',
+    created_at: '2024-03-01T08:30:00.000Z',
+    updated_at: '2024-03-10T16:20:00.000Z',
     status: 'draft',
-    partsCount: 0,
-    suppliersCount: 0
+    parts_count: 0,
+    suppliers_count: 0
   }
 ];
 
@@ -87,7 +133,7 @@ export const mockRfqParts: Record<string, RfqPart[]> = {
       partNumber: 'G-123',
       quantity: 100,
       unit: 'pcs',
-      status: 'active',
+      status: 'open',
       projectId: 'project_1',
       material: 'Steel',
       surfaceFinish: 'Polished',
@@ -103,7 +149,7 @@ export const mockRfqParts: Record<string, RfqPart[]> = {
       partNumber: 'S-456',
       quantity: 50,
       unit: 'pcs',
-      status: 'active',
+      status: 'open',
       projectId: 'project_1',
       material: 'Aluminium',
       surfaceFinish: 'Anodized',
@@ -119,7 +165,7 @@ export const mockRfqParts: Record<string, RfqPart[]> = {
       partNumber: 'B-789',
       quantity: 200,
       unit: 'pcs',
-      status: 'active',
+      status: 'open',
       projectId: 'project_1',
       material: 'Ceramic',
       surfaceFinish: 'None',
@@ -137,7 +183,7 @@ export const mockRfqParts: Record<string, RfqPart[]> = {
       partNumber: 'P-001',
       quantity: 50,
       unit: 'pcs',
-      status: 'active',
+      status: 'open',
       projectId: 'project_2',
       material: 'FR4',
       surfaceFinish: 'HASL',
@@ -153,7 +199,7 @@ export const mockRfqParts: Record<string, RfqPart[]> = {
       partNumber: 'R-10K',
       quantity: 1000,
       unit: 'pcs',
-      status: 'active',
+      status: 'open',
       projectId: 'project_2',
       material: 'Metal Film',
       surfaceFinish: 'Coated',

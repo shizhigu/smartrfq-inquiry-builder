@@ -69,7 +69,7 @@ export async function fetchProject(token: string, projectId: string): Promise<Pr
 // Create a new project
 export async function createProject(
   token: string, 
-  projectData: { name: string; description?: string; status?: "active" | "completed" | "draft" | "open" | "archived" }
+  projectData: { name: string; description?: string; status?: "draft" | "open" | "closed" | "archived" }
 ): Promise<Project> {
   // Use mock data if mocks are enabled
   if (ENABLE_MOCKS) {
@@ -82,10 +82,10 @@ export async function createProject(
       name: projectData.name,
       description: projectData.description || '',
       status: projectData.status || 'draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      partsCount: 0,
-      suppliersCount: 0
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      parts_count: 0,
+      suppliers_count: 0
     };
     
     // Add to mock projects (in a real app, this would persist to the server)
@@ -131,7 +131,7 @@ export async function updateProject(
     const updatedProject = {
       ...mockProjects[projectIndex],
       ...projectData,
-      updatedAt: new Date().toISOString()
+      updated_at: new Date().toISOString()
     } as Project;
     
     mockProjects[projectIndex] = updatedProject as any;

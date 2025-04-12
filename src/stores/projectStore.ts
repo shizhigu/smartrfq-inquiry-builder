@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
@@ -7,11 +6,11 @@ export interface Project {
   id: string;
   name: string;
   description?: string;
-  createdAt: string;
-  updatedAt: string;
-  status: 'active' | 'archived' | 'completed' | 'draft' | 'open';
-  partsCount?: number;
-  suppliersCount?: number;
+  created_at: string;
+  updated_at: string;
+  status: 'draft' | 'open' | 'closed' | 'archived';
+  parts_count?: number;
+  suppliers_count?: number;
 }
 
 interface ProjectState {
