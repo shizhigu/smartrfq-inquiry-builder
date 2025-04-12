@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -55,8 +54,18 @@ export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: R
   const handleSubmit = (values: PartFormValues) => {
     try {
       const newPart: Omit<RfqPart, "id"> = {
-        ...values,
+        name: values.name,
+        partNumber: values.partNumber,
+        quantity: values.quantity,
+        unit: values.unit,
         projectId,
+        material: values.material || undefined,
+        surfaceFinish: values.surfaceFinish || undefined,
+        process: values.process || undefined,
+        deliveryTime: values.deliveryTime || undefined,
+        tolerance: values.tolerance || undefined,
+        drawingNumber: values.drawingNumber || undefined,
+        remarks: values.remarks || undefined,
       };
       
       onAddPart(newPart);
