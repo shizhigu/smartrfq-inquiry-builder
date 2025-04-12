@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '@/stores/projectStore';
 import { useAuth } from '@clerk/clerk-react';
@@ -85,33 +84,35 @@ export const useEmails = (): UseEmailsReturn => {
     
     for (const conversation of conversations) {
       try {
-        // Check if supplierId is defined before trying to fetch supplier details
-        if (!conversation.supplierId) {
+        // Only attempt to fetch supplier details if supplierId exists and is valid
+        if (conversation.supplierId) {
+          console.log(`Fetching supplier details for ID: ${conversation.supplierId}`);
+          
+          // Get supplier details
+          const supplier = await getSupplier(token, conversation.supplierId);
+          
+          // Add supplier details to conversation
+          enrichedConversations.push({
+            ...conversation,
+            supplierName: supplier.name,
+            supplierEmail: supplier.email
+          });
+        } else {
+          // If there's no supplierId, just add the conversation with placeholder data
           console.warn(`Conversation ${conversation.id} has no supplierId`);
           enrichedConversations.push({
             ...conversation,
             supplierName: 'Unknown Supplier',
             supplierEmail: 'No email available'
           });
-          continue;
         }
-        
-        // Get supplier details
-        const supplier = await getSupplier(token, conversation.supplierId);
-        
-        // Enrich conversation with supplier details
-        enrichedConversations.push({
-          ...conversation,
-          supplierName: supplier.name,
-          supplierEmail: supplier.email
-        });
       } catch (error) {
-        console.error(`Failed to fetch supplier details for ID ${conversation.supplierId}:`, error);
-        // Still include the conversation, but without supplier details
+        console.error(`Failed to fetch supplier details for conversation ${conversation.id}:`, error);
+        // Still include the conversation, but with error indication
         enrichedConversations.push({
           ...conversation,
-          supplierName: 'Unknown Supplier',
-          supplierEmail: 'No email available'
+          supplierName: 'Error Loading Supplier',
+          supplierEmail: 'Could not load email'
         });
       }
     }

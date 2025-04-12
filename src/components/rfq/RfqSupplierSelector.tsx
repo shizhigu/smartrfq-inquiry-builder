@@ -39,10 +39,8 @@ export function RfqSupplierSelector({
     );
   });
   
-  // Make sure selectedSupplierId is defined before trying to find a supplier
-  const selectedSupplier = selectedSupplierId ? 
-    safeSuppliers.find(s => s.id === selectedSupplierId) : 
-    undefined;
+  // Find the selected supplier - we know the ID is valid here because it comes from our component props
+  const selectedSupplier = safeSuppliers.find(s => s.id === selectedSupplierId);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
