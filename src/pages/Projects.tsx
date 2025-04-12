@@ -44,7 +44,7 @@ export default function Projects() {
     };
     
     syncUserWithBackend();
-  }, [userId, getToken, organization?.id]); // Added organization?.id dependency
+  }, [userId, getToken, organization?.id]);
   
   useEffect(() => {
     appSetCurrentPage('projects');

@@ -41,6 +41,7 @@ export function useOrganizationSuppliers() {
         throw new Error('Unable to get authentication token');
       }
       
+      console.log('Fetching organization suppliers from API');
       // Use the regular suppliers endpoint - the organization context is in the token
       const fetchedSuppliers = await getSuppliers(token, 'all');
       
@@ -63,6 +64,8 @@ export function useOrganizationSuppliers() {
   useEffect(() => {
     if (orgSuppliers.length === 0) {
       loadSuppliers();
+    } else {
+      console.log('Using suppliers from Zustand store:', orgSuppliers.length);
     }
   }, [loadSuppliers, orgSuppliers.length]);
 

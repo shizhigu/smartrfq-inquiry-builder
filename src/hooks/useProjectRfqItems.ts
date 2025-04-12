@@ -42,6 +42,8 @@ export function useProjectRfqItems() {
         throw new Error('Unable to get authentication token');
       }
       
+      console.log(`Fetching RFQ items for project ${projectId} from API`);
+      
       // Use the RFQ items endpoint with project ID
       const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/rfq-items`, {
         headers: {
