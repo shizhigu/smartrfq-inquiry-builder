@@ -28,7 +28,7 @@ export function RfqSupplierTabContent({
   const suppliers = Array.isArray(projectSuppliers) ? projectSuppliers : [];
   
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="supplier">Supplier</Label>
         <RfqSupplierSelector
@@ -40,7 +40,7 @@ export function RfqSupplierTabContent({
         />
       </div>
       
-      <div className="space-y-2">
+      <div className="space-y-2 pt-4">
         <Label htmlFor="message-supplier">Message (Optional)</Label>
         <Textarea 
           id="message-supplier" 

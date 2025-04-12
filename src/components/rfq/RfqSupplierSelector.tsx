@@ -55,6 +55,7 @@ export function RfqSupplierSelector({
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between"
+          type="button"
         >
           {isLoading ? (
             <div className="flex items-center">
@@ -69,14 +70,14 @@ export function RfqSupplierSelector({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0" align="start" sideOffset={5}>
+      <PopoverContent className="p-0 w-full" align="start" sideOffset={5} style={{ zIndex: 50 }}>
         <Command>
           <CommandInput
             placeholder="Search suppliers..."
             value={searchValue}
             onValueChange={setSearchValue}
           />
-          <CommandList>
+          <CommandList className="max-h-[200px] overflow-y-auto">
             <SupplierSearchResults
               suppliers={filteredSuppliers}
               selectedSupplierId={selectedSupplierId}
