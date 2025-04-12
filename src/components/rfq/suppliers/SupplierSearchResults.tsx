@@ -13,7 +13,7 @@ interface SupplierSearchResultsProps {
 }
 
 export function SupplierSearchResults({
-  suppliers,
+  suppliers = [], // Provide a default empty array if suppliers is undefined
   selectedSupplierId,
   onSupplierSelect,
   onAddNewClick
@@ -34,25 +34,27 @@ export function SupplierSearchResults({
           </Button>
         </div>
       </CommandEmpty>
-      <CommandGroup>
-        {suppliers.map((supplier) => (
-          <CommandItem
-            key={supplier.id}
-            value={supplier.id}
-            onSelect={() => onSupplierSelect(supplier.id)}
-          >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex flex-col">
-                <span>{supplier.name}</span>
-                <span className="text-xs text-muted-foreground">{supplier.email}</span>
+      {suppliers && suppliers.length > 0 && (
+        <CommandGroup>
+          {suppliers.map((supplier) => (
+            <CommandItem
+              key={supplier.id}
+              value={supplier.id}
+              onSelect={() => onSupplierSelect(supplier.id)}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="flex flex-col">
+                  <span>{supplier.name}</span>
+                  <span className="text-xs text-muted-foreground">{supplier.email}</span>
+                </div>
+                {supplier.id === selectedSupplierId && (
+                  <Check className="h-4 w-4" />
+                )}
               </div>
-              {supplier.id === selectedSupplierId && (
-                <Check className="h-4 w-4" />
-              )}
-            </div>
-          </CommandItem>
-        ))}
-      </CommandGroup>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      )}
     </>
   );
 }
