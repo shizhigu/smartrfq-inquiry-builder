@@ -85,6 +85,17 @@ export const useEmails = (): UseEmailsReturn => {
     
     for (const conversation of conversations) {
       try {
+        // Check if supplierId is defined before trying to fetch supplier details
+        if (!conversation.supplierId) {
+          console.warn(`Conversation ${conversation.id} has no supplierId`);
+          enrichedConversations.push({
+            ...conversation,
+            supplierName: 'Unknown Supplier',
+            supplierEmail: 'No email available'
+          });
+          continue;
+        }
+        
         // Get supplier details
         const supplier = await getSupplier(token, conversation.supplierId);
         

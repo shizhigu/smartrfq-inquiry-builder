@@ -79,10 +79,20 @@ export function RfqSendInquiryDialog({
       const orgId = organization?.id || 'org_mock';
       const token = await getToken() || 'mock_token';
       
-      // Get the email address to send to
-      const emailAddress = activeTab === "supplier" 
-        ? "selected-supplier@example.com" // In a real app, get this from supplier data 
-        : emailToSend;
+      // Get the email address to send to - handle undefined supplier
+      let emailAddress = "";
+      
+      if (activeTab === "supplier") {
+        if (!selectedSupplierId) {
+          toast.error('Please select a valid supplier');
+          setIsLoading(false);
+          return;
+        }
+        // In a real app, you would fetch the supplier's email using the ID
+        emailAddress = "selected-supplier@example.com";
+      } else {
+        emailAddress = emailToSend;
+      }
       
       // Get the parts IDs
       const partIds = selectedParts.map(part => part.id);

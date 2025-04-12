@@ -39,7 +39,10 @@ export function RfqSupplierSelector({
     );
   });
   
-  const selectedSupplier = safeSuppliers.find(s => s.id === selectedSupplierId);
+  // Make sure selectedSupplierId is defined before trying to find a supplier
+  const selectedSupplier = selectedSupplierId ? 
+    safeSuppliers.find(s => s.id === selectedSupplierId) : 
+    undefined;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
