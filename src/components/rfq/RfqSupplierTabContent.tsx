@@ -28,10 +28,10 @@ export function RfqSupplierTabContent({
   const suppliers = Array.isArray(projectSuppliers) ? projectSuppliers : [];
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="supplier">Supplier</Label>
-        <div className="relative z-10">
+        <div className="relative" style={{ zIndex: 20 }}>
           <RfqSupplierSelector
             suppliers={suppliers}
             selectedSupplierId={selectedSupplierId}
@@ -42,7 +42,7 @@ export function RfqSupplierTabContent({
         </div>
       </div>
       
-      <div className="space-y-2 pt-6 relative z-0">
+      <div className="space-y-2 relative" style={{ zIndex: 10, marginTop: '20px' }}>
         <Label htmlFor="message-supplier">Message (Optional)</Label>
         <Textarea 
           id="message-supplier" 

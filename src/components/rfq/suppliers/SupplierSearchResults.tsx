@@ -19,8 +19,9 @@ export function SupplierSearchResults({
 }: SupplierSearchResultsProps) {
   const hasSuppliers = Array.isArray(suppliers) && suppliers.length > 0;
   
-  const handleSupplierClick = (supplierId: string) => {
-    // Explicitly handle click
+  const handleSupplierClick = (supplierId: string, e: React.MouseEvent) => {
+    // Stop propagation to prevent parent handlers from firing
+    e.stopPropagation();
     onSupplierSelect(supplierId);
   };
   
@@ -34,7 +35,10 @@ export function SupplierSearchResults({
               variant="outline" 
               size="sm" 
               className="w-full mt-2"
-              onClick={onAddNewClick}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddNewClick();
+              }}
               type="button"
             >
               <UserPlus className="mr-2 h-4 w-4" />
@@ -50,8 +54,8 @@ export function SupplierSearchResults({
             <CommandItem
               key={supplier.id}
               value={supplier.id}
-              onSelect={() => handleSupplierClick(supplier.id)}
-              onClick={() => handleSupplierClick(supplier.id)}
+              onSelect={() => {}} // Empty onSelect to prevent default behavior
+              onClick={(e) => handleSupplierClick(supplier.id, e)}
               className="cursor-pointer flex items-center justify-between w-full p-2 hover:bg-accent"
             >
               <div className="flex flex-col flex-1">
