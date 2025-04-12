@@ -1,7 +1,11 @@
+
 import { RfqFile, RfqPart } from '../api/rfq';
 import { Supplier } from '@/stores/supplierStore';
 import { Project } from '@/stores/projectStore';
 import { useMockData } from '../config';
+
+// Enable mocks flag - this should be true by default for development
+export const ENABLE_MOCKS = useMockData();
 
 // 定义会话类型
 export interface MockConversation {

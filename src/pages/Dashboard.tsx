@@ -90,13 +90,13 @@ export default function Dashboard() {
   // For now, we'll use the projects data to calculate stats
   // In a real implementation, we would fetch from the dashboard API
   const totalProjects = projects.length;
-  const activeProjects = projects.filter(p => p.status === 'active').length;
-  const totalParts = projects.reduce((sum, project) => sum + (project.partsCount || 0), 0);
-  const totalSuppliers = projects.reduce((sum, project) => sum + (project.suppliersCount || 0), 0);
+  const activeProjects = projects.filter(p => p.status === 'open').length;
+  const totalParts = projects.reduce((sum, project) => sum + (project.parts_count || 0), 0);
+  const totalSuppliers = projects.reduce((sum, project) => sum + (project.suppliers_count || 0), 0);
   
   // Recent projects are the 3 most recently updated projects
   const recentProjects = [...projects]
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
     .slice(0, 3);
   
   return (
@@ -166,11 +166,11 @@ export default function Dashboard() {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center">
                           <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
-                          <span>{project.partsCount || 0}</span>
+                          <span>{project.parts_count || 0}</span>
                         </div>
                         <div className="flex items-center">
                           <Users className="h-4 w-4 mr-1 text-muted-foreground" />
-                          <span>{project.suppliersCount || 0}</span>
+                          <span>{project.suppliers_count || 0}</span>
                         </div>
                       </div>
                     </div>

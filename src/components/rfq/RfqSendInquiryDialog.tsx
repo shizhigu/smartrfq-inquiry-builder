@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { sendRfqInquiry } from "@/lib/api/rfq";
 import { useAuth, useOrganization } from "@clerk/clerk-react";
-import { ENABLE_MOCKS } from "@/lib/mock/mockData";
+import { useMockData } from "@/lib/config";
 import { useNavigate } from "react-router-dom";
 import { RfqSupplierTabContent } from "./RfqSupplierTabContent";
 import { RfqEmailTabContent } from "./RfqEmailTabContent";
@@ -94,7 +94,7 @@ export function RfqSendInquiryDialog({
       onOpenChange(false);
       
       // If user is using the supplier tab, offer to navigate to suppliers page
-      if (activeTab === "supplier" && !ENABLE_MOCKS) {
+      if (activeTab === "supplier" && !useMockData()) {
         toast("Would you like to view all suppliers?", {
           action: {
             label: "Go to Suppliers",

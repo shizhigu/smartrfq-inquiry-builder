@@ -1,6 +1,6 @@
 // Base URL from new backend
 import { API_CONFIG, useMockData } from '../config';
-import { ENABLE_MOCKS, mockUsers } from '../mock/mockData';
+import { mockUsers } from '../mock/mockData';
 
 export interface User {
   id: string;
@@ -15,7 +15,7 @@ export interface User {
 // Get current user profile
 export async function fetchCurrentUser(token: string): Promise<User> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for fetchCurrentUser');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -40,7 +40,7 @@ export async function fetchCurrentUser(token: string): Promise<User> {
 // Sync Clerk user with backend
 export async function syncUser(token: string): Promise<User> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for syncUser');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -69,7 +69,7 @@ export async function updateUserProfile(
   userData: { name?: string; avatar_url?: string }
 ): Promise<User> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for updateUserProfile');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 400));

@@ -1,8 +1,8 @@
 // Import from configuration instead of hardcoding
-import { API_CONFIG } from '../config';
+import { API_CONFIG, useMockData } from '../config';
 
 import { Project } from "@/stores/projectStore";
-import { ENABLE_MOCKS, mockProjects, createPaginatedResponse } from '../mock/mockData';
+import { mockProjects, createPaginatedResponse } from '../mock/mockData';
 
 // Get all projects with pagination
 export async function fetchProjects(token: string, page = 1, pageSize = 20): Promise<{
@@ -13,7 +13,7 @@ export async function fetchProjects(token: string, page = 1, pageSize = 20): Pro
   pages: number
 }> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for fetchProjects');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 600));
@@ -38,7 +38,7 @@ export async function fetchProjects(token: string, page = 1, pageSize = 20): Pro
 // Get a single project
 export async function fetchProject(token: string, projectId: string): Promise<Project> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for fetchProject');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -72,7 +72,7 @@ export async function createProject(
   projectData: { name: string; description?: string; status?: "draft" | "open" | "closed" | "archived" }
 ): Promise<Project> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for createProject');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 800));
@@ -118,7 +118,7 @@ export async function updateProject(
   projectData: Partial<Omit<Project, 'id' | 'createdAt' | 'updatedAt'>>
 ): Promise<Project> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for updateProject');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -162,7 +162,7 @@ export async function deleteProject(
   projectId: string
 ): Promise<boolean> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for deleteProject');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 700));

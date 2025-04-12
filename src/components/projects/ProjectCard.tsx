@@ -22,7 +22,7 @@ export function ProjectCard({ project, onSelect }: ProjectCardProps) {
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg">{project.name}</CardTitle>
-          <Badge variant={project.status === 'active' ? 'default' : 'secondary'}>
+          <Badge variant={project.status === 'open' ? 'default' : 'secondary'}>
             {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
           </Badge>
         </div>

@@ -1,6 +1,6 @@
 // Import from configuration instead of hardcoding
-import { API_CONFIG } from '../config';
-import { ENABLE_MOCKS, mockRfqParts, mockRfqFiles } from '../mock/mockData';
+import { API_CONFIG, useMockData } from '../config';
+import { mockRfqParts, mockRfqFiles } from '../mock/mockData';
 
 export interface RfqPart {
   id: string;
@@ -43,7 +43,7 @@ export async function fetchRfqParts(
   projectId: string
 ): Promise<RfqPart[]> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for fetchRfqParts');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -72,7 +72,7 @@ export async function fetchRfqFiles(
   projectId: string
 ): Promise<RfqFile[]> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for fetchRfqFiles');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 400));
@@ -102,7 +102,7 @@ export async function addRfqPart(
   partData: Omit<RfqPart, 'id'>
 ): Promise<RfqPart> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for addRfqPart');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 600));
@@ -148,7 +148,7 @@ export async function deleteRfqParts(
   partIds: string[]
 ): Promise<void> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for deleteRfqParts');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -184,7 +184,7 @@ export async function sendRfqInquiry(
   supplierEmail: string
 ): Promise<void> {
   // Use mock data if mocks are enabled
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     console.log('Using mock data for sendRfqInquiry');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 800));

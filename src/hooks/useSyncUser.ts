@@ -1,9 +1,10 @@
+
 import { useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { syncUser, fetchCurrentUser } from '@/lib/api/users';
 import { useUserStore } from '@/stores/userStore';
 import { toast } from 'sonner';
-import { ENABLE_MOCKS } from '@/lib/mock/mockData';
+import { useMockData } from '@/lib/config';
 
 /**
  * Custom hook to synchronize the Clerk user with the SmartRFQ backend
@@ -16,7 +17,7 @@ export function useSyncUser() {
   useEffect(() => {
     const syncUserWithBackend = async () => {
       // If mocks are enabled, we can skip the check for Clerk auth
-      if (ENABLE_MOCKS) {
+      if (useMockData()) {
         try {
           setLoading(true);
           

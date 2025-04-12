@@ -1,12 +1,12 @@
 import { Supplier } from "@/stores/supplierStore";
-import { ENABLE_MOCKS, mockSuppliers, createPaginatedResponse } from "../mock/mockData";
-import { API_CONFIG } from '../config';
+import { mockSuppliers, createPaginatedResponse } from "../mock/mockData";
+import { API_CONFIG, useMockData } from '../config';
 
 // Get suppliers for a project
 export const getSuppliers = async (token: string, projectId: string, page = 1, pageSize = 20): Promise<Supplier[]> => {
   console.info("Loading suppliers for project:", projectId);
   
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
     const suppliers = mockSuppliers[projectId] || [];
     return suppliers;
@@ -31,7 +31,7 @@ export const getSuppliers = async (token: string, projectId: string, page = 1, p
 export const addSupplier = async (token: string, supplier: Supplier): Promise<Supplier> => {
   console.info("Adding supplier:", supplier);
   
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
     
     // In a real implementation, we would update the backend
@@ -64,7 +64,7 @@ export const addSupplier = async (token: string, supplier: Supplier): Promise<Su
 export const updateSupplier = async (token: string, id: string, data: Partial<Supplier>): Promise<Supplier> => {
   console.info("Updating supplier:", id, data);
   
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
     
     // Find the supplier in our mock data
@@ -108,7 +108,7 @@ export const updateSupplier = async (token: string, id: string, data: Partial<Su
 export const deleteSupplier = async (token: string, id: string): Promise<void> => {
   console.info("Deleting supplier:", id);
   
-  if (ENABLE_MOCKS) {
+  if (useMockData()) {
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
     
     // Remove the supplier from our mock data
