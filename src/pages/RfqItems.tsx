@@ -111,7 +111,7 @@ export default function RfqItems() {
       />
       
       <div className="flex justify-between items-center mb-4">
-        <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
             <TabsTrigger value="parts">Parts</TabsTrigger>
             <TabsTrigger value="files">Files</TabsTrigger>
@@ -146,6 +146,7 @@ export default function RfqItems() {
             <RfqFilesList 
               isLoading={isLoading}
               files={files}
+              projectId={project.id}
               handleUploadFile={() => setIsUploadDialogOpen(true)}
             />
           </TabsContent>

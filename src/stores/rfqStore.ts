@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
@@ -22,13 +21,14 @@ export interface RfqPart {
 
 export interface RfqFile {
   id: string;
-  name: string;
+  filename: string;
+  file_url: string;
   size: number;
-  type: string;
-  projectId: string;
+  project_id: string;
   status: 'uploading' | 'processing' | 'completed' | 'failed';
-  error?: string;
-  uploadedAt: string;
+  uploaded_at: string;
+  ocr_text?: string;
+  organization_id?: string;
 }
 
 interface RfqStats {
@@ -39,38 +39,31 @@ interface RfqStats {
 }
 
 interface RfqState {
-  // Original state
-  parts: Record<string, RfqPart[]>; // Keyed by projectId
-  files: Record<string, RfqFile[]>; // Keyed by projectId
+  parts: Record<string, RfqPart[]>;
+  files: Record<string, RfqFile[]>;
   selectedPartIds: string[];
   isLoading: boolean;
   error: string | null;
   
-  // Stats state
   stats: RfqStats;
   
-  // Parts methods
   setParts: (projectId: string, parts: RfqPart[]) => void;
   addPart: (part: RfqPart) => void;
   updatePart: (id: string, data: Partial<RfqPart>) => void;
   deletePart: (id: string) => void;
   
-  // File methods
   setFiles: (projectId: string, files: RfqFile[]) => void;
   addFile: (file: RfqFile) => void;
   updateFile: (id: string, data: Partial<RfqFile>) => void;
   deleteFile: (id: string) => void;
   
-  // Selection methods
   togglePartSelection: (id: string) => void;
   selectAllParts: (projectId: string) => void;
   clearPartSelection: () => void;
   
-  // Status methods
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   
-  // Stats methods
   setProjectItems: (projectId: string, itemCount: number) => void;
   setAllProjectItems: (projectItems: Record<string, RfqPart[]>) => void;
   setStatsLoading: (isLoading: boolean) => void;
@@ -82,14 +75,12 @@ interface RfqState {
 export const useRfqStore = create<RfqState>()(
   persist(
     immer((set, get) => ({
-      // Initial state
       parts: {},
       files: {},
       selectedPartIds: [],
       isLoading: false,
       error: null,
       
-      // Stats initial state
       stats: {
         totalItems: 0,
         itemsByProject: {},
@@ -97,13 +88,11 @@ export const useRfqStore = create<RfqState>()(
         error: null
       },
       
-      // Parts methods
       setParts: (projectId, parts) => set((state) => {
         state.parts[projectId] = parts;
         state.isLoading = false;
         state.error = null;
         
-        // Update stats when setting parts
         state.stats.itemsByProject[projectId] = parts.length;
         state.stats.totalItems = Object.values(state.parts).reduce(
           (sum, projectParts) => sum + projectParts.length, 
@@ -117,7 +106,6 @@ export const useRfqStore = create<RfqState>()(
         }
         state.parts[part.projectId].push(part);
         
-        // Update stats
         state.stats.itemsByProject[part.projectId] = (state.stats.itemsByProject[part.projectId] || 0) + 1;
         state.stats.totalItems += 1;
       }),
@@ -139,7 +127,6 @@ export const useRfqStore = create<RfqState>()(
           const initialLength = state.parts[projectId].length;
           state.parts[projectId] = state.parts[projectId].filter(p => p.id !== id);
           
-          // Update stats if an item was deleted
           const newLength = state.parts[projectId].length;
           if (newLength < initialLength) {
             state.stats.itemsByProject[projectId] = newLength;
@@ -149,16 +136,15 @@ export const useRfqStore = create<RfqState>()(
         state.selectedPartIds = state.selectedPartIds.filter(partId => partId !== id);
       }),
       
-      // File methods
       setFiles: (projectId, files) => set((state) => {
         state.files[projectId] = files;
       }),
       
       addFile: (file) => set((state) => {
-        if (!state.files[file.projectId]) {
-          state.files[file.projectId] = [];
+        if (!state.files[file.project_id]) {
+          state.files[file.project_id] = [];
         }
-        state.files[file.projectId].push(file);
+        state.files[file.project_id].push(file);
       }),
       
       updateFile: (id, data) => set((state) => {
@@ -179,7 +165,6 @@ export const useRfqStore = create<RfqState>()(
         });
       }),
       
-      // Selection methods
       togglePartSelection: (id) => set((state) => {
         const index = state.selectedPartIds.indexOf(id);
         if (index === -1) {
@@ -199,7 +184,6 @@ export const useRfqStore = create<RfqState>()(
         state.selectedPartIds = [];
       }),
       
-      // Status methods
       setLoading: (isLoading) => set((state) => {
         state.isLoading = isLoading;
       }),
@@ -209,7 +193,6 @@ export const useRfqStore = create<RfqState>()(
         state.isLoading = false;
       }),
       
-      // Stats methods
       setProjectItems: (projectId, itemCount) => set((state) => {
         state.stats.itemsByProject[projectId] = itemCount;
         state.stats.totalItems = Object.values(state.stats.itemsByProject).reduce(

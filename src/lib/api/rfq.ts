@@ -25,15 +25,14 @@ export interface RfqPart {
 
 export interface RfqFile {
   id: string;
-  name: string;
+  filename: string;
+  file_url: string;
   size: number;
-  type: string;
-  uploadedAt: string;
-  uploadedBy: string;
-  projectId: string;
-  url: string;
+  project_id: string;
   status: 'uploading' | 'processing' | 'completed' | 'failed';
-  error?: string;
+  uploaded_at: string;
+  ocr_text?: string;
+  organization_id?: string;
 }
 
 // Fetch RFQ parts for a project
@@ -92,6 +91,33 @@ export async function fetchRfqFiles(
   }
 
   return response.json();
+}
+
+// Download an RFQ file
+export async function downloadRfqFile(
+  token: string,
+  projectId: string,
+  fileId: string
+): Promise<Blob> {
+  // Use mock data if mocks are enabled
+  if (useMockData()) {
+    console.log('Using mock data for downloadRfqFile');
+    // Create a dummy PDF blob
+    const dummyText = "This is a mock PDF file for testing purposes.";
+    return new Blob([dummyText], { type: 'application/pdf' });
+  }
+  
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/rfq-files/${fileId}/download`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to download file');
+  }
+
+  return response.blob();
 }
 
 // Add a new RFQ part

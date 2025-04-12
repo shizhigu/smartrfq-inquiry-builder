@@ -59,12 +59,13 @@ export function RfqUploadDialog({ open, onOpenChange }: RfqUploadDialogProps) {
       const fileId = uuidv4();
       const newFile: RfqFile = {
         id: fileId,
-        name: selectedFile.name,
+        filename: selectedFile.name,
+        file_url: URL.createObjectURL(selectedFile),
         size: selectedFile.size,
-        type: selectedFile.type,
-        projectId: selectedProjectId,
+        project_id: selectedProjectId,
         status: 'uploading',
-        uploadedAt: new Date().toISOString(),
+        uploaded_at: new Date().toISOString(),
+        organization_id: organization?.id
       };
       
       // Add file to store immediately to show progress in UI
