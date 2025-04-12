@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,8 +17,9 @@ import {
   PieChart as RechartsPieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
 } from "recharts";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "sonner";
 
-// Mock data for charts
 const monthlyRfqData = [
   { name: "Jan", count: 12 },
   { name: "Feb", count: 19 },
@@ -57,8 +57,14 @@ export default function Reports() {
   const { projects, selectedProjectId } = useProjectStore();
   const selectedProject = projects.find(p => p.id === selectedProjectId);
 
+  useEffect(() => {
+    toast.info("Reports module is under development", {
+      description: "Some features may not be fully functional",
+      duration: 5000,
+    });
+  }, []);
+
   const handleExportReport = () => {
-    // In a real app, this would generate and download a report
     alert("This would download a report in a real application");
   };
 
@@ -75,6 +81,15 @@ export default function Reports() {
           Export Report
         </Button>
       </PageHeader>
+
+      <Alert className="mb-6 border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+        <AlertTitle className="text-amber-800 dark:text-amber-400">
+          Under Development
+        </AlertTitle>
+        <AlertDescription className="text-amber-700 dark:text-amber-300">
+          The Reports & Analytics module is currently under development. Some features may not be fully functional.
+        </AlertDescription>
+      </Alert>
 
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <Card className="flex-1">

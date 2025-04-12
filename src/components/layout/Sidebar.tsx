@@ -1,3 +1,4 @@
+
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { cn } from "@/lib/utils";
@@ -58,6 +59,7 @@ export function Sidebar() {
       name: "Reports",
       path: "/dashboard/reports",
       icon: <BarChart size={20} />,
+      beta: true,
     },
     {
       name: "Manage Subscription",
@@ -135,7 +137,16 @@ export function Sidebar() {
               }}
             >
               {item.icon}
-              {!collapsed && <span className="ml-3">{item.name}</span>}
+              {!collapsed && (
+                <div className="ml-3 flex items-center justify-between w-full">
+                  <span>{item.name}</span>
+                  {item.beta && (
+                    <span className="text-xs bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded-full ml-1">
+                      Beta
+                    </span>
+                  )}
+                </div>
+              )}
             </Link>
           ))}
         </nav>
