@@ -55,7 +55,7 @@ export function RfqUploadDialog({ open, onOpenChange }: RfqUploadDialogProps) {
     try {
       setIsUploading(true);
       
-      // Create a file entry with "uploading" status
+      // Create a file entry
       const fileId = uuidv4();
       const newFile: RfqFile = {
         id: fileId,
@@ -63,9 +63,10 @@ export function RfqUploadDialog({ open, onOpenChange }: RfqUploadDialogProps) {
         file_url: URL.createObjectURL(selectedFile),
         size: selectedFile.size,
         project_id: selectedProjectId,
-        status: 'uploading',
+        status: 'processing', // This will be replaced by parsing logic, but use as placeholder
         uploaded_at: new Date().toISOString(),
-        organization_id: organization?.id
+        organization_id: organization?.id,
+        // ocr_text is intentionally not set to represent an unparsed file
       };
       
       // Add file to store immediately to show progress in UI
@@ -74,16 +75,6 @@ export function RfqUploadDialog({ open, onOpenChange }: RfqUploadDialogProps) {
       // In a real implementation, you would call your API here
       // For mock purposes, we'll simulate an upload delay
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // For demo: update file status to completed
-      // In a real app, this would come from the server response
-      const updatedFile: RfqFile = {
-        ...newFile,
-        status: 'completed'
-      };
-      
-      // Update the file in the store
-      addFile(updatedFile);
       
       toast.success(`File "${selectedFile.name}" uploaded successfully`);
       onOpenChange(false);

@@ -109,32 +109,20 @@ export function RfqFilesList({ isLoading, files, projectId, handleUploadFile }: 
     );
   }
   
-  const getStatusIcon = (status: RfqFile['status']) => {
-    switch (status) {
-      case 'uploading':
-        return <FileUp className="h-5 w-5 text-blue-500" />;
-      case 'processing':
-        return <FilePlus className="h-5 w-5 text-amber-500" />;
-      case 'failed':
-        return <FileX className="h-5 w-5 text-destructive" />;
-      case 'completed':
-      default:
-        return <FileCheck className="h-5 w-5 text-green-500" />;
-    }
+  const isParsed = (file: RfqFile) => {
+    return file.ocr_text && file.ocr_text.trim().length > 0;
   };
   
-  const getStatusBadge = (status: RfqFile['status']) => {
-    switch (status) {
-      case 'uploading':
-        return <Badge variant="outline" className="text-blue-500 border-blue-200 bg-blue-50">Uploading</Badge>;
-      case 'processing':
-        return <Badge variant="outline" className="text-amber-500 border-amber-200 bg-amber-50">Processing</Badge>;
-      case 'failed':
-        return <Badge variant="outline" className="text-destructive border-red-200 bg-red-50">Failed</Badge>;
-      case 'completed':
-      default:
-        return <Badge variant="outline" className="text-green-500 border-green-200 bg-green-50">Completed</Badge>;
-    }
+  const getStatusIcon = (file: RfqFile) => {
+    return isParsed(file) 
+      ? <FileCheck className="h-5 w-5 text-green-500" />
+      : <FileX className="h-5 w-5 text-amber-500" />;
+  };
+  
+  const getStatusBadge = (file: RfqFile) => {
+    return isParsed(file)
+      ? <Badge variant="outline" className="text-green-500 border-green-200 bg-green-50">Parsed</Badge>
+      : <Badge variant="outline" className="text-amber-500 border-amber-200 bg-amber-50">Not Parsed</Badge>;
   };
   
   return (
@@ -155,12 +143,12 @@ export function RfqFilesList({ isLoading, files, projectId, handleUploadFile }: 
             >
               <div className="flex items-center">
                 <div className="h-10 w-10 rounded bg-muted flex items-center justify-center mr-3">
-                  {getStatusIcon(file.status)}
+                  {getStatusIcon(file)}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-medium">{file.filename}</h3>
-                    {getStatusBadge(file.status)}
+                    {getStatusBadge(file)}
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {formatFileSize(file.size)} • {formatDate(file.uploaded_at)}
@@ -172,7 +160,6 @@ export function RfqFilesList({ isLoading, files, projectId, handleUploadFile }: 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => handleDownload(file)}
-                  disabled={file.status !== 'completed'}
                 >
                   <Download className="h-4 w-4" />
                 </Button>

@@ -25,7 +25,7 @@ export interface RfqFile {
   file_url: string;
   size: number;
   project_id: string;
-  status: 'uploading' | 'processing' | 'completed' | 'failed';
+  status: 'processing' | 'completed' | 'failed';
   uploaded_at: string;
   ocr_text?: string;
   organization_id?: string;

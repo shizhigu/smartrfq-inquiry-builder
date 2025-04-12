@@ -1,3 +1,4 @@
+
 // Import from configuration instead of hardcoding
 import { API_CONFIG, useMockData } from '../config';
 import { mockRfqParts, mockRfqFiles } from '../mock/mockData';
@@ -29,9 +30,9 @@ export interface RfqFile {
   file_url: string;
   size: number;
   project_id: string;
-  status: 'uploading' | 'processing' | 'completed' | 'failed';
+  status: 'processing' | 'completed' | 'failed';  // Keeping for compatibility but we'll interpret differently
   uploaded_at: string;
-  ocr_text?: string;
+  ocr_text?: string;  // This will determine if a file is parsed or not
   organization_id?: string;
   type?: string;
   uploadedBy?: string;
