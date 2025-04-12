@@ -1,4 +1,3 @@
-
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -42,8 +41,13 @@ export default function Dashboard() {
   // Use the supplier hook to get supplier data
   const { totalSuppliers, isLoading: isSuppliersLoading } = useOrganizationSuppliers();
   
-  // Use the new hook to get RFQ items data
-  const { getTotalItemCount, getProjectItemCount, isLoading: isItemsLoading } = useProjectRfqItems();
+  // Use the project RFQ items hook to get parts data
+  const { 
+    getTotalItemCount, 
+    getProjectItemCount, 
+    isLoading: isItemsLoading,
+    loadAllProjectItems
+  } = useProjectRfqItems();
   
   // Ensure user is synced with the backend when the component mounts
   useEffect(() => {
@@ -94,6 +98,13 @@ export default function Dashboard() {
     
     loadProjects();
   }, [setCurrentPage, setProjects, getToken, setLoading]);
+  
+  // Reload RFQ items when projects change
+  useEffect(() => {
+    if (projects.length > 0) {
+      loadAllProjectItems();
+    }
+  }, [projects, loadAllProjectItems]);
   
   // Calculate stats from the projects and other data
   const totalProjects = projects.length;

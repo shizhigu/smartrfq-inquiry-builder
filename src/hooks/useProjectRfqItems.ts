@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { API_CONFIG, useMockData } from '@/lib/config';
 import { toast } from 'sonner';
@@ -48,11 +48,15 @@ export function useProjectRfqItems() {
     }
   };
 
-  const loadAllProjectItems = async () => {
+  const loadAllProjectItems = useCallback(async () => {
+    if (projects.length === 0) return;
+    
     setIsLoading(true);
     setError(null);
     
     try {
+      console.log('Loading RFQ items for all projects:', projects.length);
+      
       // Use mock data if enabled
       if (useMockData()) {
         console.log('Using mock data for project RFQ items');
@@ -93,14 +97,14 @@ export function useProjectRfqItems() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projects, getToken]);
 
   // Load RFQ items when projects change
   useEffect(() => {
     if (projects.length > 0) {
       loadAllProjectItems();
     }
-  }, [projects]);
+  }, [projects, loadAllProjectItems]);
 
   const getProjectItemCount = (projectId: string): number => {
     return projectItems[projectId]?.length || 0;
