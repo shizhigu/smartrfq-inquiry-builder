@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Check, CreditCard, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@clerk/clerk-react";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
 
 type PricingPlan = {
   id: string;
@@ -71,8 +73,15 @@ const plans: PricingPlan[] = [
 export default function ManageSubscription() {
   const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [processingPayment, setProcessingPayment] = useState(false);
   const { userId } = useAuth();
+  const { createCheckoutSession, isLoading } = useStripeCheckout({
+    onError: (error) => {
+      toast.error("Checkout failed", {
+        description: "There was a problem initiating the checkout process."
+      });
+      console.error("Checkout error:", error);
+    }
+  });
   
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId);
@@ -80,31 +89,12 @@ export default function ManageSubscription() {
   
   const handleSubscribe = async () => {
     if (!selectedPlan) return;
-
-    setProcessingPayment(true);
     
-    try {
-      // In a real implementation, this would call your Supabase Edge Function
-      // that integrates with Stripe
+    const planId = billingInterval === "year" 
+      ? `${selectedPlan.replace('_monthly', '')}_yearly` 
+      : selectedPlan;
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // For demo purposes, we'll just show toast success
-      // In reality, we'd redirect to Stripe Checkout here
-      toast.success("Redirecting to secure payment page...");
-      
-      // Mock redirect to Stripe
-      setTimeout(() => {
-        window.location.href = "#stripe-checkout";
-      }, 1000);
-      
-    } catch (error) {
-      console.error("Payment error:", error);
-      toast.error("There was a problem processing your payment");
-    } finally {
-      setProcessingPayment(false);
-    }
+    await createCheckoutSession(planId);
   };
   
   const formatPrice = (price: number) => {
@@ -124,7 +114,7 @@ export default function ManageSubscription() {
     <div className="page-container">
       <PageHeader 
         title="Manage Subscription" 
-        description="Manage your subscription plan"
+        description="Choose the plan that works for your business"
       />
 
       <div className="flex justify-center mb-8">
@@ -185,7 +175,7 @@ export default function ManageSubscription() {
                 className="w-full" 
                 variant={plan.popular ? "default" : "outline"}
                 onClick={() => handleSelectPlan(plan.id)}
-                disabled={processingPayment || plan.price === 0}
+                disabled={isLoading || plan.price === 0}
               >
                 {plan.price === 0 
                   ? "Current Plan" 
@@ -225,15 +215,15 @@ export default function ManageSubscription() {
               variant="outline" 
               className="mr-2"
               onClick={() => setSelectedPlan(null)}
-              disabled={processingPayment}
+              disabled={isLoading}
             >
               Cancel
             </Button>
             <Button 
               onClick={handleSubscribe}
-              disabled={processingPayment}
+              disabled={isLoading}
             >
-              {processingPayment ? "Processing..." : "Proceed to Payment"}
+              {isLoading ? "Processing..." : "Proceed to Payment"}
             </Button>
           </CardFooter>
         </Card>

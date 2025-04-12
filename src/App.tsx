@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +16,8 @@ import Emails from "./pages/Emails";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import ManageSubscription from "./pages/ManageSubscription";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCanceled from "./pages/PaymentCanceled";
 import { useSyncUser } from "./hooks/useSyncUser";
 
 const queryClient = new QueryClient({
@@ -63,6 +66,8 @@ const App = () => (
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
             <Route path="subscription" element={<ManageSubscription />} />
+            <Route path="payment-success" element={<PaymentSuccess />} />
+            <Route path="payment-canceled" element={<PaymentCanceled />} />
           </Route>
           
           <Route path="*" element={<NotFound />} />
