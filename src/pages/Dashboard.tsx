@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,16 +36,16 @@ export default function Dashboard() {
   const { projects, setProjects, isLoading, setLoading } = useProjectStore();
   const setCurrentPage = useAppStore(state => state.setCurrentPage);
   
-  // Use supplier store directly
-  const orgSuppliers = useSupplierStore(state => state.suppliers['global'] || []);
+  // Get the latest supplier data directly from the store
+  const globalSuppliers = useSupplierStore(state => state.suppliers['global'] || []);
   const suppliersLoading = useSupplierStore(state => state.isLoading);
   
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   
-  // Use the hook to trigger loading but get data directly from store
+  // Use the hook to trigger loading but directly access the store for data
   const { loadSuppliers } = useOrganizationSuppliers();
-  const totalSuppliers = orgSuppliers.length;
+  const totalSuppliers = globalSuppliers.length;
   
   const { 
     getTotalItemCount, 
@@ -115,15 +114,13 @@ export default function Dashboard() {
     loadProjects();
   }, [setCurrentPage, setProjects, getToken, setLoading, projects.length]);
   
-  // Load organization suppliers if they don't exist
+  // Always check for suppliers on Dashboard mount to ensure latest data
   useEffect(() => {
-    if (orgSuppliers.length === 0 && !suppliersLoading) {
-      console.log('Dashboard: Loading organization suppliers because none exist in store');
-      loadSuppliers();
-    } else {
-      console.log('Dashboard: Using organization suppliers from Zustand store, count:', orgSuppliers.length);
-    }
-  }, [orgSuppliers.length, suppliersLoading, loadSuppliers]);
+    console.log('Dashboard: Checking supplier data, current count in store:', globalSuppliers.length);
+    
+    // Always load suppliers when dashboard is mounted to ensure fresh data
+    loadSuppliers(true);
+  }, [loadSuppliers]);
   
   useEffect(() => {
     if (projects.length > 0 && Object.keys(parts || {}).length === 0) {
@@ -144,8 +141,8 @@ export default function Dashboard() {
     console.log('Dashboard: Total parts count from store:', totalParts);
     console.log('Dashboard: RFQ stats loading:', stats.isLoading);
     console.log('Dashboard: RFQ parts data available:', Object.keys(rfqParts || {}).length > 0);
-    console.log('Dashboard: Organization suppliers count from store:', orgSuppliers.length);
-  }, [totalParts, stats.isLoading, rfqParts, projects.length, orgSuppliers.length]);
+    console.log('Dashboard: Organization suppliers count from store:', globalSuppliers.length);
+  }, [totalParts, stats.isLoading, rfqParts, projects.length, globalSuppliers.length]);
   
   const recentProjects = [...projects]
     .sort((a, b) => {
@@ -285,4 +282,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
