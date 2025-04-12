@@ -1,7 +1,81 @@
+
 import { RfqFile, RfqPart } from '../api/rfq';
 import { Supplier } from '@/stores/supplierStore';
+import { Project } from '@/stores/projectStore';
 
 export const ENABLE_MOCKS = true;
+
+// Mock users data
+export const mockUsers = [
+  {
+    id: 'user_1',
+    email: 'demo@example.com',
+    name: 'Demo User',
+    avatar_url: 'https://i.pravatar.cc/150?u=user1',
+    role: 'admin',
+    external_id: 'external_1',
+    created_at: '2024-01-01T00:00:00.000Z'
+  },
+  {
+    id: 'user_2',
+    email: 'john@example.com',
+    name: 'John Doe',
+    avatar_url: 'https://i.pravatar.cc/150?u=user2',
+    role: 'user',
+    external_id: 'external_2',
+    created_at: '2024-01-02T00:00:00.000Z'
+  }
+];
+
+// Mock projects data
+export const mockProjects: Project[] = [
+  {
+    id: 'project_1',
+    name: 'Manufacturing Project A',
+    description: 'Mechanical parts for the new assembly line',
+    createdAt: '2024-01-15T10:00:00.000Z',
+    updatedAt: '2024-02-01T14:30:00.000Z',
+    status: 'active',
+    partsCount: 3,
+    suppliersCount: 3
+  },
+  {
+    id: 'project_2',
+    name: 'Electronics Project B',
+    description: 'PCB and electronic components for the IoT device',
+    createdAt: '2024-02-05T09:15:00.000Z',
+    updatedAt: '2024-02-20T11:45:00.000Z',
+    status: 'active',
+    partsCount: 2,
+    suppliersCount: 2
+  },
+  {
+    id: 'project_3',
+    name: 'Prototype C',
+    description: 'Early stage prototype for client review',
+    createdAt: '2024-03-01T08:30:00.000Z',
+    updatedAt: '2024-03-10T16:20:00.000Z',
+    status: 'draft',
+    partsCount: 0,
+    suppliersCount: 0
+  }
+];
+
+// Helper function for pagination
+export function createPaginatedResponse<T>(items: T[], page: number, pageSize: number) {
+  const startIndex = (page - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedItems = items.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(items.length / pageSize);
+  
+  return {
+    items: paginatedItems,
+    total: items.length,
+    page,
+    page_size: pageSize,
+    pages: totalPages
+  };
+}
 
 // Mock RFQ parts data
 export const mockRfqParts: Record<string, RfqPart[]> = {
