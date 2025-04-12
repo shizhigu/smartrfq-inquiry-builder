@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
+import { Check, ChevronDown, UserPlus } from "lucide-react";
 import { Supplier } from "@/stores/supplierStore";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";

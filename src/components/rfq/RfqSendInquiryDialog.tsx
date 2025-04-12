@@ -122,92 +122,94 @@ export function RfqSendInquiryDialog({
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="supplier">Select Supplier</TabsTrigger>
-            <TabsTrigger value="email">Enter Email</TabsTrigger>
-          </TabsList>
+        <form onSubmit={handleSubmit}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="supplier">Select Supplier</TabsTrigger>
+              <TabsTrigger value="email">Enter Email</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="supplier" className="space-y-4 py-4">
+              <div className="space-y-4">
+                <RfqSupplierSelector
+                  selectedSupplierId={selectedSupplierId}
+                  onSupplierSelect={setSelectedSupplierId}
+                />
+                
+                <div className="space-y-2">
+                  <Label htmlFor="message-supplier">Message (Optional)</Label>
+                  <Textarea 
+                    id="message-supplier"
+                    placeholder="Additional notes or requirements..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="email" className="space-y-4 py-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="supplier@example.com"
+                    value={emailToSend}
+                    onChange={(e) => setEmailToSend(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="message-email">Message (Optional)</Label>
+                  <Textarea 
+                    id="message-email"
+                    placeholder="Additional notes or requirements..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
           
-          <TabsContent value="supplier" className="space-y-4 py-4">
-            <div className="space-y-4">
-              <RfqSupplierSelector
-                selectedSupplierId={selectedSupplierId}
-                onSupplierSelect={setSelectedSupplierId}
-              />
-              
-              <div className="space-y-2">
-                <Label htmlFor="message">Message (Optional)</Label>
-                <Textarea 
-                  id="message"
-                  placeholder="Additional notes or requirements..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={4}
-                />
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="email" className="space-y-4 py-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="supplier@example.com"
-                  value={emailToSend}
-                  onChange={(e) => setEmailToSend(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="message-email">Message (Optional)</Label>
-                <Textarea 
-                  id="message-email"
-                  placeholder="Additional notes or requirements..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={4}
-                />
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-        
-        <div className="border rounded-md p-4 mt-2">
-          <h3 className="font-medium mb-2">Selected Parts ({selectedParts.length})</h3>
-          <div className="max-h-[200px] overflow-y-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left p-2">Part Number</th>
-                  <th className="text-left p-2">Name</th>
-                  <th className="text-right p-2">Quantity</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedParts.map((part) => (
-                  <tr key={part.id} className="border-t">
-                    <td className="p-2">{part.partNumber}</td>
-                    <td className="p-2">{part.name}</td>
-                    <td className="p-2 text-right">{part.quantity} {part.unit}</td>
+          <div className="border rounded-md p-4 mt-2">
+            <h3 className="font-medium mb-2">Selected Parts ({selectedParts.length})</h3>
+            <div className="max-h-[200px] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="text-left p-2">Part Number</th>
+                    <th className="text-left p-2">Name</th>
+                    <th className="text-right p-2">Quantity</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {selectedParts.map((part) => (
+                    <tr key={part.id} className="border-t">
+                      <td className="p-2">{part.partNumber}</td>
+                      <td className="p-2">{part.name}</td>
+                      <td className="p-2 text-right">{part.quantity} {part.unit}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-        
-        <DialogFooter className="mt-6">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isLoading ? 'Sending...' : 'Send Inquiry'}
-          </Button>
-        </DialogFooter>
+          
+          <DialogFooter className="mt-6">
+            <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading ? 'Sending...' : 'Send Inquiry'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
