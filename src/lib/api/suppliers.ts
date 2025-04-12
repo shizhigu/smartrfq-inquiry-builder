@@ -2,17 +2,42 @@ import { Supplier } from "@/stores/supplierStore";
 import { mockSuppliers, createPaginatedResponse } from "../mock/mockData";
 import { API_CONFIG, useMockData } from '../config';
 
-// Get suppliers for a project
+// Get suppliers for a project or all suppliers
 export const getSuppliers = async (token: string, projectId: string, page = 1, pageSize = 20): Promise<Supplier[]> => {
-  console.info("Loading suppliers for project:", projectId);
+  // If projectId is 'all', we're requesting all organization suppliers
+  const isOrgRequest = projectId === 'all';
+  
+  if (isOrgRequest) {
+    console.info("Loading all suppliers for organization");
+  } else {
+    console.info("Loading suppliers for project:", projectId);
+  }
   
   if (useMockData()) {
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+    
+    if (isOrgRequest) {
+      // For org-wide request, collect all suppliers from all projects
+      let allSuppliers: Supplier[] = [];
+      Object.keys(mockSuppliers).forEach(pid => {
+        allSuppliers = [...allSuppliers, ...mockSuppliers[pid]];
+      });
+      return allSuppliers;
+    }
+    
+    // For project-specific request
     const suppliers = mockSuppliers[projectId] || [];
     return suppliers;
   }
   
-  const response = await fetch(`${API_CONFIG.BASE_URL}/suppliers?page=${page}&page_size=${pageSize}`, {
+  // Build the correct API endpoint based on whether we want all suppliers or project-specific
+  const endpoint = isOrgRequest 
+    ? `${API_CONFIG.BASE_URL}/suppliers` 
+    : `${API_CONFIG.BASE_URL}/suppliers?project_id=${projectId}&page=${page}&page_size=${pageSize}`;
+  
+  console.log(`Making API request to: ${endpoint}`);
+  
+  const response = await fetch(endpoint, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -21,37 +46,6 @@ export const getSuppliers = async (token: string, projectId: string, page = 1, p
   
   if (!response.ok) {
     throw new Error(`Failed to fetch suppliers: ${response.statusText}`);
-  }
-  
-  const data = await response.json();
-  return data.items || data; // 返回 items 或整个数据，取决于后端的响应格式
-};
-
-// Get all suppliers for the current organization
-export const getOrganizationSuppliers = async (token: string): Promise<Supplier[]> => {
-  console.info("Loading all suppliers for organization");
-  
-  if (useMockData()) {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
-    
-    // Collect all suppliers from all projects for the mock data
-    let allSuppliers: Supplier[] = [];
-    Object.keys(mockSuppliers).forEach(projectId => {
-      allSuppliers = [...allSuppliers, ...mockSuppliers[projectId]];
-    });
-    
-    return allSuppliers;
-  }
-  
-  const response = await fetch(`${API_CONFIG.BASE_URL}/organization/suppliers`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch organization suppliers: ${response.statusText}`);
   }
   
   const data = await response.json();

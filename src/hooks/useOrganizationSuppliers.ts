@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth, useOrganization } from '@clerk/clerk-react';
-import { getOrganizationSuppliers } from '@/lib/api/suppliers';
+import { useAuth } from '@clerk/clerk-react';
+import { getSuppliers } from '@/lib/api/suppliers';
 import { Supplier } from '@/stores/supplierStore';
 import { toast } from 'sonner';
 
@@ -10,25 +10,21 @@ export function useOrganizationSuppliers() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { getToken } = useAuth();
-  const { organization } = useOrganization();
 
   const loadSuppliers = async () => {
-    if (!organization?.id) return;
-    
     setIsLoading(true);
     setError(null);
     
     try {
-      // Get token with organization context
-      const token = await getToken({
-        organizationId: organization.id
-      });
+      // Get token with organization context (Clerk will include org ID automatically)
+      const token = await getToken();
       
       if (!token) {
         throw new Error('Unable to get authentication token');
       }
       
-      const orgSuppliers = await getOrganizationSuppliers(token);
+      // Use the regular suppliers endpoint - the organization context is in the token
+      const orgSuppliers = await getSuppliers(token, 'all');
       setSuppliers(orgSuppliers);
     } catch (error) {
       console.error('Failed to load organization suppliers:', error);
@@ -39,10 +35,10 @@ export function useOrganizationSuppliers() {
     }
   };
 
-  // Load suppliers when the component mounts or when organization changes
+  // Load suppliers when the component mounts
   useEffect(() => {
     loadSuppliers();
-  }, [organization?.id]);
+  }, []);
 
   return {
     suppliers,
