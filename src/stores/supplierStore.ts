@@ -8,6 +8,7 @@ export interface Supplier {
   name: string;
   email: string;
   phone?: string;
+  address?: string;
   tags?: string[];
   notes?: string;
   projectId?: string;

@@ -161,7 +161,6 @@ export const getSupplier = async (token: string, supplierId: string): Promise<Su
         name: `Supplier ${supplierId.substring(0, 4)}`,
         email: `supplier-${supplierId.substring(0, 4)}@example.com`,
         phone: "000-000-0000",
-        address: "Mock Address",
         projectId: "unknown"
       };
     }
