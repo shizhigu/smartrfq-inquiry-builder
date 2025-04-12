@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useProjectStore } from "@/stores/projectStore";
 import { useState, useEffect } from "react";
 import { BellIcon, PlusIcon, SearchIcon } from "lucide-react";
-import { UserButton, OrganizationSwitcher, useAuth } from "@clerk/clerk-react";
+import { UserButton, OrganizationSwitcher, useAuth, useOrganization } from "@clerk/clerk-react";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -19,15 +19,15 @@ export function Topbar() {
   const selectedProjectId = useProjectStore(state => state.selectedProjectId);
   const projects = useProjectStore(state => state.projects);
   const selectedProject = projects.find(p => p.id === selectedProjectId);
-  const { orgId } = useAuth();
+  const { organization } = useOrganization();
   
   // Re-sync user when organization changes
-  const { currentUser } = useSyncUser();
+  const { currentUser, organizationId } = useSyncUser();
   
   // Log organization changes
   useEffect(() => {
-    console.log('Organization changed in Topbar:', orgId);
-  }, [orgId]);
+    console.log('Organization changed in Topbar:', organization?.id);
+  }, [organization?.id]);
   
   return (
     <div className="h-16 border-b border-border flex items-center justify-between px-4 bg-background">

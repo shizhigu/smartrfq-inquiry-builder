@@ -5,10 +5,11 @@ import { Supplier, useSupplierStore } from '@/stores/supplierStore';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useOrganization } from '@clerk/clerk-react';
 
 export const useSuppliers = () => {
-  const { getToken, orgId } = useAuth();
+  const { getToken } = useAuth();
+  const { organization } = useOrganization();
   const selectedProjectId = useProjectStore(state => state.selectedProjectId);
   const projects = useProjectStore(state => state.projects);
   const selectedProject = projects.find(p => p.id === selectedProjectId);
@@ -20,24 +21,28 @@ export const useSuppliers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingSupplier, setIsAddingSupplier] = useState(false);
 
-  // Load suppliers when project changes
+  // Load suppliers when project changes or organization changes
   useEffect(() => {
     if (selectedProjectId) {
       loadSuppliers();
     }
-  }, [selectedProjectId, orgId]); // Added orgId to dependencies to refresh when organization changes
+  }, [selectedProjectId, organization?.id]); // Added organization?.id dependency
 
   const loadSuppliers = async () => {
     if (!selectedProjectId) return;
     
     setLoading(true);
     try {
-      // Get authentication token
-      const token = await getToken();
+      // Get authentication token with organization context
+      const token = await getToken({
+        template: "org_membership"
+      });
+      
       if (!token) {
         throw new Error('Unable to get authentication token');
       }
       
+      console.log('Loading suppliers with org context:', organization?.id);
       const response = await getSuppliers(token, selectedProjectId);
       setSuppliers(selectedProjectId, response);
     } catch (error) {
@@ -85,7 +90,10 @@ export const useSuppliers = () => {
 
     setLoading(true);
     try {
-      const token = await getToken();
+      const token = await getToken({
+        template: "org_membership"
+      });
+      
       if (!token) {
         throw new Error('Unable to get authentication token');
       }
@@ -105,7 +113,10 @@ export const useSuppliers = () => {
   const handleDeleteSupplier = async (id: string, name: string) => {
     setLoading(true);
     try {
-      const token = await getToken();
+      const token = await getToken({
+        template: "org_membership"
+      });
+      
       if (!token) {
         throw new Error('Unable to get authentication token');
       }
@@ -132,6 +143,6 @@ export const useSuppliers = () => {
     handleDeleteSupplier,
     selectedProject,
     selectedProjectId,
-    currentOrgId: orgId
+    currentOrgId: organization?.id
   };
 };

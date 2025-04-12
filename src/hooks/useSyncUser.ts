@@ -1,5 +1,6 @@
+
 import { useEffect } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useOrganization } from '@clerk/clerk-react';
 import { syncUser, fetchCurrentUser } from '@/lib/api/users';
 import { useUserStore } from '@/stores/userStore';
 import { toast } from 'sonner';
@@ -10,7 +11,8 @@ import { useMockData } from '@/lib/config';
  * and store the user data in the userStore
  */
 export function useSyncUser() {
-  const { userId, getToken, isLoaded, isSignedIn, orgId } = useAuth();
+  const { userId, getToken, isLoaded, isSignedIn } = useAuth();
+  const { organization } = useOrganization();
   const { currentUser, setCurrentUser, setLoading, setError } = useUserStore();
   
   useEffect(() => {
@@ -52,7 +54,7 @@ export function useSyncUser() {
       try {
         setLoading(true);
         
-        // Get token with organization scope to include org information
+        // Get token with organization context
         const token = await getToken({ 
           template: "org_membership"  // This template includes organization membership info
         });
@@ -62,7 +64,7 @@ export function useSyncUser() {
           return;
         }
         
-        console.log('Using token with org membership data, current org:', orgId);
+        console.log('Using token with org membership data, current org:', organization?.id);
         
         // If we already have a user in the store, just fetch their profile
         // Otherwise, sync the Clerk user with the backend
@@ -85,7 +87,7 @@ export function useSyncUser() {
     };
     
     syncUserWithBackend();
-  }, [userId, getToken, isLoaded, isSignedIn, orgId]); // Added orgId dependency
+  }, [userId, getToken, isLoaded, isSignedIn, organization?.id]); // Added organization?.id dependency
   
-  return { currentUser };
+  return { currentUser, organizationId: organization?.id };
 }

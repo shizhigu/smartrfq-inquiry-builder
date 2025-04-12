@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Search } from "lucide-react";
 import { useAppStore } from "@/stores/appStore";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useOrganization } from "@clerk/clerk-react";
 import { toast } from "sonner";
 import { syncUser } from "@/lib/api/users";
 import { ProjectCreateDialog } from "@/components/projects/ProjectCreateDialog";
@@ -12,7 +12,8 @@ import { ProjectsList } from "@/components/projects/ProjectsList";
 import { Input } from "@/components/ui/input";
 
 export default function Projects() {
-  const { userId, getToken, orgId } = useAuth();
+  const { userId, getToken } = useAuth();
+  const { organization } = useOrganization();
   const [isCreating, setIsCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const appSetCurrentPage = useAppStore(state => state.setCurrentPage);
@@ -33,7 +34,7 @@ export default function Projects() {
           return;
         }
         
-        console.log('Syncing user with org membership info in Projects.tsx');
+        console.log('Syncing user with org membership info in Projects.tsx, org:', organization?.id);
         await syncUser(token);
         console.log('User synced with backend');
       } catch (error) {
@@ -43,7 +44,7 @@ export default function Projects() {
     };
     
     syncUserWithBackend();
-  }, [userId, getToken, orgId]); // Added orgId dependency
+  }, [userId, getToken, organization?.id]); // Added organization?.id dependency
   
   useEffect(() => {
     appSetCurrentPage('projects');
