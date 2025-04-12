@@ -1,30 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RfqPart } from "@/stores/rfqStore";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { toast } from "sonner";
-
-// Define the form schema
-const partFormSchema = z.object({
-  name: z.string().min(1, "Part name is required"),
-  partNumber: z.string().min(1, "Part number is required"),
-  quantity: z.coerce.number().int().positive("Quantity must be a positive number"),
-  unit: z.string().min(1, "Unit is required"),
-  material: z.string().optional(),
-  surfaceFinish: z.string().optional(),
-  process: z.string().optional(),
-  deliveryTime: z.string().optional(),
-  tolerance: z.string().optional(),
-  drawingNumber: z.string().optional(),
-  remarks: z.string().optional(),
-});
-
-type PartFormValues = z.infer<typeof partFormSchema>;
+import { RfqAddPartForm } from "./partDialog/RfqAddPartForm";
+import { PartFormValues } from "./partDialog/types";
 
 interface RfqAddPartDialogProps {
   open: boolean;
@@ -34,23 +13,6 @@ interface RfqAddPartDialogProps {
 }
 
 export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: RfqAddPartDialogProps) {
-  const form = useForm<PartFormValues>({
-    resolver: zodResolver(partFormSchema),
-    defaultValues: {
-      name: "",
-      partNumber: "",
-      quantity: 1,
-      unit: "pcs",
-      material: "",
-      surfaceFinish: "",
-      process: "",
-      deliveryTime: "",
-      tolerance: "",
-      drawingNumber: "",
-      remarks: "",
-    },
-  });
-
   const handleSubmit = (values: PartFormValues) => {
     try {
       const newPart: Omit<RfqPart, "id"> = {
@@ -70,12 +32,15 @@ export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: R
       
       onAddPart(newPart);
       onOpenChange(false);
-      form.reset();
       toast.success("Part added successfully");
     } catch (error) {
       console.error("Failed to add part:", error);
       toast.error("Failed to add part");
     }
+  };
+
+  const handleCancel = () => {
+    onOpenChange(false);
   };
 
   return (
@@ -88,180 +53,7 @@ export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: R
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Part Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter part name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="partNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Part Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter part number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Quantity</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="1" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="unit"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unit</FormLabel>
-                    <FormControl>
-                      <Input placeholder="pcs, kg, m, etc." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="material"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Material</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Material specification" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="surfaceFinish"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Surface Finish</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Surface finish requirements" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="process"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Process</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Manufacturing process" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="deliveryTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Delivery Time</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Expected delivery time" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="tolerance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tolerance</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Tolerance requirements" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="drawingNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Drawing Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Reference drawing number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="remarks"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Remarks</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Additional notes or remarks" className="min-h-[80px]" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <DialogFooter>
-              <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Add Part</Button>
-            </DialogFooter>
-          </form>
-        </Form>
+        <RfqAddPartForm onSubmit={handleSubmit} onCancel={handleCancel} />
       </DialogContent>
     </Dialog>
   );
