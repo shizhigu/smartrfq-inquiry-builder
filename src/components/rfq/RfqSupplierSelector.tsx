@@ -76,22 +76,21 @@ export function RfqSupplierSelector({
         sideOffset={5} 
         style={{ 
           zIndex: 50,
-          width: "100%",
+          width: "var(--radix-popover-trigger-width)",
           position: 'absolute',
           marginTop: '1px',
-          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
         }}
         onEscapeKeyDown={() => setOpen(false)}
         onInteractOutside={() => setOpen(false)}
       >
-        <Command className="rounded-md border" shouldFilter={false}>
+        <Command className="rounded-md border shadow-md">
           <CommandInput
             placeholder="Search suppliers..."
             value={searchValue}
             onValueChange={setSearchValue}
             className="border-none focus:ring-0"
           />
-          <CommandList className="max-h-[200px] overflow-y-auto">
+          <CommandList className="max-h-[200px] overflow-y-auto py-2">
             <SupplierSearchResults
               suppliers={filteredSuppliers}
               selectedSupplierId={selectedSupplierId}
