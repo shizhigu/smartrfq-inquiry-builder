@@ -1,10 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
-import { Paperclip, Download } from 'lucide-react';
+import { Paperclip, Download, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Email, EmailAttachment } from '@/lib/api/emails';
 
@@ -13,10 +13,24 @@ interface EmailConversationProps {
   onDownloadAttachment?: (attachmentId: string, filename: string) => void;
 }
 
+interface ExpandedEmailState {
+  [key: string]: boolean;
+}
+
 export const EmailConversation: React.FC<EmailConversationProps> = ({ 
   emails,
   onDownloadAttachment 
 }) => {
+  const [expandedEmails, setExpandedEmails] = useState<ExpandedEmailState>({});
+  
+  // Function to toggle the expanded state of an email
+  const toggleEmailExpanded = (emailId: string) => {
+    setExpandedEmails(prev => ({
+      ...prev,
+      [emailId]: !prev[emailId]
+    }));
+  };
+  
   // Function to handle attachment download
   const handleDownload = (attachment: EmailAttachment) => {
     if (onDownloadAttachment) {
@@ -44,6 +58,12 @@ export const EmailConversation: React.FC<EmailConversationProps> = ({
       console.error('Invalid date:', dateString);
       return 'Invalid date';
     }
+  };
+  
+  // Function to truncate text and add ellipsis
+  const truncateText = (text: string, maxLength: number = 150) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
   };
 
   return (
@@ -79,7 +99,32 @@ export const EmailConversation: React.FC<EmailConversationProps> = ({
                 <Separator className="my-2" />
                 
                 <div className="text-sm">
-                  <p className="whitespace-pre-line">{email.content}</p>
+                  <div className="whitespace-pre-line">
+                    {expandedEmails[email.id] 
+                      ? email.content 
+                      : truncateText(email.content)}
+                    
+                    {email.content.length > 150 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleEmailExpanded(email.id)}
+                        className="mt-1 h-auto py-1 px-2 text-xs font-medium text-blue-600 hover:text-blue-800 flex items-center"
+                      >
+                        {expandedEmails[email.id] ? (
+                          <>
+                            <ChevronDown className="h-3 w-3 mr-1" />
+                            Show Less
+                          </>
+                        ) : (
+                          <>
+                            <ChevronRight className="h-3 w-3 mr-1" />
+                            Show More
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 
                 {email.attachments && email.attachments.length > 0 && (
