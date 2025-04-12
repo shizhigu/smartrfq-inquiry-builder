@@ -21,6 +21,13 @@ export function SupplierSearchResults({
   
   console.log("Rendering suppliers:", suppliers.length);
   
+  // Create an explicit click handler to ensure the event is captured
+  const handleSupplierClick = (supplierId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onSupplierSelect(supplierId);
+  };
+  
   return (
     <>
       {!hasSuppliers && (
@@ -31,7 +38,11 @@ export function SupplierSearchResults({
               variant="outline" 
               size="sm" 
               className="w-full mt-2"
-              onClick={onAddNewClick}
+              onClick={(e) => {
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                onAddNewClick();
+              }}
               type="button"
             >
               <UserPlus className="mr-2 h-4 w-4" />
@@ -47,8 +58,9 @@ export function SupplierSearchResults({
             <CommandItem
               key={supplier.id}
               value={supplier.id}
-              onSelect={() => onSupplierSelect(supplier.id)}
+              onSelect={() => {}} // Disable default onSelect behavior
               className="cursor-pointer flex items-center justify-between w-full p-2 hover:bg-accent"
+              onClick={(e) => handleSupplierClick(supplier.id, e)}
             >
               <div className="flex flex-col flex-1">
                 <span className="font-medium">{supplier.name}</span>

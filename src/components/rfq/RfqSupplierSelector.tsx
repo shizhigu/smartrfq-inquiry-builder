@@ -79,6 +79,7 @@ export function RfqSupplierSelector({
           width: "var(--radix-popover-trigger-width)",
           position: 'absolute',
           marginTop: '1px',
+          backgroundColor: "white", // Ensure background is visible
         }}
         onEscapeKeyDown={() => setOpen(false)}
         onInteractOutside={() => setOpen(false)}
@@ -90,7 +91,7 @@ export function RfqSupplierSelector({
             onValueChange={setSearchValue}
             className="border-none focus:ring-0"
           />
-          <CommandList className="max-h-[200px] overflow-y-auto py-2">
+          <CommandList className="max-h-[200px] overflow-y-auto">
             <SupplierSearchResults
               suppliers={filteredSuppliers}
               selectedSupplierId={selectedSupplierId}
