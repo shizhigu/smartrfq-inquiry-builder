@@ -123,7 +123,7 @@ export function RfqSendInquiryDialog({
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs defaultValue="supplier" className="mt-4" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="supplier">Select Supplier</TabsTrigger>
             <TabsTrigger value="email">Enter Email</TabsTrigger>
