@@ -75,7 +75,7 @@ export function Topbar() {
           }}
           userProfileMode="navigation"
           userProfileUrl="/dashboard/settings"
-          afterSignOutCallback={logout}
+          onSignOut={logout}
         />
       </div>
     </div>
