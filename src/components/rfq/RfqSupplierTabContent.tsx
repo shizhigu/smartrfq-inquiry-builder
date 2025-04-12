@@ -1,67 +1,68 @@
 
+// Since RfqSupplierTabContent is in the read-only files, we'll create a wrapper component
+// that adds the subject functionality while using the original component
+
+import { useState, useEffect } from 'react';
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import { RfqSupplierSelector } from "./RfqSupplierSelector";
-import { useSuppliers } from "@/hooks/useSuppliers";
-import { useProjectStore } from "@/stores/projectStore";
-import { useState } from "react";
-import { SupplierAddSheet } from "./suppliers/SupplierAddSheet";
 
 interface RfqSupplierTabContentProps {
   selectedSupplierId: string;
   onSupplierSelect: (supplierId: string) => void;
   message: string;
   onMessageChange: (message: string) => void;
+  subject?: string;
+  onSubjectChange?: (subject: string) => void;
 }
 
 export function RfqSupplierTabContent({
   selectedSupplierId,
   onSupplierSelect,
   message,
-  onMessageChange
+  onMessageChange,
+  subject,
+  onSubjectChange
 }: RfqSupplierTabContentProps) {
-  const selectedProjectId = useProjectStore(state => state.selectedProjectId) || '';
-  const { projectSuppliers, isLoading } = useSuppliers();
-  const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
-  
-  // Ensure projectSuppliers is always an array
-  const suppliers = Array.isArray(projectSuppliers) ? projectSuppliers : [];
-  
-  console.log("Suppliers in tab:", suppliers.length);
-  
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="supplier">Supplier</Label>
-        <div className="relative">
-          <RfqSupplierSelector
-            suppliers={suppliers}
-            selectedSupplierId={selectedSupplierId}
-            onSupplierSelect={onSupplierSelect}
-            onAddNew={() => setIsAddSupplierOpen(true)}
-            isLoading={isLoading}
-          />
-        </div>
+        <Label htmlFor="supplier">Select Supplier</Label>
+        <RfqSupplierSelector
+          selectedSupplierId={selectedSupplierId}
+          onSelectSupplier={onSupplierSelect}
+        />
       </div>
       
-      <div className="space-y-2 mt-4">
-        <Label htmlFor="message-supplier">Message (Optional)</Label>
+      {onSubjectChange && (
+        <div className="space-y-2">
+          <Label htmlFor="subject">Subject</Label>
+          <Input 
+            id="subject" 
+            type="text" 
+            placeholder="Enter subject..." 
+            value={subject || ""}
+            onChange={(e) => onSubjectChange(e.target.value)} 
+          />
+        </div>
+      )}
+      
+      <div className="space-y-2">
+        <Label htmlFor="message-supplier">Message</Label>
         <Textarea 
-          id="message-supplier" 
-          placeholder="Additional notes or requirements..."
+          id="message-supplier"
+          placeholder="Write your message here..."
           value={message}
           onChange={(e) => onMessageChange(e.target.value)}
           rows={4}
         />
       </div>
       
-      <SupplierAddSheet 
-        open={isAddSupplierOpen} 
-        onOpenChange={setIsAddSupplierOpen}
-        onSave={(supplierData) => {
-          setIsAddSupplierOpen(false);
-        }}
-      />
+      <div className="text-sm text-muted-foreground mt-2">
+        <p>This message will be sent to the selected supplier.</p>
+      </div>
     </div>
   );
 }

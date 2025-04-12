@@ -8,32 +8,55 @@ interface RfqEmailTabContentProps {
   onEmailChange: (email: string) => void;
   message: string;
   onMessageChange: (message: string) => void;
+  subject?: string;
+  onSubjectChange?: (subject: string) => void;
+  hideEmailInput?: boolean;
+  hideSubjectInput?: boolean;
 }
 
 export function RfqEmailTabContent({
   email,
   onEmailChange,
   message,
-  onMessageChange
+  onMessageChange,
+  subject,
+  onSubjectChange,
+  hideEmailInput = false,
+  hideSubjectInput = false
 }: RfqEmailTabContentProps) {
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="email">Email Address</Label>
-        <Input 
-          id="email" 
-          type="email" 
-          placeholder="supplier@example.com"
-          value={email}
-          onChange={(e) => onEmailChange(e.target.value)}
-        />
-      </div>
+      {!hideEmailInput && (
+        <div className="space-y-2">
+          <Label htmlFor="email">Email Address</Label>
+          <Input 
+            id="email" 
+            type="email" 
+            placeholder="supplier@example.com"
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)}
+          />
+        </div>
+      )}
+      
+      {!hideSubjectInput && onSubjectChange && (
+        <div className="space-y-2">
+          <Label htmlFor="subject">Subject</Label>
+          <Input 
+            id="subject" 
+            type="text" 
+            placeholder="Enter subject..."
+            value={subject}
+            onChange={(e) => onSubjectChange(e.target.value)}
+          />
+        </div>
+      )}
       
       <div className="space-y-2">
-        <Label htmlFor="message-email">Message (Optional)</Label>
+        <Label htmlFor="message-email">Message</Label>
         <Textarea 
           id="message-email"
-          placeholder="Additional notes or requirements..."
+          placeholder="Write your message here..."
           value={message}
           onChange={(e) => onMessageChange(e.target.value)}
           rows={4}

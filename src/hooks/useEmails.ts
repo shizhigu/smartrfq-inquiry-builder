@@ -16,24 +16,12 @@ import {
   downloadAttachment,
   Email
 } from '@/lib/api/emails';
-import { getSupplier } from '@/lib/api/suppliers';
+import { useEmailStore } from '@/stores/emailStore';
 
 // Extended conversation type with supplier details
 export interface ConversationWithSupplier extends Conversation {
   supplierName?: string;
   supplierEmail?: string;
-}
-
-interface EmailsState {
-  conversations: ConversationWithSupplier[];
-  emails: Record<string, Email[]>;
-  selectedConversationId: string | null;
-  isLoading: boolean;
-  error: string | null;
-  totalConversations: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
 }
 
 interface UseEmailsReturn {
@@ -48,7 +36,7 @@ interface UseEmailsReturn {
   totalPages: number;
   totalConversations: number;
   
-  fetchConversations: (page?: number) => Promise<void>;
+  fetchConversations: (page?: number, forceRefresh?: boolean) => Promise<void>;
   selectConversation: (conversationId: string) => Promise<void>;
   createNewConversation: (supplierId: string, subject: string, initialMessage: string) => Promise<void>;
   
@@ -64,17 +52,29 @@ export const useEmails = (): UseEmailsReturn => {
   const selectedProjectId = useProjectStore(state => state.selectedProjectId);
   const requestInProgress = useRef(false);
   
-  const [state, setState] = useState<EmailsState>({
-    conversations: [],
-    emails: {},
-    selectedConversationId: null,
-    isLoading: false,
-    error: null,
-    totalConversations: 0,
-    page: 1,
-    pageSize: 20,
-    totalPages: 0
-  });
+  // Use the email store for conversations
+  const { 
+    conversations, 
+    addConversations, 
+    setConversations,
+    setPage,
+    setTotalPages,
+    setTotalConversations,
+    page, 
+    pageSize, 
+    totalPages, 
+    totalConversations,
+    isLoading: storeIsLoading,
+    setLoading: setStoreLoading,
+    error: storeError,
+    setError: setStoreError,
+    selectedConversationId,
+    setSelectedConversationId
+  } = useEmailStore();
+  
+  const [emails, setEmails] = useState<Record<string, Email[]>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Function to extract supplier info from a conversation
   const extractSupplierInfo = (conversation: Conversation): ConversationWithSupplier => {
@@ -106,16 +106,28 @@ export const useEmails = (): UseEmailsReturn => {
     };
   };
   
-  const fetchConversations = useCallback(async (page: number = 1) => {
+  const fetchConversations = useCallback(async (pageNum: number = 1, forceRefresh: boolean = false) => {
+    // If we already have conversations for this project and we're not forcing a refresh, use them
+    const projectConversations = conversations[selectedProjectId] || [];
+    
+    if (!forceRefresh && projectConversations.length > 0 && pageNum === 1) {
+      console.log('Using cached conversations from store');
+      return;
+    }
+    
     if (requestInProgress.current || !selectedProjectId) {
       if (!selectedProjectId) {
-        setState(prev => ({ ...prev, error: 'No project selected', isLoading: false }));
+        setError('No project selected');
+        setStoreError('No project selected');
       }
       return;
     }
     
     requestInProgress.current = true;
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setIsLoading(true);
+    setStoreLoading(true);
+    setError(null);
+    setStoreError(null);
     
     try {
       const token = await getToken();
@@ -123,8 +135,8 @@ export const useEmails = (): UseEmailsReturn => {
         throw new Error('Unable to get authentication token');
       }
       
-      console.log(`Fetching conversations for project: ${selectedProjectId}, page: ${page}`);
-      const response = await getConversations(token, selectedProjectId, page, state.pageSize);
+      console.log(`Fetching conversations for project: ${selectedProjectId}, page: ${pageNum}`);
+      const response = await getConversations(token, selectedProjectId, pageNum, pageSize);
       
       // Get detailed conversation data with supplier info for each conversation
       const enrichedConversationsPromises = response.items.map(async (conversation) => {
@@ -141,32 +153,38 @@ export const useEmails = (): UseEmailsReturn => {
       
       const enrichedConversations = await Promise.all(enrichedConversationsPromises);
       
-      setState(prev => ({
-        ...prev,
-        conversations: page === 1 
-          ? enrichedConversations 
-          : [...prev.conversations, ...enrichedConversations],
-        totalConversations: response.total,
-        page: response.page,
-        pageSize: response.page_size,
-        totalPages: response.pages,
-        isLoading: false
-      }));
+      // Update the zustand store
+      if (pageNum === 1) {
+        // Replace all conversations for this project
+        setConversations(selectedProjectId, enrichedConversations);
+      } else {
+        // Add new conversations to existing ones
+        addConversations(selectedProjectId, enrichedConversations);
+      }
+      
+      // Update pagination info
+      setPage(response.page);
+      setTotalPages(response.pages);
+      setTotalConversations(response.total);
+      
+      setIsLoading(false);
+      setStoreLoading(false);
     } catch (error) {
       console.error('Failed to fetch conversations:', error);
-      setState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to fetch conversations',
-        isLoading: false
-      }));
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch conversations';
+      setError(errorMessage);
+      setStoreError(errorMessage);
       toast.error('Failed to fetch conversations');
     } finally {
       requestInProgress.current = false;
+      setIsLoading(false);
+      setStoreLoading(false);
     }
-  }, [getToken, selectedProjectId, state.pageSize]);
+  }, [getToken, selectedProjectId, pageSize, conversations, addConversations, setConversations, setPage, setTotalPages, setTotalConversations, setStoreLoading, setStoreError]);
   
   const selectConversation = async (conversationId: string) => {
-    setState(prev => ({ ...prev, selectedConversationId: conversationId, isLoading: true }));
+    setSelectedConversationId(conversationId);
+    setIsLoading(true);
     
     try {
       const token = await getToken();
@@ -181,34 +199,34 @@ export const useEmails = (): UseEmailsReturn => {
       // Extract supplier info from the detailed conversation
       const enrichedConversation = extractSupplierInfo(detailedConversation);
       
-      // Update the conversation in the state with the enriched data
-      setState(prev => ({
-        ...prev,
-        conversations: prev.conversations.map(c => 
-          c.id === conversationId ? enrichedConversation : c
-        )
-      }));
+      // Update the conversation in the store
+      const projectConversations = [...(conversations[selectedProjectId] || [])];
+      const index = projectConversations.findIndex(c => c.id === conversationId);
+      
+      if (index !== -1) {
+        projectConversations[index] = enrichedConversation;
+        setConversations(selectedProjectId, projectConversations);
+      }
       
       // Fetch emails if needed
-      if (!state.emails[conversationId]) {
+      if (!emails[conversationId]) {
         await fetchEmails(conversationId);
       }
       
-      setState(prev => ({ ...prev, isLoading: false }));
+      setIsLoading(false);
     } catch (error) {
       console.error('Error selecting conversation:', error);
-      setState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to load conversation',
-        isLoading: false 
-      }));
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load conversation';
+      setError(errorMessage);
+      setIsLoading(false);
     }
   };
   
   const fetchEmails = async (conversationId: string) => {
     if (!conversationId) return;
     
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setIsLoading(true);
+    setError(null);
     
     try {
       const token = await getToken();
@@ -216,31 +234,32 @@ export const useEmails = (): UseEmailsReturn => {
         throw new Error('Unable to get authentication token');
       }
       
-      const emails = await getEmailsForConversation(token, conversationId);
+      const fetchedEmails = await getEmailsForConversation(token, conversationId);
       
-      setState(prev => ({
+      // Update the emails state
+      setEmails(prev => ({
         ...prev,
-        emails: { ...prev.emails, [conversationId]: emails },
-        isLoading: false
+        [conversationId]: fetchedEmails
       }));
+      
+      setIsLoading(false);
     } catch (error) {
       console.error('Failed to fetch emails:', error);
-      setState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to fetch emails',
-        isLoading: false 
-      }));
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch emails';
+      setError(errorMessage);
+      setIsLoading(false);
       toast.error('Failed to fetch emails');
     }
   };
   
   const createNewConversation = async (supplierId: string, subject: string, initialMessage: string) => {
     if (!selectedProjectId) {
-      setState(prev => ({ ...prev, error: 'No project selected' }));
+      setError('No project selected');
       return;
     }
     
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setIsLoading(true);
+    setError(null);
     
     try {
       const token = await getToken();
@@ -256,29 +275,31 @@ export const useEmails = (): UseEmailsReturn => {
         initialMessage
       );
       
-      await fetchConversations();
+      // Refresh the conversation list
+      await fetchConversations(1, true);
       
+      // Select the new conversation
       await selectConversation(newConversation.id);
       
       toast.success('Conversation created successfully');
     } catch (error) {
       console.error('Failed to create conversation:', error);
-      setState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to create conversation',
-        isLoading: false 
-      }));
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create conversation';
+      setError(errorMessage);
       toast.error('Failed to create conversation');
+    } finally {
+      setIsLoading(false);
     }
   };
   
   const sendNewEmail = async (content: string, subject?: string, attachments?: File[]) => {
-    if (!state.selectedConversationId) {
+    if (!selectedConversationId) {
       toast.error('No conversation selected');
       return;
     }
     
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setIsLoading(true);
+    setError(null);
     
     try {
       const token = await getToken();
@@ -288,35 +309,32 @@ export const useEmails = (): UseEmailsReturn => {
       
       const newEmail = await sendEmail(
         token, 
-        state.selectedConversationId, 
+        selectedConversationId, 
         content, 
         subject, 
         attachments
       );
       
-      setState(prev => {
-        const conversationEmails = prev.emails[state.selectedConversationId!] || [];
+      // Add the new email to the emails state
+      setEmails(prev => {
+        const conversationEmails = prev[selectedConversationId] || [];
         return {
           ...prev,
-          emails: { 
-            ...prev.emails, 
-            [state.selectedConversationId!]: [...conversationEmails, newEmail] 
-          },
-          isLoading: false
+          [selectedConversationId]: [...conversationEmails, newEmail]
         };
       });
       
-      await fetchConversations(state.page);
+      // Refresh the conversations list to update last message info
+      await fetchConversations(page, true);
       
       toast.success('Email sent successfully');
     } catch (error) {
       console.error('Failed to send email:', error);
-      setState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to send email',
-        isLoading: false 
-      }));
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send email';
+      setError(errorMessage);
       toast.error('Failed to send email');
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -347,7 +365,7 @@ export const useEmails = (): UseEmailsReturn => {
   };
   
   const clearSelectedConversation = () => {
-    setState(prev => ({ ...prev, selectedConversationId: null }));
+    setSelectedConversationId(null);
   };
   
   useEffect(() => {
@@ -355,40 +373,33 @@ export const useEmails = (): UseEmailsReturn => {
     
     if (selectedProjectId) {
       fetchConversations();
-    } else {
-      setState({
-        conversations: [],
-        emails: {},
-        selectedConversationId: null,
-        isLoading: false,
-        error: null,
-        totalConversations: 0,
-        page: 1,
-        pageSize: 20,
-        totalPages: 0
-      });
     }
   }, [selectedProjectId, fetchConversations]);
   
-  const selectedConversation = state.selectedConversationId
-    ? state.conversations.find(c => c.id === state.selectedConversationId) || null
+  // Get the project's conversations from the store
+  const projectConversations = conversations[selectedProjectId] || [];
+  
+  // Get the selected conversation
+  const selectedConversation = selectedConversationId
+    ? projectConversations.find(c => c.id === selectedConversationId) || null
     : null;
   
-  const emails = state.selectedConversationId 
-    ? state.emails[state.selectedConversationId] || []
+  // Get the emails for the selected conversation
+  const conversationEmails = selectedConversationId 
+    ? emails[selectedConversationId] || [] 
     : [];
   
   return {
-    conversations: state.conversations,
-    emails,
+    conversations: projectConversations,
+    emails: conversationEmails,
     selectedConversation,
-    isLoading: state.isLoading,
-    error: state.error,
+    isLoading: isLoading || storeIsLoading,
+    error: error || storeError,
     
-    page: state.page,
-    pageSize: state.pageSize,
-    totalPages: state.totalPages,
-    totalConversations: state.totalConversations,
+    page,
+    pageSize,
+    totalPages,
+    totalConversations,
     
     fetchConversations,
     selectConversation,

@@ -1,5 +1,6 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import { useEmails, ConversationWithSupplier } from '@/hooks/useEmails';
+import { useEmails } from '@/hooks/useEmails';
 import { useProjectStore } from '@/stores/projectStore';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,8 @@ import {
   Filter, 
   Calendar,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { 
@@ -25,6 +27,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import { EmailConversation } from '@/components/emails/EmailConversation';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ComposeEmailDialog } from '@/components/emails/ComposeEmailDialog';
 
 const Emails = () => {
   const {
@@ -48,16 +51,23 @@ const Emails = () => {
 
   const { selectedProjectId, projects } = useProjectStore();
   const [searchQuery, setSearchQuery] = useState('');
+  const [composeDialogOpen, setComposeDialogOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   
-  useEffect(() => {
-    console.log("Project ID in Emails page:", selectedProjectId);
-  }, [selectedProjectId]);
+  const handleRefresh = async () => {
+    if (isLoading || refreshing) return;
+    
+    setRefreshing(true);
+    await fetchConversations(1, true); // force refresh from API
+    setRefreshing(false);
+    toast.success('Conversations refreshed');
+  };
   
   const filteredConversations = conversations.filter(conv => {
     if (searchQuery) {
       return (
         conv.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        conv.lastMessagePreview.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        conv.lastMessagePreview?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (conv.supplierName && conv.supplierName.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (conv.supplierEmail && conv.supplierEmail.toLowerCase().includes(searchQuery.toLowerCase()))
       );
@@ -67,7 +77,7 @@ const Emails = () => {
   });
 
   const handleComposeEmail = () => {
-    toast('Email composition feature is under development');
+    setComposeDialogOpen(true);
   };
   
   const handleSelectConversation = (conversationId: string) => {
@@ -76,6 +86,11 @@ const Emails = () => {
   
   const handleBackToList = () => {
     clearSelectedConversation();
+  };
+  
+  const handleSendEmail = async (supplierId: string, subject: string, message: string) => {
+    await createNewConversation(supplierId, subject, message);
+    setComposeDialogOpen(false);
   };
 
   const safeFormatDate = (dateString: string, formatStr: string): string => {
@@ -109,7 +124,7 @@ const Emails = () => {
     }
   };
 
-  const renderSupplierInfo = (conversation: ConversationWithSupplier) => {
+  const renderSupplierInfo = (conversation: any) => {
     if (conversation.supplierName && conversation.supplierName !== "Unknown Supplier") {
       return (
         <div className="text-sm text-muted-foreground">
@@ -230,6 +245,15 @@ const Emails = () => {
         <div className="mt-6">
           <EmailConversation emails={emails} onDownloadAttachment={downloadEmailAttachment} />
         </div>
+        
+        <ComposeEmailDialog 
+          open={composeDialogOpen} 
+          onOpenChange={setComposeDialogOpen}
+          onSend={handleSendEmail}
+          replyMode
+          initialSupplierId={selectedConversation.supplierId}
+          initialSubject={`RE: ${selectedConversation.subject}`}
+        />
       </div>
     );
   }
@@ -240,10 +264,15 @@ const Emails = () => {
         title="Emails"
         description="Manage communications for your project"
       >
-        <Button onClick={handleComposeEmail}>
-          <MailPlus className="mr-2 h-4 w-4" />
-          Compose
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isLoading || refreshing}>
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button onClick={handleComposeEmail}>
+            <MailPlus className="mr-2 h-4 w-4" />
+            Compose
+          </Button>
+        </div>
       </PageHeader>
 
       <div className="mt-6">
@@ -276,7 +305,7 @@ const Emails = () => {
               </CardHeader>
               <Separator />
               <CardContent className="p-0">
-                {isLoading && !filteredConversations.length ? (
+                {isLoading ? (
                   <div className="p-8">
                     <div className="flex justify-center">
                       <div className="animate-pulse h-24 w-full max-w-md bg-muted/30 rounded-lg"></div>
@@ -339,6 +368,12 @@ const Emails = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <ComposeEmailDialog 
+        open={composeDialogOpen} 
+        onOpenChange={setComposeDialogOpen}
+        onSend={handleSendEmail}
+      />
     </div>
   );
 };
