@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { RfqPart } from "@/stores/rfqStore";
 import { Loader2 } from "lucide-react";
@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { RfqSupplierTabContent } from "./RfqSupplierTabContent";
 import { RfqEmailTabContent } from "./RfqEmailTabContent";
 import { RfqSelectedPartsTable } from "./RfqSelectedPartsTable";
+import { getSupplier } from "@/lib/api/suppliers";
 
 interface RfqSendInquiryDialogProps {
   open: boolean;
@@ -43,6 +44,7 @@ export function RfqSendInquiryDialog({
   const [emailToSend, setEmailToSend] = useState("");
   const [message, setMessage] = useState("");
   const [selectedSupplierId, setSelectedSupplierId] = useState("");
+  const [supplierEmail, setSupplierEmail] = useState<string | null>(null);
   
   // Reset form when dialog opens
   const handleOpenChange = (open: boolean) => {
@@ -51,9 +53,34 @@ export function RfqSendInquiryDialog({
       setMessage("");
       setSelectedSupplierId("");
       setActiveTab("supplier");
+      setSupplierEmail(null);
     }
     onOpenChange(open);
   };
+  
+  // Fetch supplier email when a supplier is selected
+  useEffect(() => {
+    const fetchSupplierEmail = async () => {
+      if (selectedSupplierId) {
+        try {
+          const token = await getToken();
+          if (!token) return;
+          
+          const supplier = await getSupplier(token, selectedSupplierId);
+          if (supplier && supplier.email) {
+            setSupplierEmail(supplier.email);
+          }
+        } catch (error) {
+          console.error("Error fetching supplier email:", error);
+          setSupplierEmail(null);
+        }
+      } else {
+        setSupplierEmail(null);
+      }
+    };
+    
+    fetchSupplierEmail();
+  }, [selectedSupplierId, getToken]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +106,7 @@ export function RfqSendInquiryDialog({
       const orgId = organization?.id || 'org_mock';
       const token = await getToken() || 'mock_token';
       
-      // Get the email address to send to - handle undefined supplier
+      // Get the email address to send to
       let emailAddress = "";
       
       if (activeTab === "supplier") {
@@ -88,8 +115,8 @@ export function RfqSendInquiryDialog({
           setIsLoading(false);
           return;
         }
-        // In a real app, you would fetch the supplier's email using the ID
-        emailAddress = "selected-supplier@example.com";
+        // Use the retrieved supplier email when available
+        emailAddress = supplierEmail || "selected-supplier@example.com";
       } else {
         emailAddress = emailToSend;
       }

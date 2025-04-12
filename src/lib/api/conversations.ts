@@ -1,4 +1,3 @@
-
 import { API_CONFIG, useMockData } from '../config';
 import { mockConversations } from '../mock/mockData';
 import { v4 as uuidv4 } from 'uuid';
@@ -17,6 +16,9 @@ export interface Conversation {
   organization_id?: string;
   status?: string;
   last_activity?: string;
+  project_name?: string;
+  supplier_name?: string;
+  supplier_email?: string;
 }
 
 export interface ConversationResponse {
