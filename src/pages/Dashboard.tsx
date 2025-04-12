@@ -1,7 +1,7 @@
 
+import React, { useEffect, useState } from 'react';
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useEffect, useState } from "react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { useProjectStore } from "@/stores/projectStore";
 import { fetchProjects } from "@/lib/api/projects";
@@ -194,7 +194,7 @@ export default function Dashboard() {
             />
             <StatCard
               title="Organization Suppliers"
-              value={isSuppliersLoading ? "..." : totalSuppliers}
+              value={suppliersLoading ? "..." : totalSuppliers}
               icon={Building2}
               trend={totalSuppliers > 0 ? { value: 3, isPositive: true } : undefined}
             />
@@ -285,3 +285,4 @@ export default function Dashboard() {
     </div>
   );
 }
+
