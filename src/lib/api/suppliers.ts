@@ -1,3 +1,4 @@
+
 import { Supplier } from "@/stores/supplierStore";
 import { mockSuppliers, createPaginatedResponse } from "../mock/mockData";
 import { API_CONFIG, useMockData } from '../config';
@@ -170,7 +171,7 @@ export const getSupplier = async (token: string, supplierId: string): Promise<Su
   
   // Real API call
   console.log(`Making API call to fetch supplier with ID: ${supplierId}`);
-  const response = await fetch(`${API_CONFIG.BASE_URL}/suppliers/${supplierId}`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/api/suppliers/${supplierId}`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
