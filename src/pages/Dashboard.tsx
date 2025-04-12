@@ -13,6 +13,7 @@ import { useAuth } from "@clerk/clerk-react";
 import { toast } from "sonner";
 import { syncUser } from "@/lib/api/users";
 import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
+import { useProjectRfqItems } from "@/hooks/useProjectRfqItems";
 import { useRfqStore } from "@/stores/rfqStore";
 import { useSupplierStore } from "@/stores/supplierStore";
 
@@ -36,16 +37,16 @@ export default function Dashboard() {
   const { projects, setProjects, isLoading, setLoading } = useProjectStore();
   const setCurrentPage = useAppStore(state => state.setCurrentPage);
   
-  // Get the latest supplier data directly from the store
-  const globalSuppliers = useSupplierStore(state => state.suppliers['global'] || []);
+  // Use supplier store directly
+  const orgSuppliers = useSupplierStore(state => state.suppliers['global'] || []);
   const suppliersLoading = useSupplierStore(state => state.isLoading);
   
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   
-  // Use the hook to trigger loading
+  // Use the hook to trigger loading but get data directly from store
   const { loadSuppliers } = useOrganizationSuppliers();
-  const totalSuppliers = globalSuppliers.length;
+  const totalSuppliers = orgSuppliers.length;
   
   const { 
     getTotalItemCount, 
@@ -53,6 +54,12 @@ export default function Dashboard() {
     stats,
     parts: rfqParts
   } = useRfqStore();
+  
+  const { 
+    loadAllProjectItems, 
+    isLoading: isItemsLoading,
+    parts
+  } = useProjectRfqItems();
   
   useEffect(() => {
     const syncUserWithBackend = async () => {
@@ -108,13 +115,24 @@ export default function Dashboard() {
     loadProjects();
   }, [setCurrentPage, setProjects, getToken, setLoading, projects.length]);
   
-  // Always check for suppliers on Dashboard mount to ensure latest data
+  // Load organization suppliers if they don't exist
   useEffect(() => {
-    console.log('Dashboard: Checking supplier data, current count in store:', globalSuppliers.length);
-    
-    // Always load suppliers when dashboard is mounted to ensure fresh data
-    loadSuppliers(true);
-  }, [loadSuppliers]);
+    if (orgSuppliers.length === 0 && !suppliersLoading) {
+      console.log('Dashboard: Loading organization suppliers because none exist in store');
+      loadSuppliers();
+    } else {
+      console.log('Dashboard: Using organization suppliers from Zustand store, count:', orgSuppliers.length);
+    }
+  }, [orgSuppliers.length, suppliersLoading, loadSuppliers]);
+  
+  useEffect(() => {
+    if (projects.length > 0 && Object.keys(parts || {}).length === 0) {
+      console.log('Dashboard: Loading RFQ items for all projects because parts data is empty');
+      loadAllProjectItems();
+    } else if (projects.length > 0) {
+      console.log('Dashboard: Projects exist and parts data exists in store, no need to reload');
+    }
+  }, [projects, loadAllProjectItems, parts]);
   
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'open').length;
@@ -126,8 +144,8 @@ export default function Dashboard() {
     console.log('Dashboard: Total parts count from store:', totalParts);
     console.log('Dashboard: RFQ stats loading:', stats.isLoading);
     console.log('Dashboard: RFQ parts data available:', Object.keys(rfqParts || {}).length > 0);
-    console.log('Dashboard: Organization suppliers count from store:', globalSuppliers.length);
-  }, [totalParts, stats.isLoading, rfqParts, projects.length, globalSuppliers.length]);
+    console.log('Dashboard: Organization suppliers count from store:', orgSuppliers.length);
+  }, [totalParts, stats.isLoading, rfqParts, projects.length, orgSuppliers.length]);
   
   const recentProjects = [...projects]
     .sort((a, b) => {
@@ -170,7 +188,7 @@ export default function Dashboard() {
             />
             <StatCard
               title="Total Parts"
-              value={stats.isLoading ? "..." : totalParts}
+              value={isItemsLoading || stats.isLoading ? "..." : totalParts}
               icon={FileText}
               trend={totalParts > 0 ? { value: 8, isPositive: true } : undefined}
             />
@@ -202,7 +220,7 @@ export default function Dashboard() {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center">
                           <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
-                          <span>{stats.isLoading ? "..." : getItemCountByProject(project.id)}</span>
+                          <span>{isItemsLoading || stats.isLoading ? "..." : getItemCountByProject(project.id)}</span>
                         </div>
                         <div className="flex items-center">
                           <Users className="h-4 w-4 mr-1 text-muted-foreground" />
@@ -267,3 +285,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

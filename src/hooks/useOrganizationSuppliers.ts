@@ -22,10 +22,8 @@ export function useOrganizationSuppliers() {
   const orgSuppliers = suppliers['global'] || [];
 
   const loadSuppliers = useCallback(async (forceRefresh = false) => {
-    // Always load data if force refresh is requested
-    if (forceRefresh) {
-      console.log('Force refreshing organization suppliers from API');
-    } else if (orgSuppliers.length > 0) {
+    // Check if we already have data in the Zustand store and no refresh is requested
+    if (!forceRefresh && orgSuppliers.length > 0) {
       console.log('Organization suppliers already loaded in Zustand store, skipping API call');
       return;
     }
