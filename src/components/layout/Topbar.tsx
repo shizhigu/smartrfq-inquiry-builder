@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useProjectStore } from "@/stores/projectStore";
 import { useState, useEffect } from "react";
@@ -23,10 +22,8 @@ export function Topbar() {
   const { organization } = useOrganization();
   const { logout } = useAuthManager();
   
-  // Re-sync user when organization changes
   const { currentUser, organizationId } = useSyncUser();
   
-  // Log organization changes
   useEffect(() => {
     console.log('Organization changed in Topbar:', organization?.id);
   }, [organization?.id]);
@@ -75,7 +72,6 @@ export function Topbar() {
           }}
           userProfileMode="navigation"
           userProfileUrl="/dashboard/settings"
-          afterSignOut={logout}
         />
       </div>
     </div>
