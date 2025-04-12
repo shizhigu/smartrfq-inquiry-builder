@@ -50,7 +50,7 @@ export function RfqSupplierSelector({
       };
       
       // Add the supplier to the store
-      addSupplier(selectedProjectId, newSupplier);
+      addSupplier(newSupplier);
       
       // Select the newly created supplier
       onSupplierSelect(newSupplierId);
