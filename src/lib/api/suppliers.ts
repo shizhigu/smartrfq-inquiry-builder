@@ -4,7 +4,7 @@ import { mockSuppliers, createPaginatedResponse } from "../mock/mockData";
 import { API_CONFIG, useMockData } from '../config';
 
 // Get suppliers for a project
-export const getSuppliers = async (token: string, organizationId: string, projectId: string, page = 1, pageSize = 20): Promise<Supplier[]> => {
+export const getSuppliers = async (token: string, projectId: string, page = 1, pageSize = 20): Promise<Supplier[]> => {
   console.info("Loading suppliers for project:", projectId);
   
   if (useMockData()) {
@@ -17,7 +17,6 @@ export const getSuppliers = async (token: string, organizationId: string, projec
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
-      'X-Organization-Id': organizationId
     },
   });
   
@@ -26,11 +25,11 @@ export const getSuppliers = async (token: string, organizationId: string, projec
   }
   
   const data = await response.json();
-  return data.items || data;
+  return data.items || data; // 返回 items 或整个数据，取决于后端的响应格式
 };
 
 // Add a new supplier
-export const addSupplier = async (token: string, organizationId: string, supplier: Supplier): Promise<Supplier> => {
+export const addSupplier = async (token: string, supplier: Supplier): Promise<Supplier> => {
   console.info("Adding supplier:", supplier);
   
   if (useMockData()) {
@@ -51,7 +50,6 @@ export const addSupplier = async (token: string, organizationId: string, supplie
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
-      'X-Organization-Id': organizationId
     },
     body: JSON.stringify(supplier),
   });
@@ -64,7 +62,7 @@ export const addSupplier = async (token: string, organizationId: string, supplie
 };
 
 // Update an existing supplier
-export const updateSupplier = async (token: string, organizationId: string, id: string, data: Partial<Supplier>): Promise<Supplier> => {
+export const updateSupplier = async (token: string, id: string, data: Partial<Supplier>): Promise<Supplier> => {
   console.info("Updating supplier:", id, data);
   
   if (useMockData()) {
@@ -92,11 +90,10 @@ export const updateSupplier = async (token: string, organizationId: string, id: 
   }
   
   const response = await fetch(`${API_CONFIG.BASE_URL}/suppliers/${id}`, {
-    method: 'PUT',
+    method: 'PUT', // 使用 PUT 而不是 PATCH，因为后端使用的是 PUT
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
-      'X-Organization-Id': organizationId
     },
     body: JSON.stringify(data),
   });
@@ -109,7 +106,7 @@ export const updateSupplier = async (token: string, organizationId: string, id: 
 };
 
 // Delete a supplier
-export const deleteSupplier = async (token: string, organizationId: string, id: string): Promise<void> => {
+export const deleteSupplier = async (token: string, id: string): Promise<void> => {
   console.info("Deleting supplier:", id);
   
   if (useMockData()) {
@@ -128,7 +125,6 @@ export const deleteSupplier = async (token: string, organizationId: string, id: 
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
-      'X-Organization-Id': organizationId
     },
   });
   
@@ -138,7 +134,7 @@ export const deleteSupplier = async (token: string, organizationId: string, id: 
 };
 
 // Get a single supplier by ID
-export const getSupplier = async (token: string, organizationId: string, supplierId: string): Promise<Supplier> => {
+export const getSupplier = async (token: string, supplierId: string): Promise<Supplier> => {
   console.info("Loading supplier details for:", supplierId);
   
   if (!supplierId) {
@@ -181,7 +177,6 @@ export const getSupplier = async (token: string, organizationId: string, supplie
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
-        'X-Organization-Id': organizationId
       },
     });
     

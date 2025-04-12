@@ -1,4 +1,3 @@
-
 // Import from configuration instead of hardcoding
 import { API_CONFIG, useMockData } from '../config';
 
@@ -6,7 +5,7 @@ import { Project } from "@/stores/projectStore";
 import { mockProjects, createPaginatedResponse } from '../mock/mockData';
 
 // Get all projects with pagination
-export async function fetchProjects(token: string, organizationId: string, page = 1, pageSize = 20): Promise<{
+export async function fetchProjects(token: string, page = 1, pageSize = 20): Promise<{
   items: Project[],
   total: number,
   page: number,
@@ -25,7 +24,6 @@ export async function fetchProjects(token: string, organizationId: string, page 
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
-      'X-Organization-Id': organizationId
     },
   });
 
@@ -38,7 +36,7 @@ export async function fetchProjects(token: string, organizationId: string, page 
 }
 
 // Get a single project
-export async function fetchProject(token: string, organizationId: string, projectId: string): Promise<Project> {
+export async function fetchProject(token: string, projectId: string): Promise<Project> {
   // Use mock data if mocks are enabled
   if (useMockData()) {
     console.log('Using mock data for fetchProject');
@@ -57,7 +55,6 @@ export async function fetchProject(token: string, organizationId: string, projec
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
-      'X-Organization-Id': organizationId
     },
   });
 
@@ -71,8 +68,7 @@ export async function fetchProject(token: string, organizationId: string, projec
 
 // Create a new project
 export async function createProject(
-  token: string,
-  organizationId: string,
+  token: string, 
   projectData: { name: string; description?: string; status?: "draft" | "open" | "closed" | "archived" }
 ): Promise<Project> {
   // Use mock data if mocks are enabled
@@ -103,7 +99,6 @@ export async function createProject(
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
-      'X-Organization-Id': organizationId
     },
     body: JSON.stringify(projectData),
   });
@@ -118,8 +113,7 @@ export async function createProject(
 
 // Update a project
 export async function updateProject(
-  token: string,
-  organizationId: string,
+  token: string, 
   projectId: string, 
   projectData: Partial<Omit<Project, 'id' | 'createdAt' | 'updatedAt'>>
 ): Promise<Project> {
@@ -150,7 +144,6 @@ export async function updateProject(
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
-      'X-Organization-Id': organizationId
     },
     body: JSON.stringify(projectData),
   });
@@ -165,8 +158,7 @@ export async function updateProject(
 
 // Delete a project
 export async function deleteProject(
-  token: string,
-  organizationId: string,
+  token: string, 
   projectId: string
 ): Promise<boolean> {
   // Use mock data if mocks are enabled
@@ -191,7 +183,6 @@ export async function deleteProject(
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
-      'X-Organization-Id': organizationId
     },
   });
 

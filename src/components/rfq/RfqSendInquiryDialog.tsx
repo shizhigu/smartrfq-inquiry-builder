@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { RfqPart } from "@/stores/rfqStore";
@@ -66,9 +65,7 @@ export function RfqSendInquiryDialog({
           const token = await getToken();
           if (!token) return;
           
-          const orgId = organization?.id || 'default-org';
-          const supplier = await getSupplier(token, orgId, selectedSupplierId);
-          
+          const supplier = await getSupplier(token, selectedSupplierId);
           if (supplier && supplier.email) {
             setSupplierEmail(supplier.email);
           } else {
@@ -87,7 +84,7 @@ export function RfqSendInquiryDialog({
     };
     
     fetchSupplierEmail();
-  }, [selectedSupplierId, getToken, organization]);
+  }, [selectedSupplierId, getToken]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,8 +107,8 @@ export function RfqSendInquiryDialog({
     try {
       setIsLoading(true);
       
+      const orgId = organization?.id || 'org_mock';
       const token = await getToken() || 'mock_token';
-      const orgId = organization?.id || 'default-org';
       
       // Get the email address to send to
       let emailAddress = "";

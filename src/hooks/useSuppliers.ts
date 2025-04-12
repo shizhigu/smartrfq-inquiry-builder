@@ -5,13 +5,10 @@ import { Supplier, useSupplierStore } from '@/stores/supplierStore';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
-import { useAuth, useOrganization } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/clerk-react';
 
 export const useSuppliers = () => {
   const { getToken } = useAuth();
-  const { organization } = useOrganization();
-  const orgId = organization?.id;
-  
   const selectedProjectId = useProjectStore(state => state.selectedProjectId);
   const projects = useProjectStore(state => state.projects);
   const selectedProject = projects.find(p => p.id === selectedProjectId);
@@ -41,10 +38,7 @@ export const useSuppliers = () => {
         throw new Error('Unable to get authentication token');
       }
       
-      // Get organization ID, use a default if not available
-      const currentOrgId = orgId || 'default-org';
-      
-      const response = await getSuppliers(token, currentOrgId, selectedProjectId);
+      const response = await getSuppliers(token, selectedProjectId);
       setSuppliers(selectedProjectId, response);
     } catch (error) {
       console.error('Failed to load suppliers:', error);
@@ -96,10 +90,7 @@ export const useSuppliers = () => {
         throw new Error('Unable to get authentication token');
       }
       
-      // Get organization ID, use a default if not available
-      const currentOrgId = orgId || 'default-org';
-      
-      await addSupplier(token, currentOrgId, supplier);
+      await addSupplier(token, supplier);
       addSupplierToStore(supplier);
       setIsAddingSupplier(false);
       toast.success(`${supplier.name} has been added to your suppliers`);
@@ -119,10 +110,7 @@ export const useSuppliers = () => {
         throw new Error('Unable to get authentication token');
       }
       
-      // Get organization ID, use a default if not available
-      const currentOrgId = orgId || 'default-org';
-      
-      await deleteSupplier(token, currentOrgId, id);
+      await deleteSupplier(token, id);
       deleteSupplierFromStore(id);
       toast.success(`${name} has been removed from your suppliers`);
     } catch (error) {
