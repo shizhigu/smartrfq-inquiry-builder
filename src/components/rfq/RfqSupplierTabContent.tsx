@@ -32,7 +32,9 @@ export function RfqSupplierTabContent({
         <Label htmlFor="supplier">Select Supplier</Label>
         <RfqSupplierSelector
           selectedSupplierId={selectedSupplierId}
-          onSelectSupplier={onSupplierSelect}
+          onSupplierSelect={onSupplierSelect}
+          suppliers={[]}
+          onAddNew={() => {}}
         />
       </div>
       

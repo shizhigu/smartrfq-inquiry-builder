@@ -45,7 +45,6 @@ export function RfqSendInquiryDialog({
   const [selectedSupplierId, setSelectedSupplierId] = useState("");
   const [supplierEmail, setSupplierEmail] = useState<string | null>(null);
   
-  // Reset form when dialog opens
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setEmailToSend("");
@@ -57,7 +56,6 @@ export function RfqSendInquiryDialog({
     onOpenChange(open);
   };
   
-  // Fetch supplier email when a supplier is selected
   useEffect(() => {
     const fetchSupplierEmail = async () => {
       if (selectedSupplierId) {
@@ -70,12 +68,10 @@ export function RfqSendInquiryDialog({
             setSupplierEmail(supplier.email);
           } else {
             console.warn("Supplier found but email is missing:", supplier);
-            // Set a default placeholder email to avoid showing "null"
             setSupplierEmail(`supplier-${selectedSupplierId.substring(0, 6)}@example.com`);
           }
         } catch (error) {
           console.error("Error fetching supplier email:", error);
-          // Set a default placeholder email on error
           setSupplierEmail(`supplier-${selectedSupplierId.substring(0, 6)}@example.com`);
         }
       } else {
@@ -110,7 +106,6 @@ export function RfqSendInquiryDialog({
       const orgId = organization?.id || 'org_mock';
       const token = await getToken() || 'mock_token';
       
-      // Get the email address to send to
       let emailAddress = "";
       
       if (activeTab === "supplier") {
@@ -131,16 +126,13 @@ export function RfqSendInquiryDialog({
         emailAddress = emailToSend;
       }
       
-      // Get the parts IDs
       const partIds = selectedParts.map(part => part.id);
       
-      // Send the inquiry
       await sendRfqInquiry(token, orgId, projectId, partIds, emailAddress);
       
       toast.success(`Inquiry sent to ${emailAddress}`);
       onOpenChange(false);
       
-      // If user is using the supplier tab, offer to navigate to suppliers page
       if (activeTab === "supplier" && !useMockData()) {
         toast("Would you like to view all suppliers?", {
           action: {
