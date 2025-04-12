@@ -42,6 +42,11 @@ export function RfqSupplierSelector({
   // Find the selected supplier - we know the ID is valid here because it comes from our component props
   const selectedSupplier = safeSuppliers.find(s => s.id === selectedSupplierId);
 
+  const handleSupplierSelect = (supplierId: string) => {
+    onSupplierSelect(supplierId);
+    setOpen(false);
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -75,10 +80,7 @@ export function RfqSupplierSelector({
             <SupplierSearchResults
               suppliers={filteredSuppliers}
               selectedSupplierId={selectedSupplierId}
-              onSupplierSelect={(id) => {
-                onSupplierSelect(id);
-                setOpen(false);
-              }}
+              onSupplierSelect={handleSupplierSelect}
               onAddNewClick={() => {
                 setOpen(false);
                 onAddNew();

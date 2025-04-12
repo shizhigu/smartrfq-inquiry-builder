@@ -1,9 +1,8 @@
 
-import { Check } from "lucide-react";
+import { Check, UserPlus } from "lucide-react";
 import { Supplier } from "@/stores/supplierStore";
 import { CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
-import { UserPlus } from "lucide-react";
 
 interface SupplierSearchResultsProps {
   suppliers: Supplier[];
@@ -31,6 +30,7 @@ export function SupplierSearchResults({
               size="sm" 
               className="w-full mt-2"
               onClick={onAddNewClick}
+              type="button"
             >
               <UserPlus className="mr-2 h-4 w-4" />
               Add new supplier
@@ -46,6 +46,7 @@ export function SupplierSearchResults({
               key={supplier.id}
               value={supplier.id}
               onSelect={() => onSupplierSelect(supplier.id)}
+              className="cursor-pointer"
             >
               <div className="flex items-center justify-between w-full">
                 <div className="flex flex-col">
