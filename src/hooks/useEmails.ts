@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '@/stores/projectStore';
 import { useAuth } from '@clerk/clerk-react';
@@ -77,9 +78,7 @@ export const useEmails = (): UseEmailsReturn => {
   
   // Function to extract supplier info from a conversation
   const extractSupplierInfo = (conversation: Conversation): ConversationWithSupplier => {
-    console.log('Extracting supplier info from conversation:', conversation);
-    
-    // First, check for supplier_name and supplier_email in the response
+    // First, use API-provided supplier info if available
     if (conversation.supplier_name || conversation.supplier_email) {
       return {
         ...conversation,
@@ -127,10 +126,20 @@ export const useEmails = (): UseEmailsReturn => {
       console.log(`Fetching conversations for project: ${selectedProjectId}, page: ${page}`);
       const response = await getConversations(token, selectedProjectId, page, state.pageSize);
       
-      // Extract supplier info from conversations
-      const enrichedConversations = response.items.map(conversation => 
-        extractSupplierInfo(conversation)
-      );
+      // Get detailed conversation data with supplier info for each conversation
+      const enrichedConversationsPromises = response.items.map(async (conversation) => {
+        try {
+          // Get the full detailed conversation which should include supplier info
+          const detailedConversation = await getConversation(token, conversation.id);
+          return extractSupplierInfo(detailedConversation);
+        } catch (error) {
+          console.error(`Failed to get detailed info for conversation ${conversation.id}:`, error);
+          // Fall back to the basic info we have
+          return extractSupplierInfo(conversation);
+        }
+      });
+      
+      const enrichedConversations = await Promise.all(enrichedConversationsPromises);
       
       setState(prev => ({
         ...prev,

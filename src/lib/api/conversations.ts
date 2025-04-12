@@ -50,17 +50,17 @@ export async function getConversations(
       conv => conv.projectId === projectId
     );
     
-    // Add supplier information to mock conversations if missing
+    // Add supplier information to mock conversations
     const enhancedConversations = filteredConversations.map(conv => {
-      if (!conv.supplier_name) {
-        // If supplier name is missing, add some sample data
-        return {
-          ...conv,
-          supplier_name: `Sample Supplier ${conv.supplierId.substring(0, 6)}`,
-          supplier_email: `supplier-${conv.supplierId.substring(0, 6)}@example.com`
-        };
-      }
-      return conv;
+      // Add supplier information to the conversation object
+      const supplierName = `Sample Supplier ${conv.supplierId.substring(0, 6)}`;
+      const supplierEmail = `supplier-${conv.supplierId.substring(0, 6)}@example.com`;
+      
+      return {
+        ...conv,
+        supplier_name: supplierName,
+        supplier_email: supplierEmail
+      };
     });
     
     // 创建分页响应
@@ -137,17 +137,15 @@ export async function getConversation(
       throw new Error(`Conversation not found with ID: ${conversationId}`);
     }
     
-    // Ensure supplier information is available
-    if (!conversation.supplier_name || !conversation.supplier_email) {
-      // Add sample supplier data if missing
-      conversation = {
-        ...conversation,
-        supplier_name: `Sample Supplier ${conversation.supplierId.substring(0, 6)}`,
-        supplier_email: `supplier-${conversation.supplierId.substring(0, 6)}@example.com`
-      };
-    }
+    // Make sure supplier information is included
+    const supplierName = `Sample Supplier ${conversation.supplierId.substring(0, 6)}`;
+    const supplierEmail = `supplier-${conversation.supplierId.substring(0, 6)}@example.com`;
     
-    return conversation;
+    return {
+      ...conversation,
+      supplier_name: supplierName,
+      supplier_email: supplierEmail
+    };
   }
   
   // 实际 API 调用
