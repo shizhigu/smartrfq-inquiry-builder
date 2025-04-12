@@ -58,8 +58,8 @@ export default function Reports() {
   const selectedProject = projects.find(p => p.id === selectedProjectId);
 
   useEffect(() => {
-    toast.info("Reports module is under development", {
-      description: "Some features may not be fully functional",
+    toast.info("All data on this page is mock/simulated", {
+      description: "These are example charts and are not real data",
       duration: 5000,
     });
   }, []);
@@ -82,12 +82,10 @@ export default function Reports() {
         </Button>
       </PageHeader>
 
-      <Alert className="mb-6 border-amber-500 bg-amber-50 dark:bg-amber-950/20">
-        <AlertTitle className="text-amber-800 dark:text-amber-400">
-          Under Development
-        </AlertTitle>
-        <AlertDescription className="text-amber-700 dark:text-amber-300">
-          The Reports & Analytics module is currently under development. Some features may not be fully functional.
+      <Alert variant="destructive" className="mb-6">
+        <AlertTitle>Mock Data Warning</AlertTitle>
+        <AlertDescription>
+          All charts, statistics, and data displayed here are simulated examples and do NOT represent actual project data.
         </AlertDescription>
       </Alert>
 
