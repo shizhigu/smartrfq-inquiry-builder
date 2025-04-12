@@ -55,8 +55,9 @@ export function useSyncUser() {
         setLoading(true);
         
         // Get token with organization context
+        // Using organizationId parameter instead of template
         const token = await getToken({ 
-          template: "org_membership"  // This template includes organization membership info
+          organizationId: organization?.id  // Pass the organization ID directly
         });
         
         if (!token) {
@@ -64,7 +65,7 @@ export function useSyncUser() {
           return;
         }
         
-        console.log('Using token with org membership data, current org:', organization?.id);
+        console.log('Using token with organization data, current org:', organization?.id);
         
         // If we already have a user in the store, just fetch their profile
         // Otherwise, sync the Clerk user with the backend
@@ -87,7 +88,7 @@ export function useSyncUser() {
     };
     
     syncUserWithBackend();
-  }, [userId, getToken, isLoaded, isSignedIn, organization?.id]); // Added organization?.id dependency
+  }, [userId, getToken, isLoaded, isSignedIn, organization?.id]); // Organization ID dependency
   
   return { currentUser, organizationId: organization?.id };
 }

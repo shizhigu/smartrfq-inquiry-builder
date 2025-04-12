@@ -24,9 +24,9 @@ export default function Projects() {
       if (!userId) return;
       
       try {
-        // Get token with organization information
+        // Get token with organization information using organizationId instead of template
         const token = await getToken({
-          template: "org_membership"
+          organizationId: organization?.id
         });
         
         if (!token) {
@@ -34,7 +34,7 @@ export default function Projects() {
           return;
         }
         
-        console.log('Syncing user with org membership info in Projects.tsx, org:', organization?.id);
+        console.log('Syncing user with org info in Projects.tsx, org:', organization?.id);
         await syncUser(token);
         console.log('User synced with backend');
       } catch (error) {

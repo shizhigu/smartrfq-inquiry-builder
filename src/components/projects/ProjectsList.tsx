@@ -1,11 +1,10 @@
-
 import { useEffect, useState, useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { useProjectStore } from "@/stores/projectStore";
 import { Project } from "@/stores/projectStore";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useOrganization } from "@clerk/clerk-react";
 import { fetchProjects } from "@/lib/api/projects";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +17,7 @@ interface ProjectsListProps {
 export function ProjectsList({ onCreateProject, searchQuery = "" }: ProjectsListProps) {
   const navigate = useNavigate();
   const { getToken } = useAuth();
+  const { organization } = useOrganization();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   
@@ -34,7 +34,10 @@ export function ProjectsList({ onCreateProject, searchQuery = "" }: ProjectsList
     try {
       setLoading(true);
       
-      const token = await getToken();
+      const token = await getToken({
+        organizationId: organization?.id
+      });
+      
       if (!token) {
         toast.error('Authentication error');
         return;
@@ -55,7 +58,7 @@ export function ProjectsList({ onCreateProject, searchQuery = "" }: ProjectsList
   
   useEffect(() => {
     loadProjects();
-  }, [currentPage]);
+  }, [currentPage, organization?.id]);
   
   const handleSelectProject = (projectId: string) => {
     selectProject(projectId);
@@ -63,7 +66,6 @@ export function ProjectsList({ onCreateProject, searchQuery = "" }: ProjectsList
     navigate('/dashboard/rfq');
   };
   
-  // Filter projects based on search query
   const filteredProjects = useMemo(() => {
     if (!searchQuery.trim()) return projects;
     

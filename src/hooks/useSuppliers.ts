@@ -35,7 +35,7 @@ export const useSuppliers = () => {
     try {
       // Get authentication token with organization context
       const token = await getToken({
-        template: "org_membership"
+        organizationId: organization?.id
       });
       
       if (!token) {
@@ -91,7 +91,7 @@ export const useSuppliers = () => {
     setLoading(true);
     try {
       const token = await getToken({
-        template: "org_membership"
+        organizationId: organization?.id
       });
       
       if (!token) {
@@ -114,7 +114,7 @@ export const useSuppliers = () => {
     setLoading(true);
     try {
       const token = await getToken({
-        template: "org_membership"
+        organizationId: organization?.id
       });
       
       if (!token) {

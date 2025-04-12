@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -15,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createProject } from "@/lib/api/projects";
 import { useProjectStore, Project } from "@/stores/projectStore";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useOrganization } from "@clerk/clerk-react";
 
 interface ProjectCreateDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ interface ProjectCreateDialogProps {
 
 export function ProjectCreateDialog({ open, onOpenChange }: ProjectCreateDialogProps) {
   const { getToken } = useAuth();
+  const { organization } = useOrganization();
   const addProject = useProjectStore(state => state.addProject);
   
   const [newProject, setNewProject] = useState<{ 
@@ -48,7 +50,10 @@ export function ProjectCreateDialog({ open, onOpenChange }: ProjectCreateDialogP
     try {
       setIsSubmitting(true);
       
-      const token = await getToken();
+      const token = await getToken({
+        organizationId: organization?.id
+      });
+      
       if (!token) {
         toast.error('Authentication error');
         return;
