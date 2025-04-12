@@ -1,3 +1,4 @@
+
 // Import from configuration instead of hardcoding
 import { API_CONFIG, useMockData } from '../config';
 import { mockRfqParts, mockRfqFiles } from '../mock/mockData';
@@ -54,6 +55,7 @@ export async function fetchRfqParts(
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
+      'X-Organization-Id': organizationId
     },
   });
 
@@ -83,6 +85,7 @@ export async function fetchRfqFiles(
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
+      'X-Organization-Id': organizationId
     },
   });
 
@@ -128,6 +131,7 @@ export async function addRfqPart(
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
+      'X-Organization-Id': organizationId
     },
     body: JSON.stringify(partData),
   });
@@ -165,6 +169,7 @@ export async function deleteRfqParts(
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
+      'X-Organization-Id': organizationId
     },
     body: JSON.stringify({ item_ids: partIds }),
   });
@@ -196,6 +201,7 @@ export async function sendRfqInquiry(
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
+      'X-Organization-Id': organizationId
     },
     body: JSON.stringify({ item_ids: partIds, supplier_email: supplierEmail }),
   });

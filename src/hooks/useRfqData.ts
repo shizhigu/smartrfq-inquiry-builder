@@ -55,14 +55,14 @@ export function useRfqData() {
     }
     
     try {
-      // For demo purposes, we'll simulate being authenticated
-      // In a real app, we'd redirect to login if no token
-      const simulatedToken = 'simulated-token';
-      const simulatedOrgId = 'simulated-org';
+      // Get authentication token
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Unable to get authentication token');
+      }
       
-      // Get token from Clerk if available
-      const token = await getToken() || simulatedToken;
-      const currentOrgId = orgId || simulatedOrgId;
+      // Get organization ID, use a default if not available
+      const currentOrgId = orgId || 'default-org';
       
       // Only fetch parts if they don't exist for this project and haven't been loaded yet
       if ((!parts[selectedProjectId] || parts[selectedProjectId].length === 0) && 

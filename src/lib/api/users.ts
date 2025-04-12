@@ -1,3 +1,4 @@
+
 // Base URL from new backend
 import { API_CONFIG, useMockData } from '../config';
 import { mockUsers } from '../mock/mockData';
@@ -13,7 +14,7 @@ export interface User {
 }
 
 // Get current user profile
-export async function fetchCurrentUser(token: string): Promise<User> {
+export async function fetchCurrentUser(token: string, organizationId: string): Promise<User> {
   // Use mock data if mocks are enabled
   if (useMockData()) {
     console.log('Using mock data for fetchCurrentUser');
@@ -26,6 +27,7 @@ export async function fetchCurrentUser(token: string): Promise<User> {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
+      'X-Organization-Id': organizationId
     },
   });
 
@@ -38,7 +40,7 @@ export async function fetchCurrentUser(token: string): Promise<User> {
 }
 
 // Sync Clerk user with backend
-export async function syncUser(token: string): Promise<User> {
+export async function syncUser(token: string, organizationId: string): Promise<User> {
   // Use mock data if mocks are enabled
   if (useMockData()) {
     console.log('Using mock data for syncUser');
@@ -52,6 +54,7 @@ export async function syncUser(token: string): Promise<User> {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
+      'X-Organization-Id': organizationId
     },
   });
 
@@ -66,6 +69,7 @@ export async function syncUser(token: string): Promise<User> {
 // Update user profile
 export async function updateUserProfile(
   token: string, 
+  organizationId: string,
   userData: { name?: string; avatar_url?: string }
 ): Promise<User> {
   // Use mock data if mocks are enabled
@@ -85,6 +89,7 @@ export async function updateUserProfile(
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
+      'X-Organization-Id': organizationId
     },
     body: JSON.stringify(userData),
   });
