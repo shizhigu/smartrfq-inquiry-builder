@@ -24,15 +24,15 @@ export function RfqSupplierTabContent({
   const { projectSuppliers, isLoading } = useSuppliers();
   const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
   
-  console.log("Current project suppliers:", projectSuppliers);
-  console.log("Selected supplier ID:", selectedSupplierId);
+  // Ensure projectSuppliers is always an array
+  const suppliers = Array.isArray(projectSuppliers) ? projectSuppliers : [];
   
   return (
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="supplier">Supplier</Label>
         <RfqSupplierSelector
-          suppliers={projectSuppliers || []}
+          suppliers={suppliers}
           selectedSupplierId={selectedSupplierId}
           onSupplierSelect={onSupplierSelect}
           onAddNew={() => setIsAddSupplierOpen(true)}
@@ -55,7 +55,6 @@ export function RfqSupplierTabContent({
         open={isAddSupplierOpen} 
         onOpenChange={setIsAddSupplierOpen}
         onSave={(supplierData) => {
-          console.log("New supplier data:", supplierData);
           setIsAddSupplierOpen(false);
         }}
       />

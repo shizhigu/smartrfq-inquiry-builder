@@ -18,23 +18,28 @@ export function SupplierSearchResults({
   onSupplierSelect,
   onAddNewClick
 }: SupplierSearchResultsProps) {
+  const hasSuppliers = Array.isArray(suppliers) && suppliers.length > 0;
+  
   return (
     <>
-      <CommandEmpty className="py-3 px-4 text-center text-sm">
-        <div className="space-y-1 py-2">
-          <p>No suppliers found.</p>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full mt-2"
-            onClick={onAddNewClick}
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add new supplier
-          </Button>
-        </div>
-      </CommandEmpty>
-      {suppliers && suppliers.length > 0 && (
+      {!hasSuppliers && (
+        <CommandEmpty className="py-3 px-4 text-center text-sm">
+          <div className="space-y-1 py-2">
+            <p>No suppliers found.</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full mt-2"
+              onClick={onAddNewClick}
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add new supplier
+            </Button>
+          </div>
+        </CommandEmpty>
+      )}
+      
+      {hasSuppliers && (
         <CommandGroup>
           {suppliers.map((supplier) => (
             <CommandItem

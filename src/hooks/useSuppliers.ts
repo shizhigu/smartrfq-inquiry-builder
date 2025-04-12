@@ -1,3 +1,4 @@
+
 import { addSupplier, deleteSupplier, getSuppliers } from '@/lib/api/suppliers';
 import { useProjectStore } from '@/stores/projectStore';
 import { Supplier, useSupplierStore } from '@/stores/supplierStore';
@@ -31,7 +32,7 @@ export const useSuppliers = () => {
     
     setLoading(true);
     try {
-      // 获取认证令牌
+      // Get authentication token
       const token = await getToken();
       if (!token) {
         throw new Error('Unable to get authentication token');
@@ -42,12 +43,20 @@ export const useSuppliers = () => {
     } catch (error) {
       console.error('Failed to load suppliers:', error);
       toast.error('Failed to load suppliers');
+      
+      // Initialize with empty array if there's an error
+      if (selectedProjectId && !suppliers[selectedProjectId]) {
+        setSuppliers(selectedProjectId, []);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const projectSuppliers = selectedProjectId ? suppliers[selectedProjectId] || [] : [];
+  // Ensure projectSuppliers is always an array, even if undefined
+  const projectSuppliers = selectedProjectId && suppliers[selectedProjectId] 
+    ? suppliers[selectedProjectId] 
+    : [];
 
   const handleAddSupplier = async (newSupplierData: {
     name: string;
@@ -76,7 +85,6 @@ export const useSuppliers = () => {
 
     setLoading(true);
     try {
-      // 获取认证令牌
       const token = await getToken();
       if (!token) {
         throw new Error('Unable to get authentication token');
@@ -97,7 +105,6 @@ export const useSuppliers = () => {
   const handleDeleteSupplier = async (id: string, name: string) => {
     setLoading(true);
     try {
-      // 获取认证令牌
       const token = await getToken();
       if (!token) {
         throw new Error('Unable to get authentication token');
