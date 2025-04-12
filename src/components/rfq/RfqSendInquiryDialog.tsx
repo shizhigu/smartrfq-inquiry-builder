@@ -1,15 +1,26 @@
 
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { RfqPart } from "@/stores/rfqStore";
-import { Supplier, useSupplierStore } from "@/stores/supplierStore";
-import { useProjectStore } from "@/stores/projectStore";
+import { Check, Loader2, Mail, Send } from "lucide-react";
 import { toast } from "sonner";
-import { Mail } from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter,
+  DialogDescription
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { sendRfqInquiry } from "@/lib/api/rfq";
+import { useAuth, useOrganization } from "@clerk/clerk-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RfqSupplierSelector } from "./RfqSupplierSelector";
+import { ENABLE_MOCKS } from "@/lib/mock/mockData";
 import { useNavigate } from "react-router-dom";
 
 interface RfqSendInquiryDialogProps {
@@ -21,181 +32,181 @@ interface RfqSendInquiryDialogProps {
 
 export function RfqSendInquiryDialog({ 
   open, 
-  onOpenChange, 
+  onOpenChange,
   selectedParts,
-  projectId 
+  projectId
 }: RfqSendInquiryDialogProps) {
-  const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
-  const [emailTemplate, setEmailTemplate] = useState<string>("");
-  const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false);
-  
-  const { suppliers } = useSupplierStore();
+  const { getToken } = useAuth();
+  const { organization } = useOrganization();
   const navigate = useNavigate();
-  const projectName = useProjectStore(state => 
-    state.projects.find(p => p.id === projectId)?.name || "Project"
-  );
   
-  const projectSuppliers = suppliers[projectId] || [];
+  const [activeTab, setActiveTab] = useState("supplier");
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailToSend, setEmailToSend] = useState("");
+  const [message, setMessage] = useState("");
+  const [selectedSupplierId, setSelectedSupplierId] = useState("");
   
-  // Generate email template based on selected parts
-  const generateEmailTemplate = () => {
-    setIsGeneratingTemplate(true);
-    
-    setTimeout(() => {
-      const partsDetails = selectedParts.map(part => 
-        `- ${part.partNumber}: ${part.name} (Qty: ${part.quantity} ${part.unit})${part.material ? `, Material: ${part.material}` : ''}`
-      ).join('\n');
-      
-      const template = `Subject: Request for Quotation for ${projectName} - ${selectedParts.length} part(s)
-
-Dear Supplier,
-
-We are requesting a quotation for the following parts for our ${projectName} project:
-
-${partsDetails}
-
-Please provide your best price and lead time for each item.
-
-Additional details:
-- Delivery terms: [SPECIFY]
-- Payment terms: [SPECIFY]
-- Required by date: [SPECIFY]
-
-Please review the attached drawings and specifications for more details. 
-We look forward to your prompt response.
-
-Best regards,
-[YOUR NAME]
-[YOUR COMPANY]
-[CONTACT INFORMATION]`;
-      
-      setEmailTemplate(template);
-      setIsGeneratingTemplate(false);
-    }, 800); // Simulating template generation delay
-  };
-  
-  // Generate template when parts or supplier changes
-  useEffect(() => {
-    if (selectedParts.length > 0 && selectedSupplierId) {
-      generateEmailTemplate();
+  // Reset form when dialog opens
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setEmailToSend("");
+      setMessage("");
+      setSelectedSupplierId("");
+      setActiveTab("supplier");
     }
-  }, [selectedParts, selectedSupplierId]);
-  
-  const handleSupplierChange = (value: string) => {
-    setSelectedSupplierId(value);
+    onOpenChange(open);
   };
   
-  const handleSendEmail = () => {
-    if (!selectedSupplierId) {
-      toast.error("Please select a supplier");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (activeTab === "supplier" && !selectedSupplierId) {
+      toast.error('Please select a supplier');
       return;
     }
     
-    const selectedSupplier = projectSuppliers.find(s => s.id === selectedSupplierId);
-    
-    if (!selectedSupplier) {
-      toast.error("Invalid supplier selected");
+    if (activeTab === "email" && !emailToSend) {
+      toast.error('Please enter an email address');
       return;
     }
     
-    // In a real app, we would send this via an API
-    // For now, we'll open the default mail client
-    const subject = encodeURIComponent(`Request for Quotation for ${projectName} - ${selectedParts.length} part(s)`);
-    const body = encodeURIComponent(emailTemplate);
-    const mailtoLink = `mailto:${selectedSupplier.email}?subject=${subject}&body=${body}`;
+    if (selectedParts.length === 0) {
+      toast.error('No parts selected');
+      return;
+    }
     
-    window.open(mailtoLink, '_blank');
-    
-    toast.success(`Email prepared to ${selectedSupplier.name}`);
-    onOpenChange(false);
+    try {
+      setIsLoading(true);
+      
+      const orgId = organization?.id || 'org_mock';
+      const token = await getToken() || 'mock_token';
+      
+      // Get the email address to send to
+      const emailAddress = activeTab === "supplier" 
+        ? "selected-supplier@example.com" // In a real app, get this from supplier data 
+        : emailToSend;
+      
+      // Get the parts IDs
+      const partIds = selectedParts.map(part => part.id);
+      
+      // Send the inquiry
+      await sendRfqInquiry(token, orgId, projectId, partIds, emailAddress);
+      
+      toast.success(`Inquiry sent to ${emailAddress}`);
+      onOpenChange(false);
+      
+      // If user is using the supplier tab, offer to navigate to suppliers page
+      if (activeTab === "supplier" && !ENABLE_MOCKS) {
+        toast("Would you like to view all suppliers?", {
+          action: {
+            label: "Go to Suppliers",
+            onClick: () => navigate("/dashboard/suppliers")
+          }
+        });
+      }
+      
+    } catch (error) {
+      console.error('Failed to send inquiry:', error);
+      toast.error('Failed to send inquiry');
+    } finally {
+      setIsLoading(false);
+    }
   };
-  
-  const handleRedirectToSuppliers = () => {
-    onOpenChange(false);
-    navigate("/dashboard/suppliers");
-  };
-  
-  // Handle when there are no suppliers
-  if (open && projectSuppliers.length === 0) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>No Suppliers Available</DialogTitle>
-            <DialogDescription>
-              You need to add suppliers to your project before sending inquiries.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleRedirectToSuppliers}>
-              Add Suppliers
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
   
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Send RFQ Inquiry</DialogTitle>
           <DialogDescription>
-            Select a supplier and review the email template for {selectedParts.length} selected part(s).
+            Send an inquiry to a supplier about the selected parts.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="supplier">Select Supplier</Label>
-            <Select value={selectedSupplierId} onValueChange={handleSupplierChange}>
-              <SelectTrigger id="supplier" className="w-full">
-                <SelectValue placeholder="Select a supplier" />
-              </SelectTrigger>
-              <SelectContent>
-                {projectSuppliers.map((supplier) => (
-                  <SelectItem key={supplier.id} value={supplier.id}>
-                    {supplier.name} ({supplier.email})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <Tabs defaultValue="supplier" className="mt-4" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="supplier">Select Supplier</TabsTrigger>
+            <TabsTrigger value="email">Enter Email</TabsTrigger>
+          </TabsList>
           
-          <div>
-            <Label htmlFor="emailTemplate">Email Template</Label>
-            <div className="mt-1 relative">
-              <Textarea
-                id="emailTemplate"
-                value={emailTemplate}
-                onChange={(e) => setEmailTemplate(e.target.value)}
-                rows={12}
-                className="font-mono text-sm resize-none"
-                placeholder={isGeneratingTemplate ? "Generating template..." : "Select a supplier to generate template"}
+          <TabsContent value="supplier" className="space-y-4 py-4">
+            <div className="space-y-4">
+              <RfqSupplierSelector
+                selectedSupplierId={selectedSupplierId}
+                onSupplierSelect={setSelectedSupplierId}
               />
-              {isGeneratingTemplate && (
-                <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-                  <p>Generating template...</p>
-                </div>
-              )}
+              
+              <div className="space-y-2">
+                <Label htmlFor="message">Message (Optional)</Label>
+                <Textarea 
+                  id="message"
+                  placeholder="Additional notes or requirements..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={4}
+                />
+              </div>
             </div>
+          </TabsContent>
+          
+          <TabsContent value="email" className="space-y-4 py-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="supplier@example.com"
+                  value={emailToSend}
+                  onChange={(e) => setEmailToSend(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="message">Message (Optional)</Label>
+                <Textarea 
+                  id="message"
+                  placeholder="Additional notes or requirements..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={4}
+                />
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+        
+        <div className="border rounded-md p-4 mt-2">
+          <h3 className="font-medium mb-2">Selected Parts ({selectedParts.length})</h3>
+          <div className="max-h-[200px] overflow-y-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left p-2">Part Number</th>
+                  <th className="text-left p-2">Name</th>
+                  <th className="text-right p-2">Quantity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedParts.map((part) => (
+                  <tr key={part.id} className="border-t">
+                    <td className="p-2">{part.partNumber}</td>
+                    <td className="p-2">{part.name}</td>
+                    <td className="p-2 text-right">{part.quantity} {part.unit}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
         
         <DialogFooter className="mt-6">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSendEmail}
-            disabled={!selectedSupplierId || !emailTemplate || isGeneratingTemplate}
-          >
-            <Mail className="h-4 w-4 mr-2" />
-            Prepare Email
+          <Button onClick={handleSubmit} disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading ? 'Sending...' : 'Send Inquiry'}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -112,6 +112,10 @@ export function useRfqData() {
     loadRfqData();
   }, [setCurrentPage, selectedProjectId, setParts, setFiles, setLoading, navigate, getToken, orgId, parts, files, suppliers, setSuppliers]);
 
+  const navigateToSuppliers = () => {
+    navigate('/dashboard/suppliers');
+  };
+
   return {
     project,
     selectedProjectId,
@@ -122,6 +126,7 @@ export function useRfqData() {
     togglePartSelection,
     selectAllParts,
     clearPartSelection,
-    addPart
+    addPart,
+    navigateToSuppliers
   };
 }

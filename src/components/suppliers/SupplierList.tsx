@@ -6,9 +6,15 @@ interface SupplierListProps {
   suppliers: Supplier[];
   searchQuery: string;
   onDeleteSupplier: (id: string, name: string) => void;
+  onEditSupplier?: (supplier: Supplier) => void;
 }
 
-export const SupplierList = ({ suppliers, searchQuery, onDeleteSupplier }: SupplierListProps) => {
+export const SupplierList = ({ 
+  suppliers, 
+  searchQuery, 
+  onDeleteSupplier,
+  onEditSupplier 
+}: SupplierListProps) => {
   const filteredSuppliers = suppliers.filter(supplier => 
     supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     supplier.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -34,7 +40,8 @@ export const SupplierList = ({ suppliers, searchQuery, onDeleteSupplier }: Suppl
         <SupplierCard 
           key={supplier.id} 
           supplier={supplier} 
-          onDelete={onDeleteSupplier} 
+          onDelete={onDeleteSupplier}
+          onEdit={onEditSupplier}
         />
       ))}
     </div>

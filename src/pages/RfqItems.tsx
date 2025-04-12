@@ -10,6 +10,9 @@ import { RfqUploadDialog } from "@/components/rfq/RfqUploadDialog";
 import { RfqAddPartDialog } from "@/components/rfq/RfqAddPartDialog";
 import { RfqSendInquiryDialog } from "@/components/rfq/RfqSendInquiryDialog";
 import { RfqPart } from "@/stores/rfqStore";
+import { PageHeader } from "@/components/ui/page-header";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Users } from "lucide-react";
 
 export default function RfqItems() {
   const [activeTab, setActiveTab] = useState("parts");
@@ -27,7 +30,8 @@ export default function RfqItems() {
     togglePartSelection,
     selectAllParts,
     clearPartSelection,
-    addPart
+    addPart,
+    navigateToSuppliers
   } = useRfqData();
   
   const handleUploadFile = () => {
@@ -88,6 +92,21 @@ export default function RfqItems() {
   // Get selected parts data for the inquiry dialog
   const selectedParts = parts.filter(part => selectedPartIds.includes(part.id));
   
+  if (!project) {
+    return (
+      <div className="page-container">
+        <PageHeader 
+          title="Request For Quote"
+          description="Manage RFQ parts and files"
+        />
+        <div className="text-center p-6 bg-muted/30 rounded-lg mt-6">
+          <h3 className="text-lg font-medium">No Project Selected</h3>
+          <p className="mt-2 text-muted-foreground">Please select a project to manage RFQ items.</p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="page-container">
       <RfqPageHeader 
@@ -98,36 +117,49 @@ export default function RfqItems() {
         onDeleteSelected={handleDeleteSelected}
       />
       
-      <Tabs defaultValue="parts" className="mb-6" onValueChange={setActiveTab} value={activeTab}>
-        <TabsList>
-          <TabsTrigger value="parts">Parts</TabsTrigger>
-          <TabsTrigger value="files">Files</TabsTrigger>
-        </TabsList>
+      <div className="flex justify-between items-center mb-4">
+        <Tabs defaultValue="parts" className="mb-0" onValueChange={setActiveTab} value={activeTab}>
+          <TabsList>
+            <TabsTrigger value="parts">Parts</TabsTrigger>
+            <TabsTrigger value="files">Files</TabsTrigger>
+          </TabsList>
+        </Tabs>
         
-        <TabsContent value="parts" className="mt-4">
-          <RfqPartsList 
-            isLoading={isLoading}
-            parts={parts}
-            selectedPartIds={selectedPartIds}
-            togglePartSelection={togglePartSelection}
-            handleSelectAll={handleSelectAll}
-            handleAddPart={handleAddPart}
-            handleDeleteSelected={handleDeleteSelected}
-            isPartSelected={isPartSelected}
-            isEditMode={isEditMode}
-            setIsEditMode={setIsEditMode}
-            handleSendInquiry={handleSendInquiry}
-          />
-        </TabsContent>
-        
-        <TabsContent value="files" className="mt-4">
-          <RfqFilesList 
-            isLoading={isLoading}
-            files={files}
-            handleUploadFile={handleUploadFile}
-          />
-        </TabsContent>
-      </Tabs>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={navigateToSuppliers}
+          className="text-xs"
+        >
+          <Users className="h-3 w-3 mr-1" />
+          Manage Suppliers
+          <ArrowRight className="h-3 w-3 ml-1" />
+        </Button>
+      </div>
+      
+      <TabsContent value="parts" className="mt-4 p-0 border-none">
+        <RfqPartsList 
+          isLoading={isLoading}
+          parts={parts}
+          selectedPartIds={selectedPartIds}
+          togglePartSelection={togglePartSelection}
+          handleSelectAll={handleSelectAll}
+          handleAddPart={handleAddPart}
+          handleDeleteSelected={handleDeleteSelected}
+          isPartSelected={isPartSelected}
+          isEditMode={isEditMode}
+          setIsEditMode={setIsEditMode}
+          handleSendInquiry={handleSendInquiry}
+        />
+      </TabsContent>
+      
+      <TabsContent value="files" className="mt-4 p-0 border-none">
+        <RfqFilesList 
+          isLoading={isLoading}
+          files={files}
+          handleUploadFile={handleUploadFile}
+        />
+      </TabsContent>
       
       <RfqUploadDialog
         open={isUploadDialogOpen}
