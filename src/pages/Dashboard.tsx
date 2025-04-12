@@ -12,10 +12,9 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@clerk/clerk-react";
 import { toast } from "sonner";
 import { syncUser } from "@/lib/api/users";
-import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
-import { useProjectRfqItems } from "@/hooks/useProjectRfqItems";
-import { useRfqStore } from "@/stores/rfqStore";
 import { useSupplierStore } from "@/stores/supplierStore";
+import { useRfqStore } from "@/stores/rfqStore";
+import { useProjectRfqItems } from "@/hooks/useProjectRfqItems";
 
 interface DashboardSummary {
   activeProjectCount: number;
@@ -37,28 +36,22 @@ export default function Dashboard() {
   const { projects, setProjects, isLoading, setLoading } = useProjectStore();
   const setCurrentPage = useAppStore(state => state.setCurrentPage);
   
-  // Use supplier store directly
+  // Get supplier data directly from the store
   const orgSuppliers = useSupplierStore(state => state.suppliers['global'] || []);
   const suppliersLoading = useSupplierStore(state => state.isLoading);
   
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   
-  // Use the hook to trigger loading but get data directly from store
-  const { loadSuppliers } = useOrganizationSuppliers();
-  const totalSuppliers = orgSuppliers.length;
-  
   const { 
     getTotalItemCount, 
     getItemCountByProject, 
     stats,
-    parts: rfqParts
   } = useRfqStore();
   
   const { 
     loadAllProjectItems, 
     isLoading: isItemsLoading,
-    parts
   } = useProjectRfqItems();
   
   useEffect(() => {
@@ -115,37 +108,25 @@ export default function Dashboard() {
     loadProjects();
   }, [setCurrentPage, setProjects, getToken, setLoading, projects.length]);
   
-  // Load organization suppliers if they don't exist
+  // Load all project RFQ items if needed
   useEffect(() => {
-    if (orgSuppliers.length === 0 && !suppliersLoading) {
-      console.log('Dashboard: Loading organization suppliers because none exist in store');
-      loadSuppliers();
-    } else {
-      console.log('Dashboard: Using organization suppliers from Zustand store, count:', orgSuppliers.length);
-    }
-  }, [orgSuppliers.length, suppliersLoading, loadSuppliers]);
-  
-  useEffect(() => {
-    if (projects.length > 0 && Object.keys(parts || {}).length === 0) {
-      console.log('Dashboard: Loading RFQ items for all projects because parts data is empty');
+    if (projects.length > 0) {
       loadAllProjectItems();
-    } else if (projects.length > 0) {
-      console.log('Dashboard: Projects exist and parts data exists in store, no need to reload');
     }
-  }, [projects, loadAllProjectItems, parts]);
+  }, [projects.length, loadAllProjectItems]);
   
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'open').length;
   const totalParts = getTotalItemCount();
+  const totalSuppliers = orgSuppliers.length;
   
   // Log the state for debugging
   useEffect(() => {
     console.log('Dashboard: Projects count:', projects.length);
     console.log('Dashboard: Total parts count from store:', totalParts);
     console.log('Dashboard: RFQ stats loading:', stats.isLoading);
-    console.log('Dashboard: RFQ parts data available:', Object.keys(rfqParts || {}).length > 0);
     console.log('Dashboard: Organization suppliers count from store:', orgSuppliers.length);
-  }, [totalParts, stats.isLoading, rfqParts, projects.length, orgSuppliers.length]);
+  }, [totalParts, stats.isLoading, projects.length, orgSuppliers.length]);
   
   const recentProjects = [...projects]
     .sort((a, b) => {
@@ -285,4 +266,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
