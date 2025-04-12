@@ -1,3 +1,4 @@
+
 import { API_CONFIG, useMockData } from '../config';
 import { mockConversations } from '../mock/mockData';
 import { v4 as uuidv4 } from 'uuid';
@@ -119,6 +120,15 @@ export async function getConversation(
     
     if (!conversation) {
       throw new Error(`Conversation not found with ID: ${conversationId}`);
+    }
+    
+    // Ensure supplierId is present in the response
+    if (!conversation.supplierId) {
+      console.warn(`Mock conversation ${conversationId} has no supplierId, adding placeholder`);
+      return {
+        ...conversation,
+        supplierId: `supplier_${conversationId.substring(0, 4)}`
+      };
     }
     
     // Return the full conversation details including supplierId

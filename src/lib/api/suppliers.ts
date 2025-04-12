@@ -171,16 +171,37 @@ export const getSupplier = async (token: string, supplierId: string): Promise<Su
   
   // Real API call
   console.log(`Making API call to fetch supplier with ID: ${supplierId}`);
-  const response = await fetch(`${API_CONFIG.BASE_URL}/api/suppliers/${supplierId}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  });
   
-  if (!response.ok) {
-    throw new Error(`Failed to fetch supplier: ${response.statusText}`);
+  try {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/suppliers/${supplierId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      console.error(`Failed to fetch supplier: ${response.statusText}`);
+      // Return a placeholder supplier if the API request fails
+      return {
+        id: supplierId,
+        name: `Unknown Supplier (${supplierId.substring(0, 4)})`,
+        email: "unknown@example.com",
+        phone: "N/A",
+        projectId: "unknown"
+      };
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching supplier:", error);
+    // Return a placeholder supplier if an exception occurs
+    return {
+      id: supplierId,
+      name: `Error Fetching Supplier (${supplierId.substring(0, 4)})`,
+      email: "error@example.com",
+      phone: "N/A",
+      projectId: "unknown"
+    };
   }
-  
-  return await response.json();
 };

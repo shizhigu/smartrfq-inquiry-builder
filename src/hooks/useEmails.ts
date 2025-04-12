@@ -81,32 +81,49 @@ export const useEmails = (): UseEmailsReturn => {
     conversation: Conversation
   ): Promise<ConversationWithSupplier> => {
     try {
+      console.log(`Enriching conversation ${conversation.id} with supplier info`);
+      
       if (!conversation.supplierId) {
         console.warn(`Conversation ${conversation.id} has no supplierId, fetching conversation details`);
         
-        // Get detailed conversation info which should include supplierId
-        const detailedConversation = await getConversation(token, conversation.id);
-        
-        if (detailedConversation.supplierId) {
-          // Now we have the supplierId, get supplier details
-          const supplier = await getSupplier(token, detailedConversation.supplierId);
+        try {
+          // Get detailed conversation info which should include supplierId
+          const detailedConversation = await getConversation(token, conversation.id);
+          console.log(`Got detailed conversation:`, detailedConversation);
+          
+          if (detailedConversation.supplierId) {
+            console.log(`Found supplierId in detailed conversation: ${detailedConversation.supplierId}`);
+            // Now we have the supplierId, get supplier details
+            const supplier = await getSupplier(token, detailedConversation.supplierId);
+            console.log(`Got supplier details:`, supplier);
+            
+            return {
+              ...conversation,
+              supplierId: detailedConversation.supplierId, // Update with the correct supplierId
+              supplierName: supplier.name,
+              supplierEmail: supplier.email
+            };
+          } else {
+            console.warn(`No supplierId found in detailed conversation: ${conversation.id}`);
+          }
+        } catch (detailError) {
+          console.error(`Error fetching conversation details: ${detailError}`);
+        }
+      } else {
+        console.log(`Using existing supplierId: ${conversation.supplierId}`);
+        // If we already have supplierId, use it directly
+        try {
+          const supplier = await getSupplier(token, conversation.supplierId);
+          console.log(`Got supplier details for ${conversation.supplierId}:`, supplier);
           
           return {
             ...conversation,
-            supplierId: detailedConversation.supplierId, // Update with the correct supplierId
             supplierName: supplier.name,
             supplierEmail: supplier.email
           };
+        } catch (supplierError) {
+          console.error(`Error fetching supplier: ${supplierError}`);
         }
-      } else {
-        // If we already have supplierId, use it directly
-        const supplier = await getSupplier(token, conversation.supplierId);
-        
-        return {
-          ...conversation,
-          supplierName: supplier.name,
-          supplierEmail: supplier.email
-        };
       }
       
       // If we couldn't get supplier details, return conversation with placeholder
@@ -131,6 +148,7 @@ export const useEmails = (): UseEmailsReturn => {
     token: string,
     conversations: Conversation[]
   ): Promise<ConversationWithSupplier[]> => {
+    console.log(`Enriching ${conversations.length} conversations with supplier info`);
     const enrichedConversations: ConversationWithSupplier[] = [];
     
     for (const conversation of conversations) {
@@ -138,6 +156,7 @@ export const useEmails = (): UseEmailsReturn => {
       enrichedConversations.push(enrichedConversation);
     }
     
+    console.log(`Finished enriching conversations:`, enrichedConversations);
     return enrichedConversations;
   };
   
@@ -158,6 +177,7 @@ export const useEmails = (): UseEmailsReturn => {
         throw new Error('Unable to get authentication token');
       }
       
+      console.log(`Fetching conversations for project: ${selectedProjectId}, page: ${page}`);
       const response = await getConversations(token, selectedProjectId, page, state.pageSize);
       
       // Enrich conversations with supplier details
