@@ -41,7 +41,7 @@ export default function Dashboard() {
   const suppliersLoading = useSupplierStore(state => state.isLoading);
   
   // Get parts data directly from the RFQ store for better reactivity
-  const { parts, stats } = useRfqStore();
+  const { parts, stats, initialDataLoaded } = useRfqStore();
   const rfqStatsLoading = useRfqStore(state => state.stats.isLoading);
   
   // Load RFQ items to ensure data is available
@@ -103,10 +103,10 @@ export default function Dashboard() {
   
   // Load all project RFQ items if needed
   useEffect(() => {
-    if (projects.length > 0) {
+    if (projects.length > 0 && !initialDataLoaded) {
       loadAllProjectItems();
     }
-  }, [projects.length, loadAllProjectItems]);
+  }, [projects.length, loadAllProjectItems, initialDataLoaded]);
   
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'open').length;

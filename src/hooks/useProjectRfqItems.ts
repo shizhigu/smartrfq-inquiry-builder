@@ -31,7 +31,8 @@ export function useProjectRfqItems() {
     getItemCountByProject,
     getTotalItemCount,
     stats,
-    parts
+    parts,
+    initialDataLoaded
   } = useRfqStore();
 
   const fetchRfqItemsForProject = useCallback(async (projectId: string) => {
@@ -70,7 +71,19 @@ export function useProjectRfqItems() {
   }, [getToken]);
 
   const loadAllProjectItems = useCallback(async () => {
+    // Skip loading if there are no projects
     if (projects.length === 0) return;
+    
+    // Skip loading if we already have data for all projects in the store
+    const allProjectsHaveData = projects.every(project => {
+      return parts[project.id] && parts[project.id].length >= 0;
+    });
+    
+    // If data is already loaded and all projects have entries (even empty arrays), return early
+    if (initialDataLoaded && allProjectsHaveData) {
+      console.log('All project RFQ items already loaded in store, skipping API calls');
+      return;
+    }
     
     setIsLoading(true);
     setStatsLoading(true);
@@ -86,7 +99,7 @@ export function useProjectRfqItems() {
         const results = await Promise.all(
           projects.map(async (project) => {
             // Check if we already have data for this project in the store
-            if (parts[project.id] && parts[project.id].length > 0) {
+            if (parts[project.id] && parts[project.id].length >= 0) {
               console.log(`Using cached data for project ${project.id}`);
               return { projectId: project.id, items: parts[project.id] };
             }
@@ -108,7 +121,7 @@ export function useProjectRfqItems() {
         const results = await Promise.all(
           projects.map(async (project) => {
             // Check if we already have data for this project in the store
-            if (parts[project.id] && parts[project.id].length > 0) {
+            if (parts[project.id] && parts[project.id].length >= 0) {
               console.log(`Using cached data for project ${project.id}`);
               return { projectId: project.id, items: parts[project.id] };
             }
@@ -124,7 +137,7 @@ export function useProjectRfqItems() {
         });
         
         console.log('Loaded RFQ items for all projects:', projectItemsMap);
-        setAllProjectItems(projectItemsMap);
+        setAllProjectItems(projectItemsMap, true); // Pass true to mark data as initially loaded
       }
     } catch (error) {
       console.error('Failed to load project RFQ items:', error);
@@ -135,7 +148,7 @@ export function useProjectRfqItems() {
       setIsLoading(false);
       setStatsLoading(false);
     }
-  }, [projects, getToken, setAllProjectItems, setStatsLoading, setStatsError, parts, fetchRfqItemsForProject]);
+  }, [projects, getToken, setAllProjectItems, setStatsLoading, setStatsError, parts, fetchRfqItemsForProject, initialDataLoaded]);
 
   // Load RFQ items when projects change
   useEffect(() => {

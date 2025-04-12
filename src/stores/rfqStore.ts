@@ -46,6 +46,7 @@ interface RfqState {
   selectedPartIds: string[];
   isLoading: boolean;
   error: string | null;
+  initialDataLoaded: boolean;
   
   stats: RfqStats;
   
@@ -67,7 +68,7 @@ interface RfqState {
   setError: (error: string | null) => void;
   
   setProjectItems: (projectId: string, itemCount: number) => void;
-  setAllProjectItems: (projectItems: Record<string, RfqPart[]>) => void;
+  setAllProjectItems: (projectItems: Record<string, RfqPart[]>, markAsInitiallyLoaded?: boolean) => void;
   setStatsLoading: (isLoading: boolean) => void;
   setStatsError: (error: string | null) => void;
   getItemCountByProject: (projectId: string) => number;
@@ -89,6 +90,7 @@ const initialState = {
   selectedPartIds: [],
   isLoading: false,
   error: null,
+  initialDataLoaded: false,
   stats: initialStats
 };
 
@@ -212,10 +214,11 @@ export const useRfqStore = create<RfqState>()(
         );
       }),
       
-      setAllProjectItems: (projectItems) => set((state) => {
+      setAllProjectItems: (projectItems, markAsInitiallyLoaded = false) => set((state) => {
         const itemsByProject: Record<string, number> = {};
         
         Object.keys(projectItems).forEach(projectId => {
+          state.parts[projectId] = projectItems[projectId];
           itemsByProject[projectId] = projectItems[projectId].length;
         });
         
@@ -226,6 +229,10 @@ export const useRfqStore = create<RfqState>()(
         );
         state.stats.isLoading = false;
         state.stats.error = null;
+        
+        if (markAsInitiallyLoaded) {
+          state.initialDataLoaded = true;
+        }
       }),
       
       setStatsLoading: (isLoading) => set((state) => {
@@ -253,6 +260,7 @@ export const useRfqStore = create<RfqState>()(
         parts: state.parts,
         files: state.files,
         stats: state.stats,
+        initialDataLoaded: state.initialDataLoaded,
       }),
     }
   )
