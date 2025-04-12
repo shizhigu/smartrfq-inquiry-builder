@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useProjectStore } from "@/stores/projectStore";
 import { useState, useEffect } from "react";
@@ -72,7 +73,7 @@ export function Topbar() {
               avatarBox: "h-8 w-8"
             }
           }}
-          signOutCallback={logout}
+          afterSignOutCallback={logout}
         />
       </div>
     </div>
