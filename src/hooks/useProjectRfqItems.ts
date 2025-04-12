@@ -19,6 +19,7 @@ export interface RfqItem extends Omit<RfqPart, 'id' | 'name' | 'partNumber' | 'q
 
 export function useProjectRfqItems() {
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { getToken } = useAuth();
   const { projects } = useProjectStore();
   
@@ -68,6 +69,7 @@ export function useProjectRfqItems() {
   const loadAllProjectItems = useCallback(async () => {
     if (projects.length === 0) return;
     
+    setIsLoading(true);
     setStatsLoading(true);
     setError(null);
     
@@ -90,6 +92,7 @@ export function useProjectRfqItems() {
           projectItemsMap[projectId] = items as RfqPart[];
         });
         
+        console.log('Loaded RFQ items for all projects:', projectItemsMap);
         setAllProjectItems(projectItemsMap);
       } else {
         // Real API call for each project
@@ -105,6 +108,7 @@ export function useProjectRfqItems() {
           projectItemsMap[projectId] = items as RfqPart[];
         });
         
+        console.log('Loaded RFQ items for all projects:', projectItemsMap);
         setAllProjectItems(projectItemsMap);
       }
     } catch (error) {
@@ -113,6 +117,7 @@ export function useProjectRfqItems() {
       setStatsError(error instanceof Error ? error.message : 'Failed to load RFQ items');
       toast.error('Failed to load RFQ items data');
     } finally {
+      setIsLoading(false);
       setStatsLoading(false);
     }
   }, [projects, getToken, setAllProjectItems, setStatsLoading, setStatsError]);
@@ -125,7 +130,7 @@ export function useProjectRfqItems() {
   }, [projects, loadAllProjectItems]);
 
   return {
-    isLoading: stats.isLoading,
+    isLoading,
     error: stats.error || error,
     getProjectItemCount: getItemCountByProject,
     getTotalItemCount,

@@ -1,4 +1,3 @@
-
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -44,10 +43,10 @@ export default function Dashboard() {
   const { totalSuppliers, isLoading: isSuppliersLoading } = useOrganizationSuppliers();
   
   // Use the RFQ store for stats
-  const { getTotalItemCount, getItemCountByProject, stats } = useRfqStore();
+  const { getTotalItemCount, getItemCountByProject, stats, parts } = useRfqStore();
   
   // Use the project RFQ items hook to load the data
-  const { loadAllProjectItems } = useProjectRfqItems();
+  const { loadAllProjectItems, isLoading: isItemsLoading } = useProjectRfqItems();
   
   // Ensure user is synced with the backend when the component mounts
   useEffect(() => {
@@ -99,9 +98,10 @@ export default function Dashboard() {
     loadProjects();
   }, [setCurrentPage, setProjects, getToken, setLoading]);
   
-  // Reload RFQ items when projects change
+  // Reload RFQ items when the component mounts or projects change
   useEffect(() => {
     if (projects.length > 0) {
+      console.log('Dashboard: Loading RFQ items for all projects');
       loadAllProjectItems();
     }
   }, [projects, loadAllProjectItems]);
@@ -110,6 +110,13 @@ export default function Dashboard() {
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'open').length;
   const totalParts = getTotalItemCount();
+  
+  // For debugging
+  useEffect(() => {
+    console.log('Dashboard: Total parts count from store:', totalParts);
+    console.log('Dashboard: RFQ stats loading:', stats.isLoading);
+    console.log('Dashboard: RFQ parts data:', parts);
+  }, [totalParts, stats.isLoading, parts]);
   
   // Recent projects are the 3 most recently updated projects
   const recentProjects = [...projects]
@@ -150,7 +157,7 @@ export default function Dashboard() {
             />
             <StatCard
               title="Total Parts"
-              value={stats.isLoading ? "..." : totalParts}
+              value={isItemsLoading || stats.isLoading ? "..." : totalParts}
               icon={FileText}
               trend={totalParts > 0 ? { value: 8, isPositive: true } : undefined}
             />
@@ -183,7 +190,7 @@ export default function Dashboard() {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center">
                           <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
-                          <span>{stats.isLoading ? "..." : getItemCountByProject(project.id)}</span>
+                          <span>{isItemsLoading || stats.isLoading ? "..." : getItemCountByProject(project.id)}</span>
                         </div>
                         <div className="flex items-center">
                           <Users className="h-4 w-4 mr-1 text-muted-foreground" />
