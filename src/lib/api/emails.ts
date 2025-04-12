@@ -1,3 +1,4 @@
+
 import { API_CONFIG, useMockData } from '../config';
 
 export interface EmailSender {
@@ -40,6 +41,7 @@ const mockEmailsForConversation: Record<string, Email[]> = {
       content: 'Hello, I would like to request a quote for the following items...',
       from: { id: 'user', name: 'Me', email: 'me@company.com' },
       to: { id: '1', name: 'Acme Supplies', email: 'sales@acme.com' },
+      to_email: 'sales@acme.com',
       sent_at: new Date('2025-04-05T14:30:00').toISOString(),
       status: 'sent',
       attachments: [
@@ -67,6 +69,7 @@ const mockEmailsForConversation: Record<string, Email[]> = {
       content: 'Thank you for your inquiry. We can provide the following quotes...',
       from: { id: '1', name: 'Acme Supplies', email: 'sales@acme.com' },
       to: { id: 'user', name: 'Me', email: 'me@company.com' },
+      to_email: 'me@company.com',
       sent_at: new Date('2025-04-06T09:45:00').toISOString(),
       status: 'sent',
       attachments: [
@@ -87,6 +90,7 @@ const mockEmailsForConversation: Record<string, Email[]> = {
       content: 'Thank you for the quote. I have a few questions about the specifications...',
       from: { id: 'user', name: 'Me', email: 'me@company.com' },
       to: { id: '1', name: 'Acme Supplies', email: 'sales@acme.com' },
+      to_email: 'sales@acme.com',
       sent_at: new Date('2025-04-07T11:20:00').toISOString(),
       status: 'sent',
       attachments: []
@@ -99,6 +103,7 @@ const mockEmailsForConversation: Record<string, Email[]> = {
       content: 'Here are the answers to your questions about the specifications. Please let me know if you need any further clarification...',
       from: { id: '1', name: 'Acme Supplies', email: 'sales@acme.com' },
       to: { id: 'user', name: 'Me', email: 'me@company.com' },
+      to_email: 'me@company.com',
       sent_at: new Date('2025-04-09T14:30:00').toISOString(),
       status: 'unread',
       attachments: [
@@ -121,6 +126,7 @@ const mockEmailsForConversation: Record<string, Email[]> = {
       content: 'We are looking for custom parts with the following specifications...',
       from: { id: 'user', name: 'Me', email: 'me@company.com' },
       to: { id: '2', name: 'XYZ Manufacturing', email: 'info@xyzmanufacturing.com' },
+      to_email: 'info@xyzmanufacturing.com',
       sent_at: new Date('2025-04-08T08:15:00').toISOString(),
       status: 'sent',
       attachments: []
@@ -133,6 +139,7 @@ const mockEmailsForConversation: Record<string, Email[]> = {
       content: 'We have reviewed your request and would like to discuss the specifications further...',
       from: { id: '2', name: 'XYZ Manufacturing', email: 'info@xyzmanufacturing.com' },
       to: { id: 'user', name: 'Me', email: 'me@company.com' },
+      to_email: 'me@company.com',
       sent_at: new Date('2025-04-08T09:15:00').toISOString(),
       status: 'sent',
       attachments: []
@@ -228,52 +235,6 @@ export async function getEmail(
 }
 
 /**
- * 将邮件标记为已读
- */
-export async function markEmailAsRead(
-  token: string,
-  emailId: string
-): Promise<void> {
-  // 使用模拟数据（如果启用）
-  if (useMockData()) {
-    console.log('Using mock data for markEmailAsRead');
-    // 模拟 API 延迟
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    // 在所有会话中查找邮件
-    for (const conversationId in mockEmailsForConversation) {
-      const email = mockEmailsForConversation[conversationId].find(
-        email => email.id === emailId
-      );
-      
-      if (email) {
-        email.read = true;
-        return;
-      }
-    }
-    
-    throw new Error('Email not found');
-  }
-  
-  // 实际 API 调用
-  const response = await fetch(
-    `${API_CONFIG.BASE_URL}/emails/${emailId}/read`, 
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      }
-    }
-  );
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error?.message || 'Failed to mark email as read');
-  }
-}
-
-/**
  * 发送新邮件
  */
 export async function sendEmail(
@@ -304,7 +265,7 @@ export async function sendEmail(
     // 创建新邮件
     const newEmail: Email = {
       id: `email_${Date.now()}`,
-      project_id: 'project_1',
+      project_id: lastEmail.project_id,
       conversation_id: conversationId,
       to_email: to.email,
       subject: subject || (lastEmail.subject.startsWith('RE: ') 

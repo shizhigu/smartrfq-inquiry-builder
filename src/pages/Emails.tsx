@@ -9,10 +9,7 @@ import {
   Search, 
   Filter, 
   Calendar,
-  Clock,
   ChevronRight,
-  Building,
-  Tag,
   AlertCircle
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -27,7 +24,6 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { format, isValid, parseISO } from 'date-fns';
 import { EmailConversation } from '@/components/emails/EmailConversation';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -47,14 +43,12 @@ const Emails = () => {
     createNewConversation,
     fetchEmails,
     sendNewEmail,
-    markEmailRead,
     downloadEmailAttachment,
     clearSelectedConversation
   } = useEmails();
 
   const { selectedProjectId, projects } = useProjectStore();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
   
   useEffect(() => {
     console.log("Project ID in Emails page:", selectedProjectId);
@@ -186,7 +180,11 @@ const Emails = () => {
               <span>{selectedConversation?.subject || 'Conversation'}</span>
             </div>
           }
-          description={`Conversation with supplier ${selectedConversation.supplierId}`}
+          description={
+            selectedConversation.supplierName 
+              ? `${selectedConversation.supplierName} (${selectedConversation.supplierEmail || 'No email'})`
+              : `Conversation with supplier ID: ${selectedConversation.supplierId}`
+          }
         >
           <div className="flex items-center gap-2">
             {selectedConversation.status && 
@@ -200,21 +198,6 @@ const Emails = () => {
             </Button>
           </div>
         </PageHeader>
-        
-        <div className="mt-2 flex flex-wrap gap-2 text-sm text-muted-foreground">
-          {selectedConversation.organization_id && (
-            <div className="flex items-center">
-              <Building className="h-3 w-3 mr-1" />
-              <span>Organization: {selectedConversation.organization_id}</span>
-            </div>
-          )}
-          {selectedConversation.created_at && (
-            <div className="flex items-center">
-              <Calendar className="h-3 w-3 mr-1" />
-              <span>Created: {safeFormatDate(selectedConversation.created_at, 'MMM d, yyyy')}</span>
-            </div>
-          )}
-        </div>
         
         <div className="mt-6">
           <EmailConversation emails={emails} onDownloadAttachment={downloadEmailAttachment} />
@@ -272,71 +255,39 @@ const Emails = () => {
                     </div>
                   </div>
                 ) : filteredConversations.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Supplier</TableHead>
-                        <TableHead>Subject</TableHead>
-                        <TableHead>Last Message</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredConversations.map((conversation) => (
-                        <TableRow 
-                          key={conversation.id}
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSelectConversation(conversation.id)}
-                        >
-                          <TableCell className="font-medium">
-                            {conversation.supplierId}
-                            {conversation.organization_id && (
-                              <div className="text-xs text-muted-foreground flex items-center mt-1">
-                                <Building className="h-3 w-3 mr-1" />
-                                {conversation.organization_id}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+                    {filteredConversations.map((conversation) => (
+                      <Card 
+                        key={conversation.id}
+                        className="cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => handleSelectConversation(conversation.id)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex flex-col space-y-2">
+                            <div className="flex justify-between items-start">
+                              <div className="font-medium text-lg truncate">
+                                {conversation.subject}
                               </div>
-                            )}
-                          </TableCell>
-                          <TableCell>{conversation.subject}</TableCell>
-                          <TableCell className="max-w-[300px] truncate">
-                            {conversation.lastMessagePreview}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-1 text-muted-foreground">
-                              <Calendar className="h-3 w-3" />
-                              <span className="text-xs">
-                                {safeFormatDate(conversation.lastMessageDate, 'MMM d, yyyy')}
-                              </span>
+                              {conversation.status && getStatusBadge(conversation.status)}
                             </div>
-                            <div className="flex items-center space-x-1 text-muted-foreground mt-1">
-                              <Clock className="h-3 w-3" />
-                              <span className="text-xs">
-                                {safeFormatDate(conversation.lastMessageDate, 'h:mm a')}
-                              </span>
+                            
+                            <div className="text-sm text-muted-foreground">
+                              {conversation.supplierName 
+                                ? `${conversation.supplierName} (${conversation.supplierEmail || 'No email'})`
+                                : `Supplier ID: ${conversation.supplierId}`}
                             </div>
+                            
                             {conversation.created_at && (
-                              <div className="flex items-center space-x-1 text-muted-foreground mt-1">
-                                <Tag className="h-3 w-3" />
-                                <span className="text-xs">
-                                  Created: {safeFormatDate(conversation.created_at, 'MMM d')}
-                                </span>
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <Calendar className="h-3 w-3 mr-1" />
+                                Created: {safeFormatDate(conversation.created_at, 'MMM d, yyyy')}
                               </div>
                             )}
-                          </TableCell>
-                          <TableCell>
-                            {conversation.status ? (
-                              getStatusBadge(conversation.status)
-                            ) : (
-                              <div className="text-xs text-muted-foreground">
-                                Messages: {conversation.messageCount}
-                              </div>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 ) : (
                   <div className="text-center p-8">
                     <h3 className="text-lg font-medium">No Conversations Found</h3>
@@ -348,18 +299,15 @@ const Emails = () => {
                   </div>
                 )}
               </CardContent>
-              {filteredConversations.length > 10 && (
-                <CardFooter className="flex justify-between items-center p-4">
-                  <div className="text-sm text-muted-foreground">
-                    Showing {filteredConversations.length} conversation{filteredConversations.length !== 1 ? 's' : ''}
-                  </div>
+              {filteredConversations.length > 0 && page < totalPages && (
+                <CardFooter className="flex justify-center items-center p-4">
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={handleLoadMore}
-                    disabled={page >= totalPages}
+                    disabled={page >= totalPages || isLoading}
                   >
-                    View More
+                    {isLoading ? "Loading..." : "Load More"}
                   </Button>
                 </CardFooter>
               )}
