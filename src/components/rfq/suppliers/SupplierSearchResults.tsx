@@ -19,6 +19,11 @@ export function SupplierSearchResults({
 }: SupplierSearchResultsProps) {
   const hasSuppliers = Array.isArray(suppliers) && suppliers.length > 0;
   
+  const handleSupplierClick = (supplierId: string) => {
+    // Explicitly handle click
+    onSupplierSelect(supplierId);
+  };
+  
   return (
     <>
       {!hasSuppliers && (
@@ -45,18 +50,17 @@ export function SupplierSearchResults({
             <CommandItem
               key={supplier.id}
               value={supplier.id}
-              onSelect={() => onSupplierSelect(supplier.id)}
-              className="cursor-pointer"
+              onSelect={() => handleSupplierClick(supplier.id)}
+              onClick={() => handleSupplierClick(supplier.id)}
+              className="cursor-pointer flex items-center justify-between w-full p-2 hover:bg-accent"
             >
-              <div className="flex items-center justify-between w-full">
-                <div className="flex flex-col">
-                  <span>{supplier.name}</span>
-                  <span className="text-xs text-muted-foreground">{supplier.email}</span>
-                </div>
-                {supplier.id === selectedSupplierId && (
-                  <Check className="h-4 w-4" />
-                )}
+              <div className="flex flex-col flex-1">
+                <span className="font-medium">{supplier.name}</span>
+                <span className="text-xs text-muted-foreground">{supplier.email}</span>
               </div>
+              {supplier.id === selectedSupplierId && (
+                <Check className="h-4 w-4 ml-2 flex-shrink-0" />
+              )}
             </CommandItem>
           ))}
         </CommandGroup>

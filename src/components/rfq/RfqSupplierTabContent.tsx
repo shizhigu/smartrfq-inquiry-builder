@@ -31,16 +31,18 @@ export function RfqSupplierTabContent({
     <div className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="supplier">Supplier</Label>
-        <RfqSupplierSelector
-          suppliers={suppliers}
-          selectedSupplierId={selectedSupplierId}
-          onSupplierSelect={onSupplierSelect}
-          onAddNew={() => setIsAddSupplierOpen(true)}
-          isLoading={isLoading}
-        />
+        <div className="relative z-10">
+          <RfqSupplierSelector
+            suppliers={suppliers}
+            selectedSupplierId={selectedSupplierId}
+            onSupplierSelect={onSupplierSelect}
+            onAddNew={() => setIsAddSupplierOpen(true)}
+            isLoading={isLoading}
+          />
+        </div>
       </div>
       
-      <div className="space-y-2 pt-4">
+      <div className="space-y-2 pt-6 relative z-0">
         <Label htmlFor="message-supplier">Message (Optional)</Label>
         <Textarea 
           id="message-supplier" 

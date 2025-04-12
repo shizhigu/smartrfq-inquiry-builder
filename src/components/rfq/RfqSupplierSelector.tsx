@@ -70,12 +70,22 @@ export function RfqSupplierSelector({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-full" align="start" sideOffset={5} style={{ zIndex: 50 }}>
-        <Command>
+      <PopoverContent 
+        className="p-0 w-full" 
+        align="start" 
+        sideOffset={5} 
+        style={{ 
+          zIndex: 50,
+          position: 'relative',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+        }}
+      >
+        <Command className="rounded-md border">
           <CommandInput
             placeholder="Search suppliers..."
             value={searchValue}
             onValueChange={setSearchValue}
+            className="border-none focus:ring-0"
           />
           <CommandList className="max-h-[200px] overflow-y-auto">
             <SupplierSearchResults
