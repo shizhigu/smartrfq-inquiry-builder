@@ -8,12 +8,14 @@ import { RfqFilesList } from "@/components/rfq/RfqFilesList";
 import { useRfqData } from "@/hooks/useRfqData";
 import { RfqUploadDialog } from "@/components/rfq/RfqUploadDialog";
 import { RfqAddPartDialog } from "@/components/rfq/RfqAddPartDialog";
+import { RfqSendInquiryDialog } from "@/components/rfq/RfqSendInquiryDialog";
 import { RfqPart } from "@/stores/rfqStore";
 
 export default function RfqItems() {
   const [activeTab, setActiveTab] = useState("parts");
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isAddPartDialogOpen, setIsAddPartDialogOpen] = useState(false);
+  const [isSendInquiryDialogOpen, setIsSendInquiryDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   
   const { 
@@ -69,11 +71,8 @@ export default function RfqItems() {
       toast.error('No parts selected for inquiry');
       return;
     }
-    
-    // In a real app, this would call an API to send an inquiry to a supplier
-    toast.success(`Inquiry sent for ${selectedPartIds.length} parts`);
-    clearPartSelection();
-    setIsEditMode(false);
+
+    setIsSendInquiryDialogOpen(true);
   };
   
   const handleSelectAll = () => {
@@ -85,6 +84,9 @@ export default function RfqItems() {
   };
   
   const isPartSelected = (partId: string) => selectedPartIds.includes(partId);
+
+  // Get selected parts data for the inquiry dialog
+  const selectedParts = parts.filter(part => selectedPartIds.includes(part.id));
   
   return (
     <div className="page-container">
@@ -137,6 +139,13 @@ export default function RfqItems() {
         onOpenChange={setIsAddPartDialogOpen}
         projectId={project?.id || ''}
         onAddPart={handleSubmitNewPart}
+      />
+
+      <RfqSendInquiryDialog
+        open={isSendInquiryDialogOpen}
+        onOpenChange={setIsSendInquiryDialogOpen}
+        selectedParts={selectedParts}
+        projectId={project?.id || ''}
       />
     </div>
   );

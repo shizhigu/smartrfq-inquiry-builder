@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import { useAuth, useOrganization } from "@clerk/clerk-react";
+import { useSupplierStore } from "@/stores/supplierStore";
+import { mockSuppliers } from "@/lib/mock/mockData";
 
 export function useRfqData() {
   const navigate = useNavigate();
@@ -31,6 +33,8 @@ export function useRfqData() {
     clearPartSelection,
     addPart
   } = useRfqStore();
+  
+  const { suppliers, setSuppliers } = useSupplierStore();
   
   const setCurrentPage = useAppStore(state => state.setCurrentPage);
   
@@ -86,6 +90,17 @@ export function useRfqData() {
           console.log('Using files from Zustand store');
         }
         
+        // Load suppliers if they don't exist for this project
+        if (!suppliers[selectedProjectId] || suppliers[selectedProjectId].length === 0) {
+          console.log('Loading mock suppliers as they are not in store');
+          
+          // For demo purposes, we'll use mock suppliers
+          // In a real app, we'd fetch these from an API
+          if (mockSuppliers[selectedProjectId]) {
+            setSuppliers(selectedProjectId, mockSuppliers[selectedProjectId]);
+          }
+        }
+        
       } catch (error) {
         console.error('Failed to load RFQ data', error);
         toast.error('Failed to load RFQ data');
@@ -95,7 +110,7 @@ export function useRfqData() {
     };
     
     loadRfqData();
-  }, [setCurrentPage, selectedProjectId, setParts, setFiles, setLoading, navigate, getToken, orgId, parts, files]);
+  }, [setCurrentPage, selectedProjectId, setParts, setFiles, setLoading, navigate, getToken, orgId, parts, files, suppliers, setSuppliers]);
 
   return {
     project,
