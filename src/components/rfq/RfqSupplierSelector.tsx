@@ -1,16 +1,15 @@
 
 import { useState } from "react";
-import { Check, ChevronDown, UserPlus } from "lucide-react";
+import { ChevronDown, UserPlus } from "lucide-react";
 import { Supplier } from "@/stores/supplierStore";
 import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Command, CommandInput } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import { useSupplierStore } from "@/stores/supplierStore";
 import { useProjectStore } from "@/stores/projectStore";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { SupplierForm } from "@/components/suppliers/SupplierForm";
 import { toast } from "sonner";
+import { SupplierSearchResults } from "./suppliers/SupplierSearchResults";
+import { SupplierAddSheet } from "./suppliers/SupplierAddSheet";
 
 interface RfqSupplierSelectorProps {
   selectedSupplierId: string;
@@ -65,6 +64,11 @@ export function RfqSupplierSelector({
     }
   };
 
+  const handleAddNewClick = () => {
+    setOpen(false);
+    setAddSupplierOpen(true);
+  };
+
   return (
     <div className="flex flex-col space-y-1.5">
       <Popover open={open} onOpenChange={setOpen}>
@@ -84,54 +88,18 @@ export function RfqSupplierSelector({
         <PopoverContent className="p-0 w-[300px]">
           <Command>
             <CommandInput placeholder="Search suppliers..." className="h-9" />
-            <CommandEmpty className="py-3 px-4 text-center text-sm">
-              <div className="space-y-1 py-2">
-                <p>No suppliers found.</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-2"
-                  onClick={() => {
-                    setOpen(false);
-                    setAddSupplierOpen(true);
-                  }}
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Add new supplier
-                </Button>
-              </div>
-            </CommandEmpty>
-            <CommandGroup>
-              {suppliers.map((supplier) => (
-                <CommandItem
-                  key={supplier.id}
-                  value={supplier.id}
-                  onSelect={() => {
-                    onSupplierSelect(supplier.id);
-                    setOpen(false);
-                  }}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex flex-col">
-                      <span>{supplier.name}</span>
-                      <span className="text-xs text-muted-foreground">{supplier.email}</span>
-                    </div>
-                    {supplier.id === selectedSupplierId && (
-                      <Check className="h-4 w-4" />
-                    )}
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            <SupplierSearchResults 
+              suppliers={suppliers}
+              selectedSupplierId={selectedSupplierId}
+              onSupplierSelect={onSupplierSelect}
+              onAddNewClick={handleAddNewClick}
+            />
             <div className="p-2 border-t">
               <Button 
                 variant="outline" 
                 size="sm" 
                 className="w-full"
-                onClick={() => {
-                  setOpen(false);
-                  setAddSupplierOpen(true);
-                }}
+                onClick={handleAddNewClick}
               >
                 <UserPlus className="mr-2 h-4 w-4" />
                 Add new supplier
@@ -141,24 +109,11 @@ export function RfqSupplierSelector({
         </PopoverContent>
       </Popover>
 
-      {/* Add Supplier Sheet */}
-      <Sheet open={addSupplierOpen} onOpenChange={setAddSupplierOpen}>
-        <SheetContent side="right" className="w-[400px] sm:w-[540px]">
-          <SheetHeader>
-            <SheetTitle>Add New Supplier</SheetTitle>
-            <SheetDescription>
-              Add a new supplier to the current project.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="py-4">
-            <SupplierForm 
-              onCancel={() => setAddSupplierOpen(false)}
-              onSave={handleAddSupplier}
-              isLoading={false}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
+      <SupplierAddSheet
+        open={addSupplierOpen}
+        onOpenChange={setAddSupplierOpen}
+        onSave={handleAddSupplier}
+      />
     </div>
   );
 }
