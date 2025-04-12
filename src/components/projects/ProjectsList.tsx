@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/projects/ProjectCard";
@@ -12,9 +12,10 @@ import { useNavigate } from "react-router-dom";
 
 interface ProjectsListProps {
   onCreateProject: () => void;
+  searchQuery?: string;
 }
 
-export function ProjectsList({ onCreateProject }: ProjectsListProps) {
+export function ProjectsList({ onCreateProject, searchQuery = "" }: ProjectsListProps) {
   const navigate = useNavigate();
   const { getToken } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,6 +63,18 @@ export function ProjectsList({ onCreateProject }: ProjectsListProps) {
     navigate('/dashboard/rfq');
   };
   
+  // Filter projects based on search query
+  const filteredProjects = useMemo(() => {
+    if (!searchQuery.trim()) return projects;
+    
+    const query = searchQuery.toLowerCase().trim();
+    return projects.filter(
+      project => 
+        project.name.toLowerCase().includes(query) || 
+        (project.description?.toLowerCase().includes(query) || false)
+    );
+  }, [projects, searchQuery]);
+  
   if (isLoading) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -86,10 +99,30 @@ export function ProjectsList({ onCreateProject }: ProjectsListProps) {
     );
   }
   
+  if (filteredProjects.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-lg font-medium mb-2">No matching projects found</h3>
+        <p className="text-muted-foreground mb-4">
+          Try a different search term or create a new project.
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Button variant="outline" onClick={() => loadProjects()}>
+            Refresh Projects
+          </Button>
+          <Button onClick={onCreateProject}>
+            <span className="h-4 w-4 mr-2">+</span>
+            Create Project
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {projects.map(project => (
+        {filteredProjects.map(project => (
           <ProjectCard 
             key={project.id} 
             project={project} 
@@ -98,7 +131,7 @@ export function ProjectsList({ onCreateProject }: ProjectsListProps) {
         ))}
       </div>
       
-      {totalPages > 1 && (
+      {!searchQuery && totalPages > 1 && (
         <div className="flex justify-center mt-4">
           <div className="flex gap-2">
             <Button 

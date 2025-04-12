@@ -2,17 +2,19 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useAppStore } from "@/stores/appStore";
 import { useAuth } from "@clerk/clerk-react";
 import { toast } from "sonner";
 import { syncUser } from "@/lib/api/users";
 import { ProjectCreateDialog } from "@/components/projects/ProjectCreateDialog";
 import { ProjectsList } from "@/components/projects/ProjectsList";
+import { Input } from "@/components/ui/input";
 
 export default function Projects() {
   const { userId, getToken } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const appSetCurrentPage = useAppStore(state => state.setCurrentPage);
   
   // Ensure user is synced with the backend when the component mounts
@@ -54,7 +56,22 @@ export default function Projects() {
         </Button>
       </PageHeader>
       
-      <ProjectsList onCreateProject={() => setIsCreating(true)} />
+      <div className="mb-6 relative">
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search projects by name or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 w-full md:max-w-xs"
+          />
+        </div>
+      </div>
+      
+      <ProjectsList 
+        onCreateProject={() => setIsCreating(true)} 
+        searchQuery={searchQuery}
+      />
       
       <ProjectCreateDialog 
         open={isCreating} 
