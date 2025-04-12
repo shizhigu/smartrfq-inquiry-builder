@@ -29,6 +29,8 @@ export interface RfqFile {
   uploaded_at: string;
   ocr_text?: string;
   organization_id?: string;
+  type?: string;
+  uploadedBy?: string;
 }
 
 interface RfqStats {

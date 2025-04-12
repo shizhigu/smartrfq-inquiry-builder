@@ -1,8 +1,7 @@
-
+import { API_CONFIG, useMockData } from '../config';
 import { RfqFile, RfqPart } from '../api/rfq';
 import { Supplier } from '@/stores/supplierStore';
 import { Project } from '@/stores/projectStore';
-import { useMockData } from '../config';
 
 // Enable mocks flag - this should be true by default for development
 export const ENABLE_MOCKS = useMockData();
@@ -234,38 +233,38 @@ export const mockRfqFiles: Record<string, RfqFile[]> = {
   'project_1': [
     {
       id: 'file_1',
-      name: 'Gear Drawing',
+      filename: 'Gear Drawing',
+      file_url: '/files/gear_drawing.pdf',
       size: 256,
+      project_id: 'project_1',
+      status: 'completed',
+      uploaded_at: '2024-01-01T12:00:00.000Z',
       type: 'pdf',
-      uploadedAt: '2024-01-01T12:00:00.000Z',
-      uploadedBy: 'John Doe',
-      projectId: 'project_1',
-      url: '/files/gear_drawing.pdf',
-      status: 'completed'
+      uploadedBy: 'John Doe'
     },
     {
       id: 'file_2',
-      name: 'Shaft Specs',
+      filename: 'Shaft Specs',
+      file_url: '/files/shaft_specs.docx',
       size: 128,
+      project_id: 'project_1',
+      status: 'completed',
+      uploaded_at: '2024-01-05T15:30:00.000Z',
       type: 'docx',
-      uploadedAt: '2024-01-05T15:30:00.000Z',
-      uploadedBy: 'Jane Smith',
-      projectId: 'project_1',
-      url: '/files/shaft_specs.docx',
-      status: 'completed'
+      uploadedBy: 'Jane Smith'
     }
   ],
   'project_2': [
     {
       id: 'file_3',
-      name: 'PCB Layout',
+      filename: 'PCB Layout',
+      file_url: '/files/pcb_layout.svg',
       size: 512,
+      project_id: 'project_2',
+      status: 'completed',
+      uploaded_at: '2024-02-10T09:00:00.000Z',
       type: 'svg',
-      uploadedAt: '2024-02-10T09:00:00.000Z',
-      uploadedBy: 'Alice Johnson',
-      projectId: 'project_2',
-      url: '/files/pcb_layout.svg',
-      status: 'completed'
+      uploadedBy: 'Alice Johnson'
     }
   ]
 };
