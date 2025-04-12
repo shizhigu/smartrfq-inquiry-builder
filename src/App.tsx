@@ -19,6 +19,7 @@ import ManageSubscription from "./pages/ManageSubscription";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
 import { useSyncUser } from "./hooks/useSyncUser";
+import { useAuthManager } from "./hooks/useAuthManager";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient({
@@ -33,6 +34,7 @@ const queryClient = new QueryClient({
 function UserSync({ children }: { children: React.ReactNode }) {
   const { organization } = useOrganization();
   const { currentUser, organizationId } = useSyncUser();
+  const { IdleDialog } = useAuthManager();
   
   // Reset and refetch queries when organization changes
   useEffect(() => {
@@ -43,7 +45,12 @@ function UserSync({ children }: { children: React.ReactNode }) {
     }
   }, [organizationId]);
   
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {IdleDialog}
+    </>
+  );
 }
 
 const App = () => (
@@ -90,3 +97,4 @@ const App = () => (
 );
 
 export default App;
+

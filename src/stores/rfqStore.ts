@@ -72,24 +72,33 @@ interface RfqState {
   setStatsError: (error: string | null) => void;
   getItemCountByProject: (projectId: string) => number;
   getTotalItemCount: () => number;
+  
+  resetState: () => void;
 }
+
+const initialStats = {
+  totalItems: 0,
+  itemsByProject: {},
+  isLoading: false,
+  error: null
+};
+
+const initialState = {
+  parts: {},
+  files: {},
+  selectedPartIds: [],
+  isLoading: false,
+  error: null,
+  stats: initialStats
+};
 
 export const useRfqStore = create<RfqState>()(
   persist(
     immer((set, get) => ({
-      parts: {},
-      files: {},
-      selectedPartIds: [],
-      isLoading: false,
-      error: null,
+      // Initial state
+      ...initialState,
       
-      stats: {
-        totalItems: 0,
-        itemsByProject: {},
-        isLoading: false,
-        error: null
-      },
-      
+      // Data methods
       setParts: (projectId, parts) => set((state) => {
         state.parts[projectId] = parts;
         state.isLoading = false;
@@ -234,7 +243,9 @@ export const useRfqStore = create<RfqState>()(
       
       getTotalItemCount: () => {
         return get().stats.totalItems;
-      }
+      },
+      
+      resetState: () => set(initialState),
     })),
     {
       name: 'smartrfq-rfq-state',

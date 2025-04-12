@@ -13,7 +13,14 @@ import { useMockData } from '@/lib/config';
 export function useSyncUser() {
   const { userId, getToken, isLoaded, isSignedIn } = useAuth();
   const { organization } = useOrganization();
-  const { currentUser, setCurrentUser, setLoading, setError } = useUserStore();
+  const { 
+    currentUser, 
+    setCurrentUser, 
+    setLoading, 
+    setError,
+    token,
+    setToken
+  } = useUserStore();
   
   useEffect(() => {
     const syncUserWithBackend = async () => {
@@ -24,16 +31,18 @@ export function useSyncUser() {
           
           // For mock mode, we'll just fetch the current user
           // In a real app, we'd use the token from Clerk
-          const token = "mock-token";
-          const mockOrgId = "mock-org-id";
+          const mockToken = "mock-token";
+          
+          // Store the token in Zustand
+          setToken(mockToken);
           
           // If we already have a user in the store, just fetch their profile
           // Otherwise, sync the Clerk user with the backend
           let user;
           if (currentUser) {
-            user = await fetchCurrentUser(token);
+            user = await fetchCurrentUser(mockToken);
           } else {
-            user = await syncUser(token);
+            user = await syncUser(mockToken);
           }
           
           setCurrentUser(user);
@@ -56,14 +65,17 @@ export function useSyncUser() {
         
         // Get token with organization context
         // Using organizationId parameter instead of template
-        const token = await getToken({ 
+        const clerkToken = await getToken({ 
           organizationId: organization?.id  // Pass the organization ID directly
         });
         
-        if (!token) {
+        if (!clerkToken) {
           toast.error('Authentication error');
           return;
         }
+        
+        // Store the token in Zustand
+        setToken(clerkToken);
         
         console.log('Using token with organization data, current org:', organization?.id);
         
@@ -71,9 +83,9 @@ export function useSyncUser() {
         // Otherwise, sync the Clerk user with the backend
         let user;
         if (currentUser) {
-          user = await fetchCurrentUser(token);
+          user = await fetchCurrentUser(clerkToken);
         } else {
-          user = await syncUser(token);
+          user = await syncUser(clerkToken);
         }
         
         setCurrentUser(user);
@@ -90,5 +102,6 @@ export function useSyncUser() {
     syncUserWithBackend();
   }, [userId, getToken, isLoaded, isSignedIn, organization?.id]); // Organization ID dependency
   
-  return { currentUser, organizationId: organization?.id };
+  return { currentUser, organizationId: organization?.id, token };
 }
+

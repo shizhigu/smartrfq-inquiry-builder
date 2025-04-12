@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSyncUser } from "@/hooks/useSyncUser";
+import { useAuthManager } from "@/hooks/useAuthManager";
 
 export function Topbar() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,6 +21,7 @@ export function Topbar() {
   const projects = useProjectStore(state => state.projects);
   const selectedProject = projects.find(p => p.id === selectedProjectId);
   const { organization } = useOrganization();
+  const { logout } = useAuthManager();
   
   // Re-sync user when organization changes
   const { currentUser, organizationId } = useSyncUser();
@@ -71,8 +73,10 @@ export function Topbar() {
               avatarBox: "h-8 w-8"
             }
           }}
+          signOutCallback={logout}
         />
       </div>
     </div>
   );
 }
+

@@ -28,15 +28,20 @@ interface SupplierState {
   // Status methods
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
+  resetState: () => void;
 }
+
+const initialState = {
+  suppliers: {},
+  isLoading: false,
+  error: null,
+};
 
 export const useSupplierStore = create<SupplierState>()(
   persist(
     immer((set) => ({
       // Initial state
-      suppliers: {},
-      isLoading: false,
-      error: null,
+      ...initialState,
       
       // Data methods
       setSuppliers: (projectId, suppliers) => set((state) => {
@@ -80,6 +85,8 @@ export const useSupplierStore = create<SupplierState>()(
         state.error = error;
         state.isLoading = false;
       }),
+      
+      resetState: () => set(initialState),
     })),
     {
       name: 'smartrfq-supplier-state',
@@ -89,3 +96,4 @@ export const useSupplierStore = create<SupplierState>()(
     }
   )
 );
+

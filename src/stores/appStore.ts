@@ -15,14 +15,21 @@ interface AppState {
   // Theme methods
   toggleDarkMode: () => void;
   setDarkMode: (isDark: boolean) => void;
+  
+  // Reset method
+  resetState: () => void;
 }
+
+const initialState = {
+  currentPage: 'dashboard',
+  isDarkMode: false,
+};
 
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       // Initial state
-      currentPage: 'dashboard',
-      isDarkMode: false,
+      ...initialState,
       
       // Navigation methods
       setCurrentPage: (page) => 
@@ -34,6 +41,9 @@ export const useAppStore = create<AppState>()(
       
       setDarkMode: (isDark) => 
         set({ isDarkMode: isDark }),
+        
+      // Reset method
+      resetState: () => set(initialState),
     }),
     {
       name: 'smartrfq-app-state',
@@ -43,3 +53,4 @@ export const useAppStore = create<AppState>()(
     }
   )
 );
+

@@ -6,12 +6,14 @@ import { User } from '@/lib/api/users';
 
 interface UserState {
   currentUser: User | null;
+  token: string | null;
   isLoading: boolean;
   error: string | null;
   
   // Data methods
   setCurrentUser: (user: User) => void;
   updateUser: (data: Partial<User>) => void;
+  setToken: (token: string | null) => void;
   
   // Status methods
   setLoading: (isLoading: boolean) => void;
@@ -21,6 +23,7 @@ interface UserState {
 
 const initialState = {
   currentUser: null,
+  token: null,
   isLoading: false,
   error: null,
 };
@@ -44,6 +47,10 @@ export const useUserStore = create<UserState>()(
         }
       }),
       
+      setToken: (token) => set((state) => {
+        state.token = token;
+      }),
+      
       // Status methods
       setLoading: (isLoading) => set((state) => {
         state.isLoading = isLoading;
@@ -60,7 +67,9 @@ export const useUserStore = create<UserState>()(
       name: 'smartrfq-user-state',
       partialize: (state) => ({
         currentUser: state.currentUser,
+        token: state.token,
       }),
     }
   )
 );
+
