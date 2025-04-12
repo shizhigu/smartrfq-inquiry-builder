@@ -1,3 +1,4 @@
+
 import { RfqFile, RfqPart } from '../api/rfq';
 import { Supplier } from '@/stores/supplierStore';
 import { Project } from '@/stores/projectStore';
@@ -13,9 +14,13 @@ export interface MockConversation {
   supplierId: string;
   subject: string;
   lastMessagePreview: string;
-  lastMessageDate: string; // Changed from Date to string for consistency
+  lastMessageDate: string;
   unreadCount: number;
   messageCount: number;
+  organization_id?: string;
+  status?: string;
+  last_activity?: string;
+  created_at?: string;
 }
 
 // Mock conversations data
@@ -26,9 +31,13 @@ export const mockConversations: MockConversation[] = [
     supplierId: 'supplier_1',
     subject: 'RFQ for Project Components',
     lastMessagePreview: 'Thank you for your inquiry. We can provide the following quotes...',
-    lastMessageDate: new Date('2025-04-09T14:30:00').toISOString(), // Convert to ISO string
+    lastMessageDate: new Date('2025-04-09T14:30:00').toISOString(),
     unreadCount: 2,
-    messageCount: 4
+    messageCount: 4,
+    organization_id: 'org_1',
+    status: 'open',
+    last_activity: new Date('2025-04-09T14:30:00').toISOString(),
+    created_at: new Date('2025-04-07T10:15:00').toISOString()
   },
   {
     id: 'conv2',
@@ -36,9 +45,13 @@ export const mockConversations: MockConversation[] = [
     supplierId: 'supplier_2',
     subject: 'Quote Request for Custom Parts',
     lastMessagePreview: 'We have reviewed your request and would like to discuss the specifications further...',
-    lastMessageDate: new Date('2025-04-08T09:15:00').toISOString(), // Convert to ISO string
+    lastMessageDate: new Date('2025-04-08T09:15:00').toISOString(),
     unreadCount: 0,
-    messageCount: 3
+    messageCount: 3,
+    organization_id: 'org_1',
+    status: 'open',
+    last_activity: new Date('2025-04-08T09:15:00').toISOString(),
+    created_at: new Date('2025-04-05T16:20:00').toISOString()
   },
   {
     id: 'conv3',
@@ -46,9 +59,13 @@ export const mockConversations: MockConversation[] = [
     supplierId: 'supplier_4',
     subject: 'Follow-up on Manufacturing Timeline',
     lastMessagePreview: 'Based on your requirements, we can deliver the components by the end of next month...',
-    lastMessageDate: new Date('2025-04-07T17:22:00').toISOString(), // Convert to ISO string
+    lastMessageDate: new Date('2025-04-07T17:22:00').toISOString(),
     unreadCount: 1,
-    messageCount: 5
+    messageCount: 5,
+    organization_id: 'org_1',
+    status: 'pending',
+    last_activity: new Date('2025-04-07T17:22:00').toISOString(),
+    created_at: new Date('2025-04-04T11:30:00').toISOString()
   },
 ];
 

@@ -12,6 +12,9 @@ export interface Conversation {
   messageCount: number;
   created_at?: string;
   updated_at?: string;
+  organization_id?: string;
+  status?: string;
+  last_activity?: string;
 }
 
 export interface ConversationResponse {
@@ -103,7 +106,7 @@ export async function getConversation(
     
     return {
       ...conversation,
-      lastMessageDate: conversation.lastMessageDate.toISOString()
+      // lastMessageDate is already a string, no need to convert
     };
   }
   

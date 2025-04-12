@@ -10,7 +10,9 @@ import {
   MessageCircle, 
   Calendar,
   Clock,
-  ChevronRight
+  ChevronRight,
+  Building,
+  Tag
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { 
@@ -26,6 +28,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import { EmailConversation } from '@/components/emails/EmailConversation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useEffect } from 'react';
+import { Badge } from '@/components/ui/badge';
 
 const Emails = () => {
   const {
@@ -98,6 +101,24 @@ const Emails = () => {
     }
   };
 
+  // Get status badge color based on status
+  const getStatusBadge = (status: string | undefined) => {
+    if (!status) return <Badge variant="outline">Unknown</Badge>;
+    
+    switch(status.toLowerCase()) {
+      case 'open':
+        return <Badge variant="default">Open</Badge>;
+      case 'closed':
+        return <Badge variant="secondary">Closed</Badge>;
+      case 'pending':
+        return <Badge variant="warning">Pending</Badge>;
+      case 'archived':
+        return <Badge variant="outline">Archived</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
   // Fetch conversations when the component mounts
   useEffect(() => {
     fetchConversations();
@@ -151,13 +172,35 @@ const Emails = () => {
               <span>{selectedConversation?.subject || 'Conversation'}</span>
             </div>
           }
-          description={`Conversation with supplier`}
+          description={`Conversation with supplier ${selectedConversation.supplierId}`}
         >
-          <Button onClick={handleComposeEmail}>
-            <MailPlus className="mr-2 h-4 w-4" />
-            Reply
-          </Button>
+          <div className="flex items-center gap-2">
+            {selectedConversation.status && 
+              <div className="mr-2">
+                {getStatusBadge(selectedConversation.status)}
+              </div>
+            }
+            <Button onClick={handleComposeEmail}>
+              <MailPlus className="mr-2 h-4 w-4" />
+              Reply
+            </Button>
+          </div>
         </PageHeader>
+        
+        <div className="mt-2 flex flex-wrap gap-2 text-sm text-muted-foreground">
+          {selectedConversation.organization_id && (
+            <div className="flex items-center">
+              <Building className="h-3 w-3 mr-1" />
+              <span>Organization: {selectedConversation.organization_id}</span>
+            </div>
+          )}
+          {selectedConversation.created_at && (
+            <div className="flex items-center">
+              <Calendar className="h-3 w-3 mr-1" />
+              <span>Created: {safeFormatDate(selectedConversation.created_at, 'MMM d, yyyy')}</span>
+            </div>
+          )}
+        </div>
         
         <div className="mt-6">
           <EmailConversation emails={emails} onDownloadAttachment={downloadEmailAttachment} />
@@ -236,7 +279,13 @@ const Emails = () => {
                           onClick={() => handleSelectConversation(conversation.id)}
                         >
                           <TableCell className="font-medium">
-                            Supplier
+                            {conversation.supplierId}
+                            {conversation.organization_id && (
+                              <div className="text-xs text-muted-foreground flex items-center mt-1">
+                                <Building className="h-3 w-3 mr-1" />
+                                {conversation.organization_id}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>{conversation.subject}</TableCell>
                           <TableCell className="max-w-[300px] truncate">
@@ -255,10 +304,20 @@ const Emails = () => {
                                 {safeFormatDate(conversation.lastMessageDate, 'h:mm a')}
                               </span>
                             </div>
+                            {conversation.created_at && (
+                              <div className="flex items-center space-x-1 text-muted-foreground mt-1">
+                                <Tag className="h-3 w-3" />
+                                <span className="text-xs">
+                                  Created: {safeFormatDate(conversation.created_at, 'MMM d')}
+                                </span>
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
-                            {conversation.unreadCount > 0 ? (
-                              <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                            {conversation.status ? (
+                              getStatusBadge(conversation.status)
+                            ) : conversation.unreadCount > 0 ? (
+                              <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                                 {conversation.unreadCount} unread
                               </div>
                             ) : (
@@ -317,7 +376,7 @@ const Emails = () => {
                         <TableHead>Subject</TableHead>
                         <TableHead>Last Message</TableHead>
                         <TableHead>Date</TableHead>
-                        <TableHead>Unread</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -328,7 +387,13 @@ const Emails = () => {
                           onClick={() => handleSelectConversation(conversation.id)}
                         >
                           <TableCell className="font-medium">
-                            Supplier
+                            {conversation.supplierId}
+                            {conversation.organization_id && (
+                              <div className="text-xs text-muted-foreground flex items-center mt-1">
+                                <Building className="h-3 w-3 mr-1" />
+                                {conversation.organization_id}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>{conversation.subject}</TableCell>
                           <TableCell className="max-w-[300px] truncate">
@@ -338,11 +403,20 @@ const Emails = () => {
                             <div className="text-xs text-muted-foreground">
                               {safeFormatDate(conversation.lastMessageDate, 'MMM d, yyyy • h:mm a')}
                             </div>
+                            {conversation.created_at && (
+                              <div className="text-xs text-muted-foreground mt-1">
+                                Created: {safeFormatDate(conversation.created_at, 'MMM d, yyyy')}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
-                            <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                              {conversation.unreadCount} unread
-                            </div>
+                            {conversation.status ? (
+                              getStatusBadge(conversation.status)
+                            ) : (
+                              <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                {conversation.unreadCount} unread
+                              </div>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
