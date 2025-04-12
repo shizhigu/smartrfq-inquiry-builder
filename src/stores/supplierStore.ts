@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
@@ -46,16 +45,34 @@ export const useSupplierStore = create<SupplierState>()(
       // Data methods
       setSuppliers: (projectId, suppliers) => set((state) => {
         state.suppliers[projectId] = suppliers;
+        // Always update global suppliers if this is a new project supplier
+        if (projectId !== 'global') {
+          state.suppliers['global'] = state.suppliers['global'] || [];
+          suppliers.forEach(supplier => {
+            if (!state.suppliers['global'].some(s => s.id === supplier.id)) {
+              state.suppliers['global'].push(supplier);
+            }
+          });
+        }
         state.isLoading = false;
         state.error = null;
       }),
       
       addSupplier: (supplier) => set((state) => {
+        // Add to the specific project
         const projectId = supplier.projectId || 'global';
         if (!state.suppliers[projectId]) {
           state.suppliers[projectId] = [];
         }
         state.suppliers[projectId].push(supplier);
+        
+        // Always update global suppliers
+        if (!state.suppliers['global']) {
+          state.suppliers['global'] = [];
+        }
+        if (!state.suppliers['global'].some(s => s.id === supplier.id)) {
+          state.suppliers['global'].push(supplier);
+        }
       }),
       
       updateSupplier: (id, data) => set((state) => {
@@ -96,4 +113,3 @@ export const useSupplierStore = create<SupplierState>()(
     }
   )
 );
-
