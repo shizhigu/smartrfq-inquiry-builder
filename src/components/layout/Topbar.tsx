@@ -1,9 +1,9 @@
 
 import { Button } from "@/components/ui/button";
 import { useProjectStore } from "@/stores/projectStore";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BellIcon, PlusIcon, SearchIcon } from "lucide-react";
-import { UserButton, OrganizationSwitcher } from "@clerk/clerk-react";
+import { UserButton, OrganizationSwitcher, useAuth } from "@clerk/clerk-react";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -12,12 +12,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSyncUser } from "@/hooks/useSyncUser";
 
 export function Topbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const selectedProjectId = useProjectStore(state => state.selectedProjectId);
   const projects = useProjectStore(state => state.projects);
   const selectedProject = projects.find(p => p.id === selectedProjectId);
+  const { orgId } = useAuth();
+  
+  // Re-sync user when organization changes
+  const { currentUser } = useSyncUser();
+  
+  // Log organization changes
+  useEffect(() => {
+    console.log('Organization changed:', orgId);
+  }, [orgId]);
   
   return (
     <div className="h-16 border-b border-border flex items-center justify-between px-4 bg-background">

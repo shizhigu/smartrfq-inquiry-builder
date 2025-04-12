@@ -12,7 +12,7 @@ import { ProjectsList } from "@/components/projects/ProjectsList";
 import { Input } from "@/components/ui/input";
 
 export default function Projects() {
-  const { userId, getToken } = useAuth();
+  const { userId, getToken, orgId } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const appSetCurrentPage = useAppStore(state => state.setCurrentPage);
@@ -29,7 +29,7 @@ export default function Projects() {
           return;
         }
         
-        await syncUser(token);
+        await syncUser(token, orgId || undefined);
         console.log('User synced with backend');
       } catch (error) {
         console.error('Failed to sync user', error);
@@ -38,7 +38,7 @@ export default function Projects() {
     };
     
     syncUserWithBackend();
-  }, [userId, getToken]);
+  }, [userId, getToken, orgId]); // Added orgId dependency
   
   useEffect(() => {
     appSetCurrentPage('projects');

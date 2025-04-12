@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { SignedIn, SignedOut, SignIn, SignUp } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignIn, SignUp, useAuth } from "@clerk/clerk-react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { AppLayout } from "./components/layout/AppLayout";
@@ -19,6 +19,7 @@ import ManageSubscription from "./pages/ManageSubscription";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
 import { useSyncUser } from "./hooks/useSyncUser";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,7 +31,17 @@ const queryClient = new QueryClient({
 });
 
 function UserSync({ children }: { children: React.ReactNode }) {
-  useSyncUser();
+  const { orgId } = useAuth();
+  const { currentUser } = useSyncUser();
+  
+  // Reset and refetch queries when organization changes
+  useEffect(() => {
+    if (orgId) {
+      console.log('Organization changed in UserSync, refreshing queries');
+      queryClient.invalidateQueries();
+    }
+  }, [orgId]);
+  
   return <>{children}</>;
 }
 

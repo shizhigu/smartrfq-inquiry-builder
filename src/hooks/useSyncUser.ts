@@ -11,7 +11,7 @@ import { useMockData } from '@/lib/config';
  * and store the user data in the userStore
  */
 export function useSyncUser() {
-  const { userId, getToken, isLoaded, isSignedIn } = useAuth();
+  const { userId, getToken, isLoaded, isSignedIn, orgId } = useAuth();
   const { currentUser, setCurrentUser, setLoading, setError } = useUserStore();
   
   useEffect(() => {
@@ -24,14 +24,15 @@ export function useSyncUser() {
           // For mock mode, we'll just fetch the current user
           // In a real app, we'd use the token from Clerk
           const token = "mock-token";
+          const mockOrgId = "mock-org-id";
           
           // If we already have a user in the store, just fetch their profile
           // Otherwise, sync the Clerk user with the backend
           let user;
           if (currentUser) {
-            user = await fetchCurrentUser(token);
+            user = await fetchCurrentUser(token, mockOrgId);
           } else {
-            user = await syncUser(token);
+            user = await syncUser(token, mockOrgId);
           }
           
           setCurrentUser(user);
@@ -62,9 +63,9 @@ export function useSyncUser() {
         // Otherwise, sync the Clerk user with the backend
         let user;
         if (currentUser) {
-          user = await fetchCurrentUser(token);
+          user = await fetchCurrentUser(token, orgId || undefined);
         } else {
-          user = await syncUser(token);
+          user = await syncUser(token, orgId || undefined);
         }
         
         setCurrentUser(user);
@@ -79,7 +80,7 @@ export function useSyncUser() {
     };
     
     syncUserWithBackend();
-  }, [userId, getToken, isLoaded, isSignedIn]);
+  }, [userId, getToken, isLoaded, isSignedIn, orgId]); // Added orgId dependency
   
   return { currentUser };
 }

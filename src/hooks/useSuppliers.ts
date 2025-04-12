@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@clerk/clerk-react';
 
 export const useSuppliers = () => {
-  const { getToken } = useAuth();
+  const { getToken, orgId } = useAuth();
   const selectedProjectId = useProjectStore(state => state.selectedProjectId);
   const projects = useProjectStore(state => state.projects);
   const selectedProject = projects.find(p => p.id === selectedProjectId);
@@ -25,7 +25,7 @@ export const useSuppliers = () => {
     if (selectedProjectId) {
       loadSuppliers();
     }
-  }, [selectedProjectId]);
+  }, [selectedProjectId, orgId]); // Added orgId to dependencies to refresh when organization changes
 
   const loadSuppliers = async () => {
     if (!selectedProjectId) return;
@@ -38,7 +38,7 @@ export const useSuppliers = () => {
         throw new Error('Unable to get authentication token');
       }
       
-      const response = await getSuppliers(token, selectedProjectId);
+      const response = await getSuppliers(token, selectedProjectId, orgId || undefined);
       setSuppliers(selectedProjectId, response);
     } catch (error) {
       console.error('Failed to load suppliers:', error);
@@ -90,7 +90,7 @@ export const useSuppliers = () => {
         throw new Error('Unable to get authentication token');
       }
       
-      await addSupplier(token, supplier);
+      await addSupplier(token, supplier, orgId || undefined);
       addSupplierToStore(supplier);
       setIsAddingSupplier(false);
       toast.success(`${supplier.name} has been added to your suppliers`);
@@ -110,7 +110,7 @@ export const useSuppliers = () => {
         throw new Error('Unable to get authentication token');
       }
       
-      await deleteSupplier(token, id);
+      await deleteSupplier(token, id, orgId || undefined);
       deleteSupplierFromStore(id);
       toast.success(`${name} has been removed from your suppliers`);
     } catch (error) {
@@ -131,6 +131,7 @@ export const useSuppliers = () => {
     handleAddSupplier,
     handleDeleteSupplier,
     selectedProject,
-    selectedProjectId
+    selectedProjectId,
+    currentOrgId: orgId
   };
 };

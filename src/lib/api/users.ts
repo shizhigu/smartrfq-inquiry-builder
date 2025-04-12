@@ -1,3 +1,4 @@
+
 // Base URL from new backend
 import { API_CONFIG, useMockData } from '../config';
 import { mockUsers } from '../mock/mockData';
@@ -13,7 +14,7 @@ export interface User {
 }
 
 // Get current user profile
-export async function fetchCurrentUser(token: string): Promise<User> {
+export async function fetchCurrentUser(token: string, organizationId?: string): Promise<User> {
   // Use mock data if mocks are enabled
   if (useMockData()) {
     console.log('Using mock data for fetchCurrentUser');
@@ -22,11 +23,18 @@ export async function fetchCurrentUser(token: string): Promise<User> {
     return mockUsers[0];
   }
   
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  };
+  
+  // Add organization ID to headers if available
+  if (organizationId) {
+    headers['X-Organization-ID'] = organizationId;
+  }
+  
   const response = await fetch(`${API_CONFIG.BASE_URL}/me`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -38,7 +46,7 @@ export async function fetchCurrentUser(token: string): Promise<User> {
 }
 
 // Sync Clerk user with backend
-export async function syncUser(token: string): Promise<User> {
+export async function syncUser(token: string, organizationId?: string): Promise<User> {
   // Use mock data if mocks are enabled
   if (useMockData()) {
     console.log('Using mock data for syncUser');
@@ -47,12 +55,19 @@ export async function syncUser(token: string): Promise<User> {
     return mockUsers[0];
   }
   
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  };
+  
+  // Add organization ID to headers if available
+  if (organizationId) {
+    headers['X-Organization-ID'] = organizationId;
+  }
+  
   const response = await fetch(`${API_CONFIG.BASE_URL}/sync-user`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -66,7 +81,8 @@ export async function syncUser(token: string): Promise<User> {
 // Update user profile
 export async function updateUserProfile(
   token: string, 
-  userData: { name?: string; avatar_url?: string }
+  userData: { name?: string; avatar_url?: string },
+  organizationId?: string
 ): Promise<User> {
   // Use mock data if mocks are enabled
   if (useMockData()) {
@@ -80,12 +96,19 @@ export async function updateUserProfile(
     return updatedUser;
   }
   
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  };
+  
+  // Add organization ID to headers if available
+  if (organizationId) {
+    headers['X-Organization-ID'] = organizationId;
+  }
+  
   const response = await fetch(`${API_CONFIG.BASE_URL}/me`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
+    headers,
     body: JSON.stringify(userData),
   });
 
