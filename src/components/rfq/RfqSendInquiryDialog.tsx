@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RfqPart } from "@/stores/rfqStore";
-import { Check, Loader2, Mail, Send } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { 
   Dialog, 
@@ -18,10 +18,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { sendRfqInquiry } from "@/lib/api/rfq";
 import { useAuth, useOrganization } from "@clerk/clerk-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RfqSupplierSelector } from "./RfqSupplierSelector";
 import { ENABLE_MOCKS } from "@/lib/mock/mockData";
 import { useNavigate } from "react-router-dom";
+import { RfqSupplierSelector } from "./RfqSupplierSelector";
 
 interface RfqSendInquiryDialogProps {
   open: boolean;
