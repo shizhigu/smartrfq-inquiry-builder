@@ -73,6 +73,8 @@ export function Topbar() {
               avatarBox: "h-8 w-8"
             }
           }}
+          userProfileMode="navigation"
+          userProfileUrl="/dashboard/settings"
           afterSignOutCallback={logout}
         />
       </div>
