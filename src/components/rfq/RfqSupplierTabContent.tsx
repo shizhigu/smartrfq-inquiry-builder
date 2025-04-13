@@ -26,13 +26,23 @@ export function RfqSupplierTabContent({
   subject,
   onSubjectChange
 }: RfqSupplierTabContentProps) {
+  // Handle the special "no-selection" value
+  const handleSupplierSelect = (supplierId: string) => {
+    // If 'no-selection' is selected, pass an empty string or do nothing
+    if (supplierId === 'no-selection') {
+      onSupplierSelect('');
+    } else {
+      onSupplierSelect(supplierId);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="supplier">Select Supplier</Label>
         <RfqSupplierSelector
           selectedSupplierId={selectedSupplierId}
-          onSupplierSelect={onSupplierSelect}
+          onSupplierSelect={handleSupplierSelect}
           suppliers={[]}
           onAddNew={() => {}}
         />

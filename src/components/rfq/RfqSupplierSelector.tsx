@@ -30,8 +30,9 @@ export function RfqSupplierSelector({
   // Ensure suppliers is always an array
   const safeSuppliers = Array.isArray(suppliers) ? suppliers : [];
   
-  // Find the selected supplier
-  const selectedSupplier = safeSuppliers.find(s => s.id === selectedSupplierId);
+  // Make sure we have a valid value for the select
+  // If selectedSupplierId is empty, use a default non-empty value
+  const selectValue = selectedSupplierId || "no-selection";
   
   console.log("Rendering RfqSupplierSelector with", safeSuppliers.length, "suppliers");
 
@@ -44,7 +45,7 @@ export function RfqSupplierSelector({
         </Button>
       ) : (
         <Select
-          value={selectedSupplierId || ""}
+          value={selectValue}
           onValueChange={onSupplierSelect}
         >
           <SelectTrigger className="w-full">
@@ -68,8 +69,15 @@ export function RfqSupplierSelector({
                 </div>
               ) : (
                 <>
+                  {/* Add a placeholder item with a non-empty value that represents "no selection" */}
+                  {!selectedSupplierId && (
+                    <SelectItem value="no-selection" disabled>
+                      Select a supplier
+                    </SelectItem>
+                  )}
+                  
                   {safeSuppliers.map((supplier) => (
-                    <SelectItem key={supplier.id} value={supplier.id}>
+                    <SelectItem key={supplier.id} value={supplier.id || `supplier-${supplier.name}`}>
                       <div className="flex flex-col">
                         <span className="font-medium">{supplier.name}</span>
                         <span className="text-xs text-muted-foreground">{supplier.email}</span>
