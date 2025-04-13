@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 const IDLE_TIMEOUT = 15 * 60 * 1000;
 
 export function useAuthManager() {
-  const { signOut } = useAuth();
+  const { signOut, isSignedIn } = useAuth();
   const navigate = useNavigate();
   const [showIdleDialog, setShowIdleDialog] = useState(false);
   
@@ -41,6 +41,8 @@ export function useAuthManager() {
   
   // Function to reset all store states and clear localStorage
   const resetAllStores = useCallback(() => {
+    console.log('Resetting all stores and clearing localStorage');
+    
     // First reset all stores (this updates the memory state)
     userStore.resetState();
     appStore.resetState();
@@ -60,9 +62,20 @@ export function useAuthManager() {
     console.log('All Zustand stores reset and localStorage cleared');
   }, [userStore, appStore, projectStore, supplierStore, rfqStore, emailStore]);
   
+  // Check auth state changes - handle logout detection
+  useEffect(() => {
+    // This effect will run when isSignedIn changes to false (user logged out)
+    if (isSignedIn === false) {
+      console.log('User logged out detected, resetting all stores');
+      resetAllStores();
+    }
+  }, [isSignedIn, resetAllStores]);
+  
   // Handle logout
   const handleLogout = useCallback(async () => {
     try {
+      console.log('Manual logout initiated, resetting all stores');
+      
       // Reset all stores and clear localStorage first
       resetAllStores();
       
@@ -173,6 +186,7 @@ export function useAuthManager() {
   return {
     logout: handleLogout,
     resetIdleTimer,
-    IdleDialog
+    IdleDialog,
+    resetAllStores // Export this so it can be used elsewhere if needed
   };
 }

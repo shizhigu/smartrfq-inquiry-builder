@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useProjectStore } from "@/stores/projectStore";
 import { useState, useEffect } from "react";
@@ -25,18 +26,11 @@ export function Topbar() {
   const selectedProjectId = useProjectStore(state => state.selectedProjectId);
   const projects = useProjectStore(state => state.projects);
   const selectedProject = projects.find(p => p.id === selectedProjectId);
-  const { organization } = useOrganization();
-  const { logout } = useAuthManager();
+  const { organization, isLoaded: isOrgLoaded } = useOrganization();
+  const { isSignedIn } = useAuth();
+  const { logout, resetAllStores } = useAuthManager();
   
   const { currentUser, organizationId } = useSyncUser();
-  
-  // Get reset methods from all stores
-  const resetAppState = useAppStore((state) => state.resetState);
-  const resetUserState = useUserStore((state) => state.resetState);
-  const resetProjectState = useProjectStore((state) => state.resetState);
-  const resetSupplierState = useSupplierStore((state) => state.resetState);
-  const resetRfqState = useRfqStore((state) => state.resetState);
-  const resetEmailState = useEmailStore((state) => state.resetState);
   
   // Previous organization ID ref
   const [previousOrgId, setPreviousOrgId] = useState<string | undefined>(organizationId);
@@ -45,24 +39,11 @@ export function Topbar() {
     console.log('Organization changed in Topbar:', organization?.id);
     
     // If this is not the initial load and the organization has changed
-    if (previousOrgId && previousOrgId !== organization?.id) {
+    if (isOrgLoaded && previousOrgId && previousOrgId !== organization?.id) {
       console.log('Organization switched, resetting all stores and clearing localStorage');
       
-      // Reset all Zustand stores
-      resetAppState();
-      resetUserState();
-      resetProjectState();
-      resetSupplierState();
-      resetRfqState();
-      resetEmailState();
-      
-      // Clear localStorage for all stores to ensure fresh data is loaded
-      localStorage.removeItem('smartrfq-user-state');
-      localStorage.removeItem('smartrfq-app-state');
-      localStorage.removeItem('smartrfq-project-state');
-      localStorage.removeItem('smartrfq-supplier-state');
-      localStorage.removeItem('smartrfq-rfq-state');
-      // Email store doesn't use persist, so no need to clear it
+      // Reset all stores (this will also clear localStorage)
+      resetAllStores();
       
       // Show notification to user
       toast.info('Switched organization. Data has been reset.');
@@ -73,7 +54,16 @@ export function Topbar() {
     
     // Update previous org ID
     setPreviousOrgId(organization?.id);
-  }, [organization?.id, previousOrgId, resetAppState, resetUserState, resetProjectState, resetSupplierState, resetRfqState, resetEmailState]);
+  }, [organization?.id, previousOrgId, isOrgLoaded, resetAllStores]);
+  
+  // Add a handler for auth state changes
+  useEffect(() => {
+    // If user is no longer signed in, all data should be cleared
+    if (isSignedIn === false) {
+      console.log('User logged out detected in Topbar');
+      resetAllStores();
+    }
+  }, [isSignedIn, resetAllStores]);
   
   return (
     <div className="h-16 border-b border-border flex items-center justify-between px-4 bg-background">

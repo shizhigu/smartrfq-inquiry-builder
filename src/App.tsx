@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -32,15 +33,51 @@ const queryClient = new QueryClient({
 
 function UserSync({ children }: { children: React.ReactNode }) {
   const { organization } = useOrganization();
+  const { isSignedIn } = useAuth();
   const { currentUser, organizationId } = useSyncUser();
-  const { IdleDialog } = useAuthManager();
+  const { IdleDialog, resetAllStores } = useAuthManager();
   
+  // Track auth state changes
+  useEffect(() => {
+    if (isSignedIn === false) {
+      console.log('Auth state change detected in UserSync: User logged out');
+      // Force clear all query cache when user logs out
+      queryClient.clear();
+    }
+  }, [isSignedIn]);
+  
+  // Track organization changes
   useEffect(() => {
     if (organizationId) {
       console.log('Organization changed in UserSync component, refreshing all queries. Current org:', organizationId);
       queryClient.invalidateQueries();
     }
   }, [organizationId]);
+  
+  // When user logs in (currentUser becomes available), force a full refresh
+  // This handles the case of logging in with a different account
+  useEffect(() => {
+    if (currentUser?.id) {
+      console.log('User logged in with ID:', currentUser.id);
+      
+      // Check if there's a previous user ID in localStorage that's different
+      const previousUserId = localStorage.getItem('smartrfq-last-user-id');
+      
+      if (previousUserId && previousUserId !== currentUser.id) {
+        console.log('New user detected, previous user was:', previousUserId);
+        console.log('Clearing all caches and forcing refresh');
+        
+        // Clear all stores
+        resetAllStores();
+        
+        // Force reload the app to ensure clean state
+        window.location.reload();
+      }
+      
+      // Store current user ID for future comparison
+      localStorage.setItem('smartrfq-last-user-id', currentUser.id);
+    }
+  }, [currentUser?.id, resetAllStores]);
   
   return (
     <>
