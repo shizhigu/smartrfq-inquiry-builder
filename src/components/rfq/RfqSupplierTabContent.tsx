@@ -7,6 +7,7 @@ import { RfqSupplierSelector } from "./RfqSupplierSelector";
 import { Supplier } from "@/stores/supplierStore";
 import { Button } from "@/components/ui/button";
 import { Maximize2, Minimize2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RfqSupplierTabContentProps {
   selectedSupplierId: string;
@@ -50,34 +51,38 @@ export function RfqSupplierTabContent({
   };
 
   return (
-    <div className={`space-y-4 ${isExpanded ? 'expanded-content' : ''}`}>
-      {!isExpanded && (
-        <>
+    <div className={cn(
+      "space-y-4 transition-all duration-300 ease-in-out",
+      isExpanded ? "expanded-content" : ""
+    )}>
+      <div className={cn(
+        "space-y-2 overflow-hidden transition-all duration-300 ease-in-out",
+        isExpanded ? "max-h-0 opacity-0 my-0" : "max-h-[500px] opacity-100"
+      )}>
+        <div className="space-y-2">
+          <Label htmlFor="supplier">Select Supplier</Label>
+          <RfqSupplierSelector
+            selectedSupplierId={selectedSupplierId}
+            onSupplierSelect={handleSupplierSelect}
+            suppliers={suppliers}
+            onAddNew={onAddNew}
+            isLoading={isLoading}
+          />
+        </div>
+        
+        {!hideSubjectInput && onSubjectChange && (
           <div className="space-y-2">
-            <Label htmlFor="supplier">Select Supplier</Label>
-            <RfqSupplierSelector
-              selectedSupplierId={selectedSupplierId}
-              onSupplierSelect={handleSupplierSelect}
-              suppliers={suppliers}
-              onAddNew={onAddNew}
-              isLoading={isLoading}
+            <Label htmlFor="subject">Subject</Label>
+            <Input 
+              id="subject" 
+              type="text" 
+              placeholder="Enter subject..." 
+              value={subject || ""}
+              onChange={(e) => onSubjectChange(e.target.value)} 
             />
           </div>
-          
-          {!hideSubjectInput && onSubjectChange && (
-            <div className="space-y-2">
-              <Label htmlFor="subject">Subject</Label>
-              <Input 
-                id="subject" 
-                type="text" 
-                placeholder="Enter subject..." 
-                value={subject || ""}
-                onChange={(e) => onSubjectChange(e.target.value)} 
-              />
-            </div>
-          )}
-        </>
-      )}
+        )}
+      </div>
       
       <div className="space-y-2">
         <div className="flex justify-between items-center">
@@ -87,6 +92,7 @@ export function RfqSupplierTabContent({
             size="sm"
             onClick={toggleExpand}
             title={isExpanded ? "Shrink" : "Expand"}
+            className="transition-transform duration-200 hover:scale-110"
           >
             {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </Button>
@@ -97,7 +103,13 @@ export function RfqSupplierTabContent({
           value={message}
           onChange={(e) => onMessageChange(e.target.value)}
           rows={isExpanded ? 16 : 4}
-          className={isExpanded ? "w-full transition-all duration-300" : "transition-all duration-300"}
+          className={cn(
+            "w-full transition-all duration-300 ease-in-out",
+            isExpanded ? "animate-fade-in" : ""
+          )}
+          style={{
+            maxHeight: isExpanded ? "60vh" : "initial",
+          }}
         />
       </div>
     </div>

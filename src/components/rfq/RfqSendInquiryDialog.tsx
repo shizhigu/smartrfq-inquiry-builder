@@ -174,7 +174,7 @@ export function RfqSendInquiryDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-[800px] sm:min-h-[600px]">
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Send RFQ Inquiry</DialogTitle>
             <DialogDescription>
