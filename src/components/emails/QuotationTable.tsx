@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -222,7 +223,14 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     
     const item = quotationItems.find(item => item.item_id === itemId);
     
-    const supplierIdToUse = item?.supplier_id || (currentConversation?.supplierId);
+    // Get supplier ID from the item or fallback to conversation's supplier ID
+    let supplierIdToUse = item?.supplier_id;
+    
+    // If supplier_id is not available from the item, use the conversation's supplierId
+    if (!supplierIdToUse && currentConversation) {
+      supplierIdToUse = currentConversation.supplierId;
+      console.log(`Using conversation's supplier ID as fallback: ${supplierIdToUse}`);
+    }
     
     if (!supplierIdToUse) {
       toast.error('Cannot fetch history: Missing supplier information');
