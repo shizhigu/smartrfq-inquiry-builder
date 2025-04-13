@@ -2,10 +2,19 @@
 import { create } from 'zustand';
 import { ConversationWithSupplier } from '@/hooks/useEmails';
 
+interface QuotationItem {
+  itemNumber: number;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
 interface EmailState {
   // Store conversations by project ID
   conversations: Record<string, ConversationWithSupplier[]>;
   selectedConversationId: string | null;
+  selectedProjectId: string | null;
   isLoading: boolean;
   error: string | null;
   page: number;
@@ -18,6 +27,7 @@ interface EmailState {
   addConversations: (projectId: string, conversations: ConversationWithSupplier[]) => void;
   updateConversation: (projectId: string, conversationId: string, updates: Partial<ConversationWithSupplier>) => void;
   setSelectedConversationId: (id: string | null) => void;
+  setSelectedProjectId: (id: string | null) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   setPage: (page: number) => void;
@@ -28,6 +38,7 @@ interface EmailState {
 export const useEmailStore = create<EmailState>((set) => ({
   conversations: {},
   selectedConversationId: null,
+  selectedProjectId: null,
   isLoading: false,
   error: null,
   page: 1,
@@ -78,6 +89,7 @@ export const useEmailStore = create<EmailState>((set) => ({
   }),
   
   setSelectedConversationId: (id) => set({ selectedConversationId: id }),
+  setSelectedProjectId: (id) => set({ selectedProjectId: id }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
   setPage: (page) => set({ page }),

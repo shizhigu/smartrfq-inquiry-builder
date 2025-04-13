@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useEmails } from '@/hooks/useEmails';
 import { useProjectStore } from '@/stores/projectStore';
@@ -246,13 +245,19 @@ const Emails = () => {
         
         <div className="mt-6">
           {/* Import Quotation Component */}
-          <ImportQuotation />
+          <ImportQuotation 
+            conversationId={selectedConversation.id} 
+          />
           
           {/* Quotation Table Component */}
           <QuotationTable emails={emails} />
           
           {/* Collapsible Email Conversation Component */}
-          <EmailConversation emails={emails} onDownloadAttachment={downloadEmailAttachment} />
+          <EmailConversation 
+            emails={emails} 
+            conversationId={selectedConversation.id}
+            onDownloadAttachment={downloadEmailAttachment} 
+          />
         </div>
         
         <ComposeEmailDialog 

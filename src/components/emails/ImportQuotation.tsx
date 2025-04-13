@@ -5,14 +5,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Upload, FileText, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useEmailStore } from '@/stores/emailStore';
 
 interface ImportQuotationProps {
   onImportSuccess?: (items: any[]) => void;
+  conversationId?: string;
 }
 
-export const ImportQuotation: React.FC<ImportQuotationProps> = ({ onImportSuccess }) => {
+export const ImportQuotation: React.FC<ImportQuotationProps> = ({ 
+  onImportSuccess,
+  conversationId 
+}) => {
   const [isUploading, setIsUploading] = useState(false);
   const [showTip, setShowTip] = useState(true);
+  const updateConversation = useEmailStore(state => state.updateConversation);
+  const selectedProjectId = useEmailStore(state => state.selectedProjectId);
   
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -41,6 +48,21 @@ export const ImportQuotation: React.FC<ImportQuotationProps> = ({ onImportSucces
       
       if (onImportSuccess) {
         onImportSuccess(mockItems);
+      }
+      
+      // If we have a conversation ID, update it with AI-detected items
+      if (conversationId && selectedProjectId) {
+        // Generate a mock email content update with properly formatted items
+        const itemsContent = mockItems.map(item => 
+          `[ITEM-${item.itemNumber}] description: ${item.description}, qty: ${item.quantity}, price: $${item.unitPrice.toFixed(2)}`
+        ).join('\n\n');
+        
+        const updates = {
+          aiDetectedItems: mockItems,
+          lastMessageWithItems: `Quotation imported with items:\n\n${itemsContent}`
+        };
+        
+        updateConversation(selectedProjectId, conversationId, updates);
       }
       
       toast.success('Quotation imported successfully');

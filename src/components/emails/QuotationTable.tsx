@@ -4,6 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Email } from '@/lib/api/emails';
 import { getMaxItemNumber } from './EmailConversation';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 interface QuotationItem {
   itemNumber: number;
@@ -56,7 +58,7 @@ const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
   
   // If no items found, create some sample items based on the max item number
   if (items.length === 0) {
-    const maxItemNumber = Math.max(...emails.map(email => getMaxItemNumber(email.content)));
+    const maxItemNumber = Math.max(0, ...emails.map(email => getMaxItemNumber(email.content)));
     for (let i = 1; i <= maxItemNumber; i++) {
       const unitPrice = Math.floor(Math.random() * 100) + 20;
       const quantity = Math.floor(Math.random() * 10) + 1;
@@ -75,10 +77,7 @@ const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
 
 export const QuotationTable: React.FC<QuotationTableProps> = ({ emails }) => {
   const quotationItems = extractQuotationItems(emails);
-  
-  if (quotationItems.length === 0) {
-    return null;
-  }
+  const hasItemsFormat = emails.some(email => email.content.includes('[ITEM-'));
   
   return (
     <Card className="mb-6">
@@ -86,28 +85,40 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails }) => {
         <CardTitle className="text-lg">Quotation Summary</CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Item #</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Quantity</TableHead>
-              <TableHead className="text-right">Unit Price</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {quotationItems.map((item) => (
-              <TableRow key={item.itemNumber}>
-                <TableCell className="font-medium">{item.itemNumber}</TableCell>
-                <TableCell>{item.description}</TableCell>
-                <TableCell className="text-right">{item.quantity}</TableCell>
-                <TableCell className="text-right">${item.unitPrice.toFixed(2)}</TableCell>
-                <TableCell className="text-right">${item.totalPrice.toFixed(2)}</TableCell>
+        {quotationItems.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Item #</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Quantity</TableHead>
+                <TableHead className="text-right">Unit Price</TableHead>
+                <TableHead className="text-right">Total</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {quotationItems.map((item) => (
+                <TableRow key={item.itemNumber}>
+                  <TableCell className="font-medium">{item.itemNumber}</TableCell>
+                  <TableCell>{item.description}</TableCell>
+                  <TableCell className="text-right">{item.quantity}</TableCell>
+                  <TableCell className="text-right">${item.unitPrice.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">${item.totalPrice.toFixed(2)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>No Quotation Items Found</AlertTitle>
+            <AlertDescription>
+              {hasItemsFormat 
+                ? "No valid quotation items could be extracted from the emails. Items should be in [ITEM-X] format."
+                : "No quotation items found in this conversation. Use the Import Quotation button above to add items or format items as [ITEM-1] in your emails."}
+            </AlertDescription>
+          </Alert>
+        )}
       </CardContent>
     </Card>
   );

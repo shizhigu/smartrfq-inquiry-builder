@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '@/stores/projectStore';
 import { useAuth } from '@clerk/clerk-react';
@@ -18,7 +17,6 @@ import {
 } from '@/lib/api/emails';
 import { useEmailStore } from '@/stores/emailStore';
 
-// Extended conversation type with supplier details
 export interface ConversationWithSupplier extends Conversation {
   supplierName?: string;
   supplierEmail?: string;
@@ -49,14 +47,14 @@ interface UseEmailsReturn {
 
 export const useEmails = (): UseEmailsReturn => {
   const { getToken } = useAuth();
-  const selectedProjectId = useProjectStore(state => state.selectedProjectId);
+  const projectStoreSelectedId = useProjectStore(state => state.selectedProjectId);
   const requestInProgress = useRef(false);
   
-  // Use the email store for conversations
   const { 
     conversations, 
     addConversations, 
     setConversations,
+    setSelectedProjectId,
     setPage,
     setTotalPages,
     setTotalConversations,
@@ -72,13 +70,17 @@ export const useEmails = (): UseEmailsReturn => {
     setSelectedConversationId
   } = useEmailStore();
   
+  const selectedProjectId = useEmailStore(state => state.selectedProjectId);
+  
+  useEffect(() => {
+    setSelectedProjectId(projectStoreSelectedId);
+  }, [projectStoreSelectedId, setSelectedProjectId]);
+  
   const [emails, setEmails] = useState<Record<string, Email[]>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Function to extract supplier info from a conversation
   const extractSupplierInfo = (conversation: Conversation): ConversationWithSupplier => {
-    // First, use API-provided supplier info if available
     if (conversation.supplier_name || conversation.supplier_email) {
       return {
         ...conversation,
@@ -87,9 +89,7 @@ export const useEmails = (): UseEmailsReturn => {
       };
     }
     
-    // If we have just supplierId but no name/email, provide better defaults
     if (conversation.supplierId) {
-      // Create a more descriptive temporary name based on supplier ID
       const supplierIdShort = conversation.supplierId.substring(0, 8);
       return {
         ...conversation,
@@ -98,7 +98,6 @@ export const useEmails = (): UseEmailsReturn => {
       };
     }
     
-    // Fallback for conversations with no supplier data
     return {
       ...conversation,
       supplierName: "Unknown Supplier",
@@ -107,7 +106,6 @@ export const useEmails = (): UseEmailsReturn => {
   };
   
   const fetchConversations = useCallback(async (pageNum: number = 1, forceRefresh: boolean = false) => {
-    // If we already have conversations for this project and we're not forcing a refresh, use them
     const projectConversations = conversations[selectedProjectId] || [];
     
     if (!forceRefresh && projectConversations.length > 0 && pageNum === 1) {
@@ -138,31 +136,24 @@ export const useEmails = (): UseEmailsReturn => {
       console.log(`Fetching conversations for project: ${selectedProjectId}, page: ${pageNum}`);
       const response = await getConversations(token, selectedProjectId, pageNum, pageSize);
       
-      // Get detailed conversation data with supplier info for each conversation
       const enrichedConversationsPromises = response.items.map(async (conversation) => {
         try {
-          // Get the full detailed conversation which should include supplier info
           const detailedConversation = await getConversation(token, conversation.id);
           return extractSupplierInfo(detailedConversation);
         } catch (error) {
           console.error(`Failed to get detailed info for conversation ${conversation.id}:`, error);
-          // Fall back to the basic info we have
           return extractSupplierInfo(conversation);
         }
       });
       
       const enrichedConversations = await Promise.all(enrichedConversationsPromises);
       
-      // Update the zustand store
       if (pageNum === 1) {
-        // Replace all conversations for this project
         setConversations(selectedProjectId, enrichedConversations);
       } else {
-        // Add new conversations to existing ones
         addConversations(selectedProjectId, enrichedConversations);
       }
       
-      // Update pagination info
       setPage(response.page);
       setTotalPages(response.pages);
       setTotalConversations(response.total);
@@ -192,14 +183,11 @@ export const useEmails = (): UseEmailsReturn => {
         throw new Error('Unable to get authentication token');
       }
       
-      // Get the full conversation details
       console.log(`Fetching detailed conversation with ID: ${conversationId}`);
       const detailedConversation = await getConversation(token, conversationId);
       
-      // Extract supplier info from the detailed conversation
       const enrichedConversation = extractSupplierInfo(detailedConversation);
       
-      // Update the conversation in the store
       const projectConversations = [...(conversations[selectedProjectId] || [])];
       const index = projectConversations.findIndex(c => c.id === conversationId);
       
@@ -208,7 +196,6 @@ export const useEmails = (): UseEmailsReturn => {
         setConversations(selectedProjectId, projectConversations);
       }
       
-      // Fetch emails if needed
       if (!emails[conversationId]) {
         await fetchEmails(conversationId);
       }
@@ -236,7 +223,6 @@ export const useEmails = (): UseEmailsReturn => {
       
       const fetchedEmails = await getEmailsForConversation(token, conversationId);
       
-      // Update the emails state
       setEmails(prev => ({
         ...prev,
         [conversationId]: fetchedEmails
@@ -275,10 +261,8 @@ export const useEmails = (): UseEmailsReturn => {
         initialMessage
       );
       
-      // Refresh the conversation list
       await fetchConversations(1, true);
       
-      // Select the new conversation
       await selectConversation(newConversation.id);
       
       toast.success('Conversation created successfully');
@@ -315,7 +299,6 @@ export const useEmails = (): UseEmailsReturn => {
         attachments
       );
       
-      // Add the new email to the emails state
       setEmails(prev => {
         const conversationEmails = prev[selectedConversationId] || [];
         return {
@@ -324,7 +307,6 @@ export const useEmails = (): UseEmailsReturn => {
         };
       });
       
-      // Refresh the conversations list to update last message info
       await fetchConversations(page, true);
       
       toast.success('Email sent successfully');
@@ -376,15 +358,12 @@ export const useEmails = (): UseEmailsReturn => {
     }
   }, [selectedProjectId, fetchConversations]);
   
-  // Get the project's conversations from the store
   const projectConversations = conversations[selectedProjectId] || [];
   
-  // Get the selected conversation
   const selectedConversation = selectedConversationId
     ? projectConversations.find(c => c.id === selectedConversationId) || null
     : null;
   
-  // Get the emails for the selected conversation
   const conversationEmails = selectedConversationId 
     ? emails[selectedConversationId] || [] 
     : [];

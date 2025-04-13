@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -11,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 
 interface EmailConversationProps {
   emails: Email[];
+  conversationId?: string;
   onDownloadAttachment?: (attachmentId: string, filename: string) => void;
 }
 
@@ -27,6 +27,7 @@ export function getMaxItemNumber(text: string): number {
 
 export const EmailConversation: React.FC<EmailConversationProps> = ({ 
   emails,
+  conversationId,
   onDownloadAttachment 
 }) => {
   const [expandedEmails, setExpandedEmails] = useState<ExpandedEmailState>({});
