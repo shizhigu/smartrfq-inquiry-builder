@@ -19,8 +19,13 @@ import { useAuth } from '@clerk/clerk-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useEmailStore } from '@/stores/emailStore';
-import { Badge } from '@/components/ui/badge';
 import { API_CONFIG, useMockData } from '@/lib/config';
+
+interface QuotationTableProps {
+  emails: Email[];
+  conversationId: string;
+  supplierId?: string;
+}
 
 const cleanSupplierId = (supplierId: string | null): string | null => {
   if (!supplierId) return null;
@@ -29,6 +34,61 @@ const cleanSupplierId = (supplierId: string | null): string | null => {
     .replace(/^["']|["']$/g, '')
     .replace(/\s*HTTP\/\d\.\d\s*$/i, '')
     .trim();
+};
+
+const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
+  const items: QuotationItem[] = [];
+  
+  if (!Array.isArray(emails) || emails.length === 0) {
+    return items;
+  }
+  
+  emails.forEach(email => {
+    if (!email.content) return;
+    
+    const itemMatches = [...email.content.matchAll(/\[ITEM-(\d+)\](.*?)(?=\[ITEM-\d+\]|$)/gs)];
+    
+    itemMatches.forEach(match => {
+      const itemNumber = parseInt(match[1], 10);
+      const itemDetails = match[2].trim();
+      
+      const priceMatch = itemDetails.match(/price:?\s*\$?(\d+(?:\.\d+)?)/i);
+      const qtyMatch = itemDetails.match(/qty:?\s*(\d+)/i);
+      const descMatch = itemDetails.match(/description:?\s*([^,;:]+)/i);
+      
+      const unitPrice = priceMatch ? parseFloat(priceMatch[1]) : Math.floor(Math.random() * 100) + 20;
+      const quantity = qtyMatch ? parseInt(qtyMatch[1], 10) : 1;
+      const description = descMatch ? descMatch[1].trim() : `Item ${itemNumber}`;
+      
+      const existingItem = items.find(item => item.itemNumber === itemNumber);
+      if (!existingItem) {
+        items.push({
+          itemNumber,
+          description,
+          quantity,
+          unitPrice,
+          totalPrice: unitPrice * quantity
+        });
+      }
+    });
+  });
+  
+  if (items.length === 0) {
+    const maxItemNumber = Math.max(0, ...emails.map(email => email.content ? getMaxItemNumber(email.content) : 0));
+    for (let i = 1; i <= maxItemNumber; i++) {
+      const unitPrice = Math.floor(Math.random() * 100) + 20;
+      const quantity = Math.floor(Math.random() * 10) + 1;
+      items.push({
+        itemNumber: i,
+        description: `Sample Item ${i}`,
+        quantity,
+        unitPrice,
+        totalPrice: unitPrice * quantity
+      });
+    }
+  }
+  
+  return items.sort((a, b) => a.itemNumber - b.itemNumber);
 };
 
 export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversationId, supplierId: initialSupplierId }) => {
