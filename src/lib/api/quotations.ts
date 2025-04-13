@@ -1,3 +1,4 @@
+
 import { API_CONFIG, useMockData } from '../config';
 
 export interface Quotation {
@@ -102,7 +103,7 @@ export async function getQuotationHistory(
   }
 
   try {
-    // Make sure supplierId is a valid UUID before sending to API
+    // Check if supplierId is provided
     if (!supplierId) {
       console.error('No supplier ID provided for history lookup');
       return { quotations: [], count: 0 };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +19,7 @@ import {
 import { useAuth } from '@clerk/clerk-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import { useEmailStore } from '@/stores/emailStore';
 
 interface QuotationTableProps {
   emails: Email[];
@@ -89,9 +91,15 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   const [historyLoading, setHistoryLoading] = useState<Record<string, boolean>>({});
   const [fetchError, setFetchError] = useState<string | null>(null);
   const { getToken } = useAuth();
+  const { conversations, selectedProjectId } = useEmailStore();
   
   const safeEmails = Array.isArray(emails) ? emails : [];
   const hasItemsFormat = safeEmails.some(email => email.content && email.content.includes('[ITEM-'));
+  
+  // Find the current conversation to get the supplier ID
+  const currentConversation = selectedProjectId && conversations[selectedProjectId]
+    ? conversations[selectedProjectId].find(conv => conv.id === conversationId)
+    : null;
   
   useEffect(() => {
     const items = extractQuotationItems(safeEmails);
@@ -143,9 +151,18 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         throw new Error('Unable to get authentication token');
       }
       
-      if (!supplierId) {
-        console.error('Missing supplier ID for quotation history');
-        toast.error('Unable to fetch history: Missing supplier ID');
+      // Try to get the supplier ID from the item first
+      let supplierIdToUse = supplierId;
+      
+      // If supplier ID is not available from the item, try to get it from the conversation
+      if (!supplierIdToUse && currentConversation && currentConversation.supplierId) {
+        supplierIdToUse = currentConversation.supplierId;
+        console.log(`Using supplier ID from conversation: ${supplierIdToUse}`);
+      }
+      
+      if (!supplierIdToUse) {
+        console.error('Missing supplier ID for quotation history, cannot fetch history');
+        toast.error('Unable to fetch history: Missing supplier information');
         setHistoryLoading(prev => ({ ...prev, [itemId]: false }));
         setQuotationHistories(prev => ({
           ...prev,
@@ -154,9 +171,9 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         return;
       }
       
-      console.log(`Fetching quotation history for item ${itemId} from supplier ${supplierId}`);
+      console.log(`Fetching quotation history for item ${itemId} from supplier ${supplierIdToUse}`);
       
-      const history = await getQuotationHistory(token, itemId, supplierId);
+      const history = await getQuotationHistory(token, itemId, supplierIdToUse);
       
       if (history && Array.isArray(history.quotations)) {
         setQuotationHistories(prev => ({
@@ -207,18 +224,20 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     
     setExpandedItem(itemId);
     
+    // Find the item to get its supplier ID
     const item = quotationItems.find(item => item.item_id === itemId);
-    if (item && !quotationHistories[itemId]) {
-      const supplierId = item.supplier_id;
-      console.log('Item supplier ID for history:', supplierId);
-      
-      if (!supplierId) {
-        toast.error('Cannot fetch history: Missing supplier information');
-        return;
-      }
-      
-      await fetchQuotationHistory(itemId, supplierId);
+    
+    // Get supplier ID from the item or use the conversation's supplier ID as fallback
+    const supplierIdToUse = item?.supplier_id || (currentConversation?.supplierId);
+    
+    if (!supplierIdToUse) {
+      toast.error('Cannot fetch history: Missing supplier information');
+      return;
     }
+    
+    console.log('Using supplier ID for history:', supplierIdToUse);
+    
+    await fetchQuotationHistory(itemId, supplierIdToUse);
   };
 
   const displayItems = quotationItems.length > 0 
@@ -228,7 +247,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         item_number: item.itemNumber,
         description: item.description,
         quantity: item.quantity,
-        supplier_id: null,
+        supplier_id: currentConversation?.supplierId || null,
         latest_quotation: {
           id: `fallback_quote_${item.itemNumber}`,
           unit_price: item.unitPrice,
