@@ -52,12 +52,14 @@ export function RfqSupplierTabContent({
 
   return (
     <div className={cn(
-      "space-y-4 transition-all duration-300 ease-in-out",
+      "space-y-4 transition-all duration-500 ease-in-out",
       isExpanded ? "expanded-content" : ""
     )}>
       <div className={cn(
-        "space-y-2 overflow-hidden transition-all duration-300 ease-in-out",
-        isExpanded ? "max-h-0 opacity-0 my-0" : "max-h-[500px] opacity-100"
+        "space-y-2 overflow-hidden transition-all duration-500 ease-in-out",
+        isExpanded 
+          ? "max-h-0 opacity-0 transform -translate-y-4" 
+          : "max-h-[500px] opacity-100 transform translate-y-0"
       )}>
         <div className="space-y-2">
           <Label htmlFor="supplier">Select Supplier</Label>
@@ -92,7 +94,10 @@ export function RfqSupplierTabContent({
             size="sm"
             onClick={toggleExpand}
             title={isExpanded ? "Shrink" : "Expand"}
-            className="transition-transform duration-200 hover:scale-110"
+            className={cn(
+              "transition-all duration-300 rounded-full p-2",
+              isExpanded ? "bg-muted hover:bg-muted/80" : "hover:bg-muted/50"
+            )}
           >
             {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </Button>
@@ -104,8 +109,10 @@ export function RfqSupplierTabContent({
           onChange={(e) => onMessageChange(e.target.value)}
           rows={isExpanded ? 16 : 4}
           className={cn(
-            "w-full transition-all duration-300 ease-in-out",
-            isExpanded ? "animate-fade-in" : ""
+            "w-full transition-all duration-500 ease-in-out",
+            isExpanded 
+              ? "animate-fade-in shadow-lg" 
+              : "shadow-sm animate-fade-out"
           )}
           style={{
             maxHeight: isExpanded ? "60vh" : "initial",

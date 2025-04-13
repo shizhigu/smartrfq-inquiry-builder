@@ -110,6 +110,26 @@
 
 /* Expanded textarea animations */
 .expanded-content {
-  @apply transition-all duration-300 ease-in-out;
+  @apply transition-all duration-500 ease-in-out;
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fade-out {
+  animation: fade-out 0.5s ease forwards;
+  animation-play-state: paused;
+}
+
+.expanded-content .animate-fade-out {
+  animation-play-state: running;
 }
 
