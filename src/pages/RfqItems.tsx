@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -14,7 +13,6 @@ import { RfqFile, RfqPart } from "@/stores/rfqStore";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { deleteRfqParts } from "@/lib/api/rfq";
 import { useAuth, useOrganization } from "@clerk/clerk-react";
 
 export default function RfqItems() {
@@ -27,9 +25,6 @@ export default function RfqItems() {
   const [isParseDialogOpen, setIsParseDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
-  const { getToken } = useAuth();
-  const { organization } = useOrganization();
-  
   const { 
     project,
     parts,
@@ -39,7 +34,8 @@ export default function RfqItems() {
     togglePartSelection,
     selectAllParts,
     clearPartSelection,
-    addPart
+    addPart,
+    deleteSelectedParts
   } = useRfqData();
   
   const handleAddPart = () => {
@@ -70,26 +66,8 @@ export default function RfqItems() {
     try {
       setIsDeleting(true);
       
-      const token = await getToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const projectId = project?.id;
-      if (!projectId) {
-        throw new Error('No project selected');
-      }
-
-      // Call the batch delete API with the selected part IDs
-      await deleteRfqParts(
-        token,
-        organization?.id || '',
-        projectId,
-        selectedPartIds
-      );
+      await deleteSelectedParts(selectedPartIds);
       
-      toast.success(`${selectedPartIds.length} parts deleted successfully`);
-      clearPartSelection();
       setIsEditMode(false);
     } catch (error) {
       console.error('Failed to delete parts:', error);

@@ -203,18 +203,29 @@ export async function deleteRfqParts(
   projectId: string,
   partIds: string[]
 ): Promise<void> {
+  // Validate UUIDs before sending to API
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const validUuids = partIds.filter(id => uuidRegex.test(id));
+  
+  if (validUuids.length === 0) {
+    console.warn('No valid UUIDs to delete');
+    return;
+  }
+  
   // Use mock data if mocks are enabled
-  if (useMockData()) {
+  if (API_CONFIG.USE_MOCK_DATA === true) {
     console.log('Using mock data for deleteRfqParts');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500));
     
     if (mockRfqParts[projectId]) {
-      mockRfqParts[projectId] = mockRfqParts[projectId].filter(part => !partIds.includes(part.id));
+      mockRfqParts[projectId] = mockRfqParts[projectId].filter(part => !validUuids.includes(part.id));
     }
     
     return;
   }
+  
+  console.log('Sending delete request with IDs:', validUuids);
   
   const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/rfq-items/batch-delete`, {
     method: 'POST',
@@ -222,7 +233,7 @@ export async function deleteRfqParts(
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ item_ids: partIds }),
+    body: JSON.stringify({ item_ids: validUuids }),
   });
 
   if (!response.ok) {

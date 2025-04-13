@@ -9,6 +9,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { useAuth, useOrganization } from "@clerk/clerk-react";
 import { useSupplierStore } from "@/stores/supplierStore";
 import { mockSuppliers } from "@/lib/mock/mockData";
+import { API_CONFIG } from "@/lib/config";
 
 export function useRfqData() {
   const navigate = useNavigate();
@@ -45,6 +46,11 @@ export function useRfqData() {
     files: false,
     suppliers: false
   });
+  
+  // Helper function to check if mock data should be used
+  const useMockData = () => {
+    return API_CONFIG.USE_MOCK_DATA === true;
+  };
   
   // Memoize the loadRfqData function to prevent it from being recreated on each render
   const loadRfqData = useCallback(async () => {
@@ -155,19 +161,47 @@ export function useRfqData() {
     // Notably NOT including parts, files, or suppliers here
   }, [selectedProjectId, setCurrentPage, loadRfqData]);
 
-  // Helper function to delete parts from the local store after successful API call
+  // Helper function to delete parts from the local store and the backend
   const deleteSelectedParts = useCallback(async (partIds: string[]) => {
-    if (!selectedProjectId) return;
+    if (!selectedProjectId || partIds.length === 0) return;
     
     try {
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+      
+      // Filter for valid UUID formatted IDs (the backend expects UUIDs)
+      // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const validPartIds = partIds.filter(id => uuidRegex.test(id));
+      
+      if (validPartIds.length === 0) {
+        console.warn('No valid UUIDs found in selected part IDs');
+        toast.error('Cannot delete parts: Invalid IDs');
+        return;
+      }
+      
+      // Call the API to delete parts
+      await deleteRfqParts(
+        token,
+        organization?.id || '',
+        selectedProjectId,
+        validPartIds
+      );
+      
       // Update the local store
-      partIds.forEach(id => {
+      validPartIds.forEach(id => {
         deletePart(id);
       });
+      
+      toast.success(`${validPartIds.length} parts deleted successfully`);
+      clearPartSelection();
     } catch (error) {
-      console.error('Failed to delete parts from store:', error);
+      console.error('Failed to delete parts:', error);
+      toast.error('Failed to delete parts');
     }
-  }, [selectedProjectId, deletePart]);
+  }, [selectedProjectId, deletePart, clearPartSelection, getToken, organization?.id]);
 
   const navigateToSuppliers = () => {
     navigate('/dashboard/suppliers');
