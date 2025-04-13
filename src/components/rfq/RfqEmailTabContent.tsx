@@ -10,6 +10,8 @@ interface RfqEmailTabContentProps {
   onMessageChange: (message: string) => void;
   subject?: string;
   onSubjectChange?: (subject: string) => void;
+  hideEmailInput?: boolean;
+  hideSubjectInput?: boolean;
 }
 
 export function RfqEmailTabContent({
@@ -18,22 +20,26 @@ export function RfqEmailTabContent({
   message,
   onMessageChange,
   subject,
-  onSubjectChange
+  onSubjectChange,
+  hideEmailInput = false,
+  hideSubjectInput = false
 }: RfqEmailTabContentProps) {
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="email">Email Address</Label>
-        <Input 
-          id="email" 
-          type="email" 
-          placeholder="Enter email address..." 
-          value={email}
-          onChange={(e) => onEmailChange(e.target.value)} 
-        />
-      </div>
+      {!hideEmailInput && (
+        <div className="space-y-2">
+          <Label htmlFor="email">Email Address</Label>
+          <Input 
+            id="email" 
+            type="email" 
+            placeholder="Enter email address..." 
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)} 
+          />
+        </div>
+      )}
       
-      {onSubjectChange && (
+      {onSubjectChange && !hideSubjectInput && (
         <div className="space-y-2">
           <Label htmlFor="subject">Subject</Label>
           <Input 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -48,7 +47,6 @@ export function ComposeEmailDialog({
   const [selectedSupplierId, setSelectedSupplierId] = useState(initialSupplierId);
   const [supplierEmail, setSupplierEmail] = useState<string | null>(null);
   
-  // Reset form when dialog opens
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       if (!replyMode) {
@@ -63,7 +61,6 @@ export function ComposeEmailDialog({
     onOpenChange(open);
   };
   
-  // Fetch supplier email when a supplier is selected
   useEffect(() => {
     const fetchSupplierEmail = async () => {
       if (selectedSupplierId) {
@@ -116,12 +113,9 @@ export function ComposeEmailDialog({
     try {
       setIsLoading(true);
       
-      // Get the email address to send to or supplier ID to use
       if (activeTab === "supplier") {
         await onSend(selectedSupplierId, subject, message);
       } else {
-        // For the email tab, we'll just use a placeholder supplier ID
-        // In a real app, you might create a supplier record or handle differently
         await onSend("email_supplier", subject, message);
       }
       
@@ -194,8 +188,8 @@ export function ComposeEmailDialog({
                   onEmailChange={() => {}}
                   message={message}
                   onMessageChange={setMessage}
-                  hideEmailInput
-                  hideSubjectInput
+                  hideEmailInput={true}
+                  hideSubjectInput={true}
                 />
               </div>
             </div>
