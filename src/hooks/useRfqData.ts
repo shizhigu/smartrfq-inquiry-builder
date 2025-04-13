@@ -22,7 +22,7 @@ export function useRfqData() {
   );
   
   const { 
-    parts, 
+    parts: allParts, 
     files, 
     setParts, 
     setFiles, 
@@ -35,6 +35,9 @@ export function useRfqData() {
     addPart,
     deletePart
   } = useRfqStore();
+  
+  // Get parts for current project
+  const parts = selectedProjectId ? (allParts[selectedProjectId] || []) : [];
   
   const { suppliers, setSuppliers } = useSupplierStore();
   
@@ -64,7 +67,7 @@ export function useRfqData() {
       const token = await getToken() || simulatedToken;
       const currentOrgId = orgId || simulatedOrgId;
       
-      if ((!parts[selectedProjectId] || parts[selectedProjectId].length === 0) && 
+      if ((!allParts[selectedProjectId] || allParts[selectedProjectId].length === 0) && 
           !dataLoadedRef.current.parts) {
         console.log('Fetching parts from API as they are not in store');
         setLoading(true);
@@ -82,7 +85,7 @@ export function useRfqData() {
           toast.error('Failed to load parts');
         }
       } else {
-        console.log('Using parts from Zustand store');
+        console.log('Using parts from Zustand store:', allParts[selectedProjectId]);
       }
       
       if ((!files[selectedProjectId] || files[selectedProjectId].length === 0) && 
@@ -126,21 +129,21 @@ export function useRfqData() {
     } finally {
       setLoading(false);
     }
-  }, [selectedProjectId, setParts, setFiles, setLoading, navigate, getToken, orgId, setSuppliers]);
+  }, [selectedProjectId, setParts, setFiles, setLoading, navigate, getToken, orgId, setSuppliers, allParts]);
 
   useEffect(() => {
     setCurrentPage('rfq');
     
     if (selectedProjectId) {
       dataLoadedRef.current = {
-        parts: parts[selectedProjectId]?.length > 0,
+        parts: allParts[selectedProjectId]?.length > 0,
         files: files[selectedProjectId]?.length > 0,
         suppliers: suppliers[selectedProjectId]?.length > 0
       };
       
       loadRfqData();
     }
-  }, [selectedProjectId, setCurrentPage, loadRfqData]);
+  }, [selectedProjectId, setCurrentPage, loadRfqData, allParts, files, suppliers]);
 
   const deleteSelectedParts = useCallback(async (partIds: string[]) => {
     if (!selectedProjectId || partIds.length === 0) return;
@@ -219,9 +222,8 @@ export function useRfqData() {
       
       if (result && result.id) {
         // Add the new part to the Zustand store to update UI immediately
+        console.log('Adding part to store:', result);
         addPart(result);
-        console.log('Part added to store:', result);
-        toast.success('Item added successfully');
         return result;
       }
       
@@ -240,7 +242,7 @@ export function useRfqData() {
   return {
     project,
     selectedProjectId,
-    parts: parts[selectedProjectId || ''] || [],
+    parts,
     files: files[selectedProjectId || ''] || [],
     isLoading,
     selectedPartIds,

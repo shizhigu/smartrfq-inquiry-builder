@@ -1,6 +1,8 @@
+
 // Import from configuration instead of hardcoding
 import { API_CONFIG, useMockData } from '../config';
 import { mockRfqParts, mockRfqFiles } from '../mock/mockData';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface RfqPart {
   id: string;
@@ -225,7 +227,7 @@ export async function insertRfqItem(
     await new Promise(resolve => setTimeout(resolve, 600));
     
     const newPart: RfqPart = {
-      id: `part_${Date.now()}`,
+      id: uuidv4(), // Generate a valid UUID for the part
       name: itemData.name,
       partNumber: itemData.part_number,
       quantity: parseInt(itemData.quantity, 10) || 1,
@@ -246,6 +248,7 @@ export async function insertRfqItem(
     }
     
     mockRfqParts[projectId].push(newPart);
+    console.log("Mock part added:", newPart, "All mock parts:", mockRfqParts[projectId]);
     
     return newPart;
   }

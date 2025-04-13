@@ -35,7 +35,9 @@ export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: R
         remarks: values.remarks || undefined,
       };
       
+      console.log("Submitting new part:", newPart);
       const result = await onAddPart(newPart);
+      console.log("Result after adding part:", result);
       
       if (result) {
         toast.success("Part added successfully");

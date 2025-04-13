@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { RfqPageHeader } from "@/components/rfq/RfqPageHeader";
@@ -45,6 +45,7 @@ export default function RfqItems() {
 
   const handleSubmitNewPart = async (partData: Omit<RfqPart, "id">) => {
     try {
+      console.log("Handling submit new part in RfqItems:", partData);
       // Use the insertManualItem function from useRfqData
       const result = await insertManualItem(partData);
       
