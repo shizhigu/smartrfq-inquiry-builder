@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +19,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useEmailStore } from '@/stores/emailStore';
+import { Badge } from '@/components/ui/badge';
 
 interface QuotationTableProps {
   emails: Email[];
@@ -101,13 +101,11 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     ? conversations[selectedProjectId].find(conv => conv.id === conversationId)
     : null;
   
-  // Extract supplier ID from conversation early on
   useEffect(() => {
     if (currentConversation?.supplierId) {
       setSupplierId(currentConversation.supplierId);
       console.log("Setting supplier ID from conversation:", currentConversation.supplierId);
     } else {
-      // Try to find this conversation's email addresses
       const supplierEmail = currentConversation?.supplierEmail;
       const supplierName = currentConversation?.supplierName;
       
@@ -151,7 +149,6 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         throw new Error('Received invalid quotation data format');
       }
       
-      // Check if any item has supplier_id, and store it if found
       const supplierIdFromItems = items.find(item => item.supplier_id)?.supplier_id;
       if (supplierIdFromItems && !supplierId) {
         console.log("Found supplier ID from items:", supplierIdFromItems);
@@ -179,11 +176,6 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
       if (!token) {
         throw new Error('Unable to get authentication token');
       }
-      
-      // Priority order for supplier ID:
-      // 1. Item-specific supplier_id
-      // 2. Already stored supplier ID from other sources
-      // 3. Conversation's supplierId
       
       const item = quotationItems.find(item => item.item_id === itemId);
       let supplierIdToUse = item?.supplier_id || supplierId;
@@ -293,6 +285,11 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
           <div className="text-sm text-muted-foreground">
             {displayItems.length} item{displayItems.length !== 1 ? 's' : ''}
           </div>
+          {supplierId && (
+            <Badge variant="outline" className="ml-2">
+              Supplier ID: {supplierId}
+            </Badge>
+          )}
         </div>
       </CardHeader>
       <CardContent>
