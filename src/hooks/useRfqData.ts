@@ -212,7 +212,6 @@ export function useRfqData() {
       
       const result = await insertRfqItem(
         token,
-        organization?.id || '',
         selectedProjectId,
         itemData
       );
@@ -229,7 +228,7 @@ export function useRfqData() {
       toast.error('Failed to add item');
       return null;
     }
-  }, [selectedProjectId, getToken, organization?.id, addPart]);
+  }, [selectedProjectId, getToken, addPart]);
 
   const navigateToSuppliers = () => {
     navigate('/dashboard/suppliers');
