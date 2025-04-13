@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -16,6 +17,7 @@ import { useProjectStore } from "@/stores/projectStore";
 import { RfqSupplierTabContent } from "../rfq/RfqSupplierTabContent";
 import { RfqEmailTabContent } from "../rfq/RfqEmailTabContent";
 import { getSupplier } from "@/lib/api/suppliers";
+import { sendProjectEmail } from "@/lib/api/emails";
 
 interface ComposeEmailDialogProps {
   open: boolean;
@@ -36,8 +38,8 @@ export function ComposeEmailDialog({
   initialSubject = "",
   initialMessage = ""
 }: ComposeEmailDialogProps) {
-  const { selectedProjectId } = useProjectStore();
   const { getToken } = useAuth();
+  const { selectedProjectId } = useProjectStore();
   
   const [activeTab, setActiveTab] = useState(initialSupplierId ? "supplier" : "email");
   const [isLoading, setIsLoading] = useState(false);
@@ -46,6 +48,7 @@ export function ComposeEmailDialog({
   const [subject, setSubject] = useState(initialSubject);
   const [selectedSupplierId, setSelectedSupplierId] = useState(initialSupplierId);
   const [supplierEmail, setSupplierEmail] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<File[]>([]);
   
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -54,6 +57,7 @@ export function ComposeEmailDialog({
         setMessage("");
         setSubject("");
         setSelectedSupplierId("");
+        setAttachments([]);
       }
       setActiveTab(initialSupplierId ? "supplier" : "email");
       setSupplierEmail(null);
@@ -110,15 +114,52 @@ export function ComposeEmailDialog({
       return;
     }
     
+    if (!selectedProjectId) {
+      toast.error('No project selected');
+      return;
+    }
+    
     try {
       setIsLoading(true);
       
-      if (activeTab === "supplier") {
-        await onSend(selectedSupplierId, subject, message);
-      } else {
-        await onSend("email_supplier", subject, message);
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Unable to get authentication token');
       }
       
+      // Determine the recipient email
+      let toEmail = "";
+      let supplierId = "";
+      
+      if (activeTab === "supplier") {
+        if (!supplierEmail) {
+          throw new Error('Supplier email not available');
+        }
+        toEmail = supplierEmail;
+        supplierId = selectedSupplierId;
+      } else {
+        toEmail = emailToSend;
+        supplierId = "email_supplier"; // Using a placeholder for direct email
+      }
+      
+      // Use the new API to send the email
+      await sendProjectEmail(
+        token,
+        selectedProjectId,
+        {
+          to_email: toEmail,
+          subject,
+          content: message,
+          supplier_id: supplierId
+        },
+        attachments.length > 0 ? attachments : undefined
+      );
+      
+      // Also call the original onSend for backward compatibility
+      await onSend(supplierId, subject, message);
+      
+      toast.success('Email sent successfully');
+      handleOpenChange(false);
     } catch (error) {
       console.error('Failed to send email:', error);
       toast.error('Failed to send email');

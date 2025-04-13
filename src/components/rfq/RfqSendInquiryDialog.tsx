@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RfqPart } from "@/stores/rfqStore";
@@ -21,6 +20,7 @@ import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
 import { SupplierAddSheet } from "./suppliers/SupplierAddSheet";
 import { Supplier } from "@/stores/supplierStore";
 import { RfqSupplierTabContent } from "./RfqSupplierTabContent";
+import { sendProjectEmail } from "@/lib/api/emails";
 
 interface RfqSendInquiryDialogProps {
   open: boolean;
@@ -47,6 +47,7 @@ export function RfqSendInquiryDialog({
   const [subject, setSubject] = useState("Request for Quote");
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -54,6 +55,7 @@ export function RfqSendInquiryDialog({
       setSubject("Request for Quote");
       setMessage("");
       setConversationId(null);
+      setAttachments([]);
     }
     onOpenChange(open);
   };
@@ -129,6 +131,20 @@ export function RfqSendInquiryDialog({
       }
       
       const partIds = selectedParts.map(part => part.id);
+
+      await sendProjectEmail(
+        token,
+        projectId,
+        {
+          to_email: emailTo,
+          subject,
+          content: message,
+          supplier_id: selectedSupplierId,
+          conversation_id: conversationId || undefined,
+          rfq_item_ids: partIds
+        },
+        attachments.length > 0 ? attachments : undefined
+      );
       
       await sendRfqInquiry(
         token, 

@@ -1,4 +1,3 @@
-
 import { API_CONFIG, useMockData } from '../config';
 
 export interface EmailSender {
@@ -351,6 +350,104 @@ export async function downloadAttachment(
   }
 
   return await response.blob();
+}
+
+/**
+ * Send an email using the project API
+ */
+export async function sendProjectEmail(
+  token: string,
+  projectId: string,
+  emailData: {
+    to_email: string;
+    subject: string;
+    content: string;
+    supplier_id: string;
+    from_email?: string;
+    cc_email?: string[];
+    bcc_email?: string[];
+    conversation_id?: string;
+    rfq_item_ids?: string[];
+  },
+  attachments?: File[]
+): Promise<any> {
+  // For mock data mode
+  if (useMockData()) {
+    console.log('Using mock data for sendProjectEmail');
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Create a mock conversation if one doesn't exist
+    if (!emailData.conversation_id) {
+      const mockConversationId = `conv_${Date.now()}`;
+      
+      if (!mockEmailsForConversation[mockConversationId]) {
+        mockEmailsForConversation[mockConversationId] = [];
+      }
+      
+      // Create a mock email in the conversation
+      const newEmail: Email = {
+        id: `email_${Date.now()}`,
+        project_id: projectId,
+        conversation_id: mockConversationId,
+        to_email: emailData.to_email,
+        subject: emailData.subject,
+        content: emailData.content,
+        status: 'sent',
+        sent_at: new Date().toISOString(),
+        from: { id: 'user', name: 'Me', email: 'me@company.com' },
+        to: { id: emailData.supplier_id, name: 'Supplier', email: emailData.to_email },
+        attachments: []
+      };
+      
+      mockEmailsForConversation[mockConversationId].push(newEmail);
+      
+      return {
+        id: newEmail.id,
+        conversation_id: mockConversationId,
+        message: 'Email sent successfully'
+      };
+    }
+    
+    return {
+      message: 'Email sent successfully',
+      conversation_id: emailData.conversation_id || `conv_${Date.now()}`
+    };
+  }
+  
+  // Create FormData for multipart/form-data request
+  const formData = new FormData();
+  
+  // Convert email data to JSON string
+  const emailDataStr = JSON.stringify({
+    project_id: projectId,
+    ...emailData
+  });
+  
+  // Add email_data_str to FormData
+  formData.append('email_data_str', emailDataStr);
+  
+  // Add attachments if any
+  if (attachments && attachments.length > 0) {
+    attachments.forEach((file, index) => {
+      formData.append('attachments', file);
+    });
+  }
+  
+  // Make the API request
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/send`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error?.message || 'Failed to send email');
+  }
+
+  return await response.json();
 }
 
 // 导出模拟数据以供在其他文件中使用
