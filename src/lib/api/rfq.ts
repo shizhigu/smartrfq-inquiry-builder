@@ -1,4 +1,3 @@
-
 // Import from configuration instead of hardcoding
 import { API_CONFIG, useMockData } from '../config';
 import { mockRfqParts, mockRfqFiles } from '../mock/mockData';
@@ -8,6 +7,7 @@ export interface RfqPart {
   id: string;
   name: string;
   partNumber: string;
+  part_number: string;
   description?: string;
   quantity: number;
   unit: string;
@@ -15,14 +15,19 @@ export interface RfqPart {
   category?: string;
   status: string;
   projectId: string;
+  project_id: string;
   material?: string;
   surfaceFinish?: string;
+  surface_finish?: string;
   process?: string;
   deliveryTime?: string;
+  delivery_time?: string;
   tolerance?: string;
   drawingNumber?: string;
+  drawing_url?: string;
   remarks?: string;
   supplierId?: string;
+  supplier_id?: string;
 }
 
 export interface RfqFile {
@@ -230,16 +235,21 @@ export async function insertRfqItem(
       id: uuidv4(), // Generate a valid UUID for the part
       name: itemData.name,
       partNumber: itemData.part_number,
+      part_number: itemData.part_number,
       quantity: parseInt(itemData.quantity, 10) || 1,
       unit: itemData.unit,
       material: itemData.material,
       surfaceFinish: itemData.surface_finish,
+      surface_finish: itemData.surface_finish,
       process: itemData.process,
       deliveryTime: itemData.delivery_time,
+      delivery_time: itemData.delivery_time,
       tolerance: itemData.tolerance,
       drawingNumber: itemData.drawing_url,
+      drawing_url: itemData.drawing_url,
       remarks: itemData.remarks,
       projectId: projectId,
+      project_id: projectId,
       status: 'open'
     };
     

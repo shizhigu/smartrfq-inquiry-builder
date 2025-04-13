@@ -1,4 +1,3 @@
-
 import { fetchRfqFiles, fetchRfqParts, deleteRfqParts, insertRfqItem } from "@/lib/api/rfq";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -181,7 +180,7 @@ export function useRfqData() {
     }
   }, [selectedProjectId, deletePart, clearPartSelection, getToken, organization?.id]);
 
-  const insertManualItem = useCallback(async (partData: Omit<RfqPart, "id">) => {
+  const insertManualItem = useCallback(async (partData: Omit<RfqPart, "id" | "part_number" | "surface_finish" | "delivery_time" | "drawing_url" | "project_id" | "supplier_id">) => {
     if (!selectedProjectId) {
       toast.error('No project selected');
       return null;
@@ -233,19 +232,20 @@ export function useRfqData() {
           id: result.id,
           name: result.name,
           partNumber: result.part_number || result.partNumber,
-          part_number: result.part_number,
+          part_number: result.part_number || result.partNumber,
           quantity: typeof result.quantity === 'string' ? parseInt(result.quantity, 10) : result.quantity,
           unit: result.unit,
           projectId: selectedProjectId,
+          project_id: selectedProjectId,
           material: result.material,
           surfaceFinish: result.surface_finish || result.surfaceFinish,
-          surface_finish: result.surface_finish,
+          surface_finish: result.surface_finish || result.surfaceFinish,
           process: result.process,
           deliveryTime: result.delivery_time || result.deliveryTime,
-          delivery_time: result.delivery_time,
+          delivery_time: result.delivery_time || result.deliveryTime,
           tolerance: result.tolerance,
           drawingNumber: result.drawing_url || result.drawingNumber,
-          drawing_url: result.drawing_url,
+          drawing_url: result.drawing_url || result.drawingNumber,
           remarks: result.remarks,
         };
         

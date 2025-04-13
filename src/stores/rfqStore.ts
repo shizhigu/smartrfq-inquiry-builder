@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
@@ -7,21 +6,23 @@ export interface RfqPart {
   id: string;
   name: string;
   partNumber: string;
-  part_number?: string; // Added snake_case version
+  part_number: string; // Now required, not optional
   quantity: number;
   unit: string;
   material?: string;
   surfaceFinish?: string;
-  surface_finish?: string; // Added snake_case version
+  surface_finish?: string;
   process?: string;
   deliveryTime?: string;
-  delivery_time?: string; // Added snake_case version
+  delivery_time?: string;
   tolerance?: string;
   drawingNumber?: string;
-  drawing_url?: string; // Added snake_case version
+  drawing_url?: string;
   remarks?: string;
   projectId: string;
+  project_id?: string; // Added for consistency
   supplierId?: string;
+  supplier_id?: string; // Added for consistency
 }
 
 export interface RfqFile {

@@ -10,7 +10,7 @@ interface RfqAddPartDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projectId: string;
-  onAddPart: (part: Omit<RfqPart, "id">) => Promise<any>;
+  onAddPart: (part: Omit<RfqPart, "id" | "part_number" | "surface_finish" | "delivery_time" | "drawing_url" | "project_id" | "supplier_id">) => Promise<any>;
 }
 
 export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: RfqAddPartDialogProps) {
@@ -21,7 +21,7 @@ export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: R
       setIsSubmitting(true);
       
       // Ensure all values are properly formatted
-      const newPart: Omit<RfqPart, "id"> = {
+      const newPart: Omit<RfqPart, "id" | "part_number" | "surface_finish" | "delivery_time" | "drawing_url" | "project_id" | "supplier_id"> = {
         name: values.name,
         partNumber: values.partNumber,
         quantity: values.quantity,
