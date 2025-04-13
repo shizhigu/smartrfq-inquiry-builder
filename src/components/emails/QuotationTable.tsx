@@ -1,32 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Email } from '@/lib/api/emails';
 import { getMaxItemNumber } from './EmailConversation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, ChevronDown, History, DollarSign, Clock } from 'lucide-react';
+import { AlertCircle, ChevronDown, History, DollarSign, Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { QuotationHistory } from './QuotationHistory';
 import { QuotationItem } from '@/stores/emailStore';
-
-// Updated Quotation interface to match API
-interface Quotation {
-  id: string;
-  rfqItemId: string;
-  supplierId: string;
-  projectId: string;
-  unitPrice: number;
-  currency: string;
-  leadTime: string;
-  remarks: string;
-  quoteTime: string;
-  organizationId: string;
-  supplierName?: string;
-  change?: number;
-  changePercent?: number;
-}
+import { Quotation, getLatestQuotation, getQuotationHistory, getConversationQuotations } from '@/lib/api/quotations';
+import { useAuth } from '@clerk/clerk-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface QuotationTableProps {
   emails: Email[];
@@ -37,7 +23,13 @@ interface QuotationTableProps {
 const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
   const items: QuotationItem[] = [];
   
+  if (!Array.isArray(emails) || emails.length === 0) {
+    return items;
+  }
+  
   emails.forEach(email => {
+    if (!email.content) return;
+    
     const itemMatches = [...email.content.matchAll(/\[ITEM-(\d+)\](.*?)(?=\[ITEM-\d+\]|$)/gs)];
     
     itemMatches.forEach(match => {
@@ -66,7 +58,7 @@ const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
   });
   
   if (items.length === 0) {
-    const maxItemNumber = Math.max(0, ...emails.map(email => getMaxItemNumber(email.content)));
+    const maxItemNumber = Math.max(0, ...emails.map(email => email.content ? getMaxItemNumber(email.content) : 0));
     for (let i = 1; i <= maxItemNumber; i++) {
       const unitPrice = Math.floor(Math.random() * 100) + 20;
       const quantity = Math.floor(Math.random() * 10) + 1;
@@ -83,33 +75,144 @@ const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
   return items.sort((a, b) => a.itemNumber - b.itemNumber);
 };
 
-// Function to fetch latest quotations - will be replaced with actual API call
-const getLatestQuotation = (itemId: string): Quotation | undefined => {
-  console.warn(`Fetching latest quotation for ${itemId} - API integration needed`);
-  return undefined;
-};
-
 export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversationId }) => {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [quotationData, setQuotationData] = useState<Record<string, Quotation | null>>({});
+  const [quotationHistoryCounts, setQuotationHistoryCounts] = useState<Record<string, number>>({});
+  const [quotationHistories, setQuotationHistories] = useState<Record<string, Quotation[]>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { getToken } = useAuth();
   
   const safeEmails = Array.isArray(emails) ? emails : [];
   const quotationItems = extractQuotationItems(safeEmails);
-  const hasItemsFormat = safeEmails.some(email => email.content.includes('[ITEM-'));
+  const hasItemsFormat = safeEmails.some(email => email.content && email.content.includes('[ITEM-'));
   
-  const toggleHistory = (itemId: string) => {
-    setExpandedItem(expandedItem === itemId ? null : itemId);
+  // Function to fetch conversation quotations
+  const fetchConversationQuotations = async () => {
+    if (!conversationId) return;
+    
+    setIsLoading(true);
+    
+    try {
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Unable to get authentication token');
+      }
+      
+      // Get all quotations for this conversation
+      const quotations = await getConversationQuotations(token, conversationId);
+      
+      // Update state with fetched data
+      const quotationMap: Record<string, Quotation | null> = {};
+      const historyCountMap: Record<string, number> = {};
+      
+      // Process each quotation
+      quotations.forEach(quotation => {
+        const itemId = `item_${quotation.rfqItemId}`;
+        
+        // Store the latest quotation
+        if (!quotationMap[itemId] || new Date(quotation.quoteTime) > new Date(quotationMap[itemId]?.quoteTime || '')) {
+          quotationMap[itemId] = quotation;
+        }
+        
+        // Count the number of quotations for history
+        if (!historyCountMap[itemId]) {
+          historyCountMap[itemId] = 0;
+        }
+        historyCountMap[itemId]++;
+      });
+      
+      setQuotationData(quotationMap);
+      setQuotationHistoryCounts(historyCountMap);
+    } catch (error) {
+      console.error('Failed to fetch conversation quotations:', error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+  
+  // Fetch history for a specific item
+  const fetchQuotationHistory = async (rfqItemId: string, supplierId: string) => {
+    if (!rfqItemId || !supplierId) return;
+    
+    try {
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Unable to get authentication token');
+      }
+      
+      const response = await getQuotationHistory(token, rfqItemId, supplierId);
+      
+      setQuotationHistories(prev => ({
+        ...prev,
+        [`item_${rfqItemId}`]: response.quotations
+      }));
+    } catch (error) {
+      console.error('Failed to fetch quotation history:', error);
+    }
+  };
+  
+  // Initial data fetch
+  useEffect(() => {
+    if (conversationId) {
+      fetchConversationQuotations();
+    }
+  }, [conversationId]);
+  
+  const handleRefresh = () => {
+    if (isRefreshing || isLoading) return;
+    setIsRefreshing(true);
+    fetchConversationQuotations();
+  };
+  
+  const toggleHistory = async (itemId: string) => {
+    // If we're already showing history for this item, just hide it
+    if (expandedItem === itemId) {
+      setExpandedItem(null);
+      return;
+    }
+    
+    // Otherwise, show history for this item
+    setExpandedItem(itemId);
+    
+    // Extract the actual rfqItemId and supplierId from the quotation
+    const quotation = quotationData[itemId];
+    if (quotation && quotation.rfqItemId && quotation.supplierId) {
+      // Fetch history if not already loaded
+      if (!quotationHistories[itemId]) {
+        await fetchQuotationHistory(quotation.rfqItemId, quotation.supplierId);
+      }
+    }
   };
   
   return (
     <Card className="mb-6">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-lg">Quotation Summary</CardTitle>
-        <div className="text-sm text-muted-foreground">
-          {quotationItems.length} item{quotationItems.length !== 1 ? 's' : ''}
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleRefresh} 
+            disabled={isLoading || isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+          <div className="text-sm text-muted-foreground">
+            {quotationItems.length} item{quotationItems.length !== 1 ? 's' : ''}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        {quotationItems.length > 0 ? (
+        {isLoading && !isRefreshing ? (
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        ) : quotationItems.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -125,8 +228,9 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
             <TableBody>
               {quotationItems.map((item) => {
                 const itemId = `item_${item.itemNumber}`;
-                const latestQuote = getLatestQuotation(itemId);
-                const hasHistory = false; // TODO: Replace with API call to check history
+                const latestQuote = quotationData[itemId];
+                const historyCount = quotationHistoryCounts[itemId] || 0;
+                const hasHistory = historyCount > 0;
                 
                 return (
                   <React.Fragment key={item.itemNumber}>
@@ -163,10 +267,10 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
                           size="sm" 
                           className={`px-2 ${!hasHistory ? 'text-muted-foreground' : ''}`}
                           onClick={() => hasHistory && toggleHistory(itemId)}
-                          disabled={!hasHistory}
+                          disabled={!hasHistory || isRefreshing}
                         >
                           <History className="h-4 w-4 mr-1" />
-                          0 {/* TODO: Replace with actual history count from API */}
+                          {historyCount}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -174,9 +278,8 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
                       <TableRow>
                         <TableCell colSpan={7} className="p-0 border-0">
                           <div className="p-4 bg-muted/30">
-                            {/* TODO: Replace with API call to fetch quotation history */}
                             <QuotationHistory 
-                              quotations={[]} 
+                              quotations={quotationHistories[itemId] || []} 
                               itemName={item.description}
                             />
                           </div>
@@ -193,7 +296,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
                 <TableCell className="text-right font-medium">
                   ${quotationItems.reduce((total, item) => {
                     const itemId = `item_${item.itemNumber}`;
-                    const latestQuote = getLatestQuotation(itemId);
+                    const latestQuote = quotationData[itemId];
                     const itemTotal = latestQuote 
                       ? latestQuote.unitPrice * item.quantity 
                       : item.totalPrice;
