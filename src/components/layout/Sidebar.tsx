@@ -94,7 +94,10 @@ export function Sidebar() {
       <div className="flex items-center justify-between p-4 border-b border-border h-16">
         {!collapsed && (
           <div className="font-semibold text-lg">
-            <span className="text-brand-gold font-bold">Xinra</span>.io
+            <div className="flex items-center space-x-1">
+              <span className="text-brand-gold font-bold text-xl">Xinra</span>
+              <span className="text-gray-600">.io</span>
+            </div>
           </div>
         )}
         <Button 
