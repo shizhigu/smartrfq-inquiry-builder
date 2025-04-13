@@ -36,7 +36,7 @@ export function useRfqData() {
     deletePart
   } = useRfqStore();
   
-  // Get parts for current project
+  // Get parts for current project - make sure to treat as dependency for useEffect
   const parts = selectedProjectId ? (allParts[selectedProjectId] || []) : [];
   
   const { suppliers, setSuppliers } = useSupplierStore();
@@ -194,20 +194,29 @@ export function useRfqData() {
         throw new Error('Authentication required');
       }
       
+      // Handle cases where undefined objects are coming in from the form
+      const sanitizedMaterial = typeof partData.material === 'object' ? '' : partData.material || '';
+      const sanitizedSurfaceFinish = typeof partData.surfaceFinish === 'object' ? '' : partData.surfaceFinish || '';
+      const sanitizedProcess = typeof partData.process === 'object' ? '' : partData.process || '';
+      const sanitizedDeliveryTime = typeof partData.deliveryTime === 'object' ? '' : partData.deliveryTime || '';
+      const sanitizedTolerance = typeof partData.tolerance === 'object' ? '' : partData.tolerance || '';
+      const sanitizedDrawingNumber = typeof partData.drawingNumber === 'object' ? '' : partData.drawingNumber || '';
+      const sanitizedRemarks = typeof partData.remarks === 'object' ? '' : partData.remarks || '';
+      
       const itemData = {
         index_no: 0,
         part_number: partData.partNumber,
         name: partData.name,
         quantity: partData.quantity.toString(),
-        material: partData.material || "",
+        material: sanitizedMaterial,
         size: "",
-        process: partData.process || "",
-        delivery_time: partData.deliveryTime || "",
+        process: sanitizedProcess,
+        delivery_time: sanitizedDeliveryTime,
         unit: partData.unit,
-        tolerance: partData.tolerance || "",
-        drawing_url: partData.drawingNumber || "",
-        surface_finish: partData.surfaceFinish || "",
-        remarks: partData.remarks || "",
+        tolerance: sanitizedTolerance,
+        drawing_url: sanitizedDrawingNumber,
+        surface_finish: sanitizedSurfaceFinish,
+        remarks: sanitizedRemarks,
         other: {},
         project_id: selectedProjectId
       };
@@ -221,10 +230,35 @@ export function useRfqData() {
       );
       
       if (result && result.id) {
+        // Convert API result to RfqPart format
+        const newPart: RfqPart = {
+          id: result.id,
+          name: result.name,
+          partNumber: result.partNumber || result.part_number,
+          quantity: typeof result.quantity === 'string' ? parseInt(result.quantity, 10) : result.quantity,
+          unit: result.unit,
+          projectId: selectedProjectId,
+          material: result.material || undefined,
+          surfaceFinish: result.surfaceFinish || result.surface_finish || undefined,
+          process: result.process || undefined,
+          deliveryTime: result.deliveryTime || result.delivery_time || undefined,
+          tolerance: result.tolerance || undefined,
+          drawingNumber: result.drawingNumber || result.drawing_url || undefined,
+          remarks: result.remarks || undefined,
+        };
+        
         // Add the new part to the Zustand store to update UI immediately
-        console.log('Adding part to store:', result);
-        addPart(result);
-        return result;
+        console.log('Adding part to store:', newPart);
+        addPart(newPart);
+        
+        // Force refresh of parts data if needed
+        if (!allParts[selectedProjectId]?.some(p => p.id === newPart.id)) {
+          console.log('Part was not added to store correctly, refreshing data...');
+          const refreshedParts = await fetchRfqParts(token, organization?.id || '', selectedProjectId);
+          setParts(selectedProjectId, refreshedParts);
+        }
+        
+        return newPart;
       }
       
       return null;
@@ -233,7 +267,7 @@ export function useRfqData() {
       toast.error('Failed to add item');
       return null;
     }
-  }, [selectedProjectId, getToken, addPart]);
+  }, [selectedProjectId, getToken, addPart, setParts, organization?.id, allParts]);
 
   const navigateToSuppliers = () => {
     navigate('/dashboard/suppliers');

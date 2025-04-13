@@ -20,6 +20,7 @@ export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: R
     try {
       setIsSubmitting(true);
       
+      // Ensure all values are properly formatted
       const newPart: Omit<RfqPart, "id"> = {
         name: values.name,
         partNumber: values.partNumber,

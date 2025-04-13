@@ -24,6 +24,7 @@ export default function RfqItems() {
   const [selectedFile, setSelectedFile] = useState<RfqFile | null>(null);
   const [isParseDialogOpen, setIsParseDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // Add refresh key to force re-render
   
   const { 
     project,
@@ -51,6 +52,9 @@ export default function RfqItems() {
       
       if (!result) {
         toast.error("Failed to add part");
+      } else {
+        // Force a re-render of the component to reflect the new part
+        setRefreshKey(prev => prev + 1);
       }
       
       return result;
@@ -115,6 +119,11 @@ export default function RfqItems() {
   // Get selected parts data for the inquiry dialog
   const selectedParts = parts.filter(part => selectedPartIds.includes(part.id));
   
+  // Log current parts every time they change
+  useEffect(() => {
+    console.log("Current parts in RfqItems:", parts);
+  }, [parts]);
+  
   if (!project) {
     return (
       <div className="page-container">
@@ -143,8 +152,8 @@ export default function RfqItems() {
       <div className="flex justify-between items-center mb-4">
         <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
-            <TabsTrigger value="parts">Parts</TabsTrigger>
-            <TabsTrigger value="files">Files</TabsTrigger>
+            <TabsTrigger value="parts">Parts ({parts.length})</TabsTrigger>
+            <TabsTrigger value="files">Files ({files.length})</TabsTrigger>
           </TabsList>
           
           <TabsContent value="parts" className="mt-4 p-0 border-none">
@@ -158,6 +167,7 @@ export default function RfqItems() {
               </Button>
             </div>
             <RfqPartsList 
+              key={`parts-list-${refreshKey}-${parts.length}`} // Add key to force re-render
               isLoading={isLoading || isDeleting}
               parts={parts}
               selectedPartIds={selectedPartIds}
