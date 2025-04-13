@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RfqFile } from "@/stores/rfqStore";
-import { Download, FileX, FileCheck, FileUp, FileText } from "lucide-react";
+import { Download, FileX, FileCheck, FileUp, FileText, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -178,13 +178,18 @@ export function RfqFilesList({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {!isParsed(file) && onParseFile && (
+                {onParseFile && (
                   <Button 
-                    variant="outline" 
+                    variant={isParsed(file) ? "outline" : "default"} 
                     size="sm" 
                     onClick={() => onParseFile(file)}
                   >
-                    Parse
+                    {isParsed(file) ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Parse Again
+                      </>
+                    ) : 'Parse'}
                   </Button>
                 )}
                 <Button 

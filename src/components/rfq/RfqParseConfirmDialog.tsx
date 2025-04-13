@@ -64,13 +64,6 @@ export function RfqParseConfirmDialog({ open, onOpenChange, file }: RfqParseConf
       return;
     }
     
-    // Don't parse if already parsed
-    if (isFileParsed) {
-      toast.info('This file has already been parsed');
-      onOpenChange(false);
-      return;
-    }
-    
     setIsParsing(true);
     
     try {
@@ -147,15 +140,22 @@ export function RfqParseConfirmDialog({ open, onOpenChange, file }: RfqParseConf
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Parse RFQ Document</DialogTitle>
+          <DialogTitle>{isFileParsed ? 'Parse Again' : 'Parse RFQ Document'}</DialogTitle>
           <DialogDescription>
-            Would you like to extract parts automatically from the uploaded file?
+            {isFileParsed 
+              ? 'Re-extract parts from this file? This may create duplicate parts.' 
+              : 'Would you like to extract parts automatically from the uploaded file?'}
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <p className="text-sm text-muted-foreground mb-4">
             Our AI system will analyze the document and identify parts information such as names, 
             quantities, materials, and specifications.
+            {isFileParsed && (
+              <span className="block mt-2 text-amber-600">
+                Note: This file has already been parsed. Parsing again may create duplicate entries.
+              </span>
+            )}
           </p>
           {file && (
             <div className="p-3 rounded-md bg-muted">
@@ -173,15 +173,15 @@ export function RfqParseConfirmDialog({ open, onOpenChange, file }: RfqParseConf
             onClick={() => onOpenChange(false)}
             disabled={isParsing}
           >
-            Skip
+            Cancel
           </Button>
           <Button 
             type="button" 
             onClick={handleParse} 
-            disabled={isParsing || isFileParsed}
+            disabled={isParsing}
           >
             {isParsing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isParsing ? 'Parsing...' : isFileParsed ? 'Already Parsed' : 'Parse Document'}
+            {isParsing ? 'Parsing...' : (isFileParsed ? 'Parse Again' : 'Parse Document')}
           </Button>
         </DialogFooter>
       </DialogContent>
