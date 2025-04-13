@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,6 @@ import { getMaxItemNumber } from './EmailConversation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, ChevronDown, History, DollarSign, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { QuotationHistory } from './QuotationHistory';
@@ -123,28 +121,23 @@ const mockQuotations: Record<string, Quotation[]> = {
 
 // Extract quotation items from email content
 const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
-  // Placeholder items array
   const items: QuotationItem[] = [];
   
-  // For each email, try to find quotation data
   emails.forEach(email => {
-    // Look for item matches in the format [ITEM-X] followed by details
     const itemMatches = [...email.content.matchAll(/\[ITEM-(\d+)\](.*?)(?=\[ITEM-\d+\]|$)/gs)];
     
     itemMatches.forEach(match => {
       const itemNumber = parseInt(match[1], 10);
       const itemDetails = match[2].trim();
       
-      // Try to extract price information using regex
       const priceMatch = itemDetails.match(/price:?\s*\$?(\d+(?:\.\d+)?)/i);
       const qtyMatch = itemDetails.match(/qty:?\s*(\d+)/i);
       const descMatch = itemDetails.match(/description:?\s*([^,;:]+)/i);
       
-      const unitPrice = priceMatch ? parseFloat(priceMatch[1]) : Math.floor(Math.random() * 100) + 20; // Fallback to random price
+      const unitPrice = priceMatch ? parseFloat(priceMatch[1]) : Math.floor(Math.random() * 100) + 20;
       const quantity = qtyMatch ? parseInt(qtyMatch[1], 10) : 1;
       const description = descMatch ? descMatch[1].trim() : `Item ${itemNumber}`;
       
-      // Add or update item
       const existingItem = items.find(item => item.itemNumber === itemNumber);
       if (!existingItem) {
         items.push({
@@ -158,7 +151,6 @@ const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
     });
   });
   
-  // If no items found, create some sample items based on the max item number
   if (items.length === 0) {
     const maxItemNumber = Math.max(0, ...emails.map(email => getMaxItemNumber(email.content)));
     for (let i = 1; i <= maxItemNumber; i++) {
@@ -189,15 +181,13 @@ const getLatestQuotation = (itemId: string): Quotation | undefined => {
 
 export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversationId }) => {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
-  const quotationItems = extractQuotationItems(emails);
-  const hasItemsFormat = emails.some(email => email.content.includes('[ITEM-'));
+  
+  const safeEmails = Array.isArray(emails) ? emails : [];
+  const quotationItems = extractQuotationItems(safeEmails);
+  const hasItemsFormat = safeEmails.some(email => email.content.includes('[ITEM-'));
   
   const toggleHistory = (itemId: string) => {
-    if (expandedItem === itemId) {
-      setExpandedItem(null);
-    } else {
-      setExpandedItem(itemId);
-    }
+    setExpandedItem(expandedItem === itemId ? null : itemId);
   };
   
   return (
@@ -227,7 +217,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
                 {quotationItems.map((item) => {
                   const itemId = `item_${item.itemNumber}`;
                   const latestQuote = getLatestQuotation(itemId);
-                  const hasHistory = mockQuotations[itemId]?.length > 1;
+                  const hasHistory = (mockQuotations[itemId]?.length || 0) > 1;
                   
                   return (
                     <React.Fragment key={item.itemNumber}>
@@ -320,4 +310,3 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     </Card>
   );
 };
-

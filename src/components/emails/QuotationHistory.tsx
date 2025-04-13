@@ -17,6 +17,8 @@ interface Quotation {
   quoteTime: string;
   organizationId: string;
   supplierName?: string;
+  change?: number;
+  changePercent?: number;
 }
 
 interface QuotationHistoryProps {
@@ -114,7 +116,9 @@ export const QuotationHistory: React.FC<QuotationHistoryProps> = ({
                 {quote.leadTime}
               </TableCell>
               <TableCell className="text-right">
-                {'change' in quote ? renderPriceChange(quote.change, quote.changePercent) : null}
+                {quote.change !== undefined && quote.changePercent !== undefined 
+                  ? renderPriceChange(quote.change, quote.changePercent) 
+                  : null}
               </TableCell>
               <TableCell>
                 {quote.remarks}
