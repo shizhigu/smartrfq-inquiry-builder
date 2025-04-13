@@ -69,15 +69,16 @@ export function RfqSupplierSelector({
                 </div>
               ) : (
                 <>
-                  {/* Add a placeholder item with a non-empty value that represents "no selection" */}
-                  {!selectedSupplierId && (
-                    <SelectItem value="no-selection" disabled>
-                      Select a supplier
-                    </SelectItem>
-                  )}
+                  {/* Always include a placeholder item with a non-empty value that represents "no selection" */}
+                  <SelectItem value="no-selection">
+                    Select a supplier
+                  </SelectItem>
                   
                   {safeSuppliers.map((supplier) => (
-                    <SelectItem key={supplier.id} value={supplier.id || `supplier-${supplier.name}`}>
+                    <SelectItem 
+                      key={supplier.id || `supplier-${supplier.name}`} 
+                      value={supplier.id || `supplier-${supplier.name}`}
+                    >
                       <div className="flex flex-col">
                         <span className="font-medium">{supplier.name}</span>
                         <span className="text-xs text-muted-foreground">{supplier.email}</span>

@@ -28,7 +28,7 @@ export function RfqSupplierTabContent({
 }: RfqSupplierTabContentProps) {
   // Handle the special "no-selection" value
   const handleSupplierSelect = (supplierId: string) => {
-    // If 'no-selection' is selected, pass an empty string or do nothing
+    // If 'no-selection' is selected, pass an empty string to clear selection
     if (supplierId === 'no-selection') {
       onSupplierSelect('');
     } else {
