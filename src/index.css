@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,9 +36,13 @@
     --radius: 0.5rem;
     
     /* Brand colors */
-    --brand-blue: 214 100% 52%;
-    --brand-blue-light: 213 94% 68%;
-    --brand-blue-dark: 214 100% 40%;
+    --brand-indigo: 246 100% 52%;
+    --brand-indigo-light: 246 94% 68%;
+    --brand-indigo-dark: 246 100% 40%;
+    
+    --brand-purple: 270 100% 52%;
+    --brand-purple-light: 270 94% 68%;
+    --brand-purple-dark: 270 100% 40%;
     
     /* Dashboard colors */
     --dashboard-bg: 220 33% 98%;
@@ -60,7 +65,7 @@
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 240 5% 64.9%;
 
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
@@ -80,6 +85,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
   }
 }
 
@@ -111,6 +117,7 @@
   @apply transition-all duration-500 ease-in-out;
 }
 
+/* Animation keyframes */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -133,6 +140,21 @@
   }
 }
 
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 0.5s ease forwards;
 }
@@ -140,6 +162,18 @@
 .animate-fade-out {
   animation: fade-out 0.5s ease forwards;
   animation-play-state: paused;
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
 
 .expanded-content .animate-fade-out {

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,7 +100,6 @@ export default function Dashboard() {
     loadProjects();
   }, [setCurrentPage, setProjects, getToken, setLoading, projects.length]);
   
-  // Load all project RFQ items if needed
   useEffect(() => {
     if (projects.length > 0 && !initialDataLoaded) {
       loadAllProjectItems();
@@ -111,7 +109,6 @@ export default function Dashboard() {
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'open').length;
   
-  // Calculate total parts directly from the store
   const calculateTotalParts = () => {
     let totalCount = 0;
     Object.values(parts).forEach(projectParts => {
@@ -123,19 +120,16 @@ export default function Dashboard() {
   const totalParts = calculateTotalParts();
   const totalSuppliers = orgSuppliers.length;
   
-  // Log the state for debugging
   useEffect(() => {
     console.log('Dashboard: Projects count:', projects.length);
     console.log('Dashboard: Total parts count from store:', totalParts);
     console.log('Dashboard: Organization suppliers count from store:', totalSuppliers);
   }, [totalParts, projects.length, totalSuppliers]);
   
-  // Get part count for a specific project directly from the store
   const getProjectPartsCount = (projectId: string): number => {
     return parts[projectId]?.length || 0;
   };
   
-  // Sort projects by part count then by update date
   const recentProjects = [...projects]
     .sort((a, b) => {
       const partsA = getProjectPartsCount(a.id);
@@ -147,17 +141,20 @@ export default function Dashboard() {
   return (
     <div className="page-container">
       <PageHeader
-        title="Dashboard"
-        description="Overview of your RFQ projects and activities"
+        title="Xinra Dashboard"
+        description="Your procurement insights and activities at a glance"
       >
-        <Button onClick={() => navigate('/dashboard/projects')}>
+        <Button 
+          onClick={() => navigate('/dashboard/projects')}
+          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+        >
           View All Projects
         </Button>
       </PageHeader>
       
       {isLoading ? (
         <div className="text-center py-8 text-muted-foreground">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-indigo-600" />
           <p>Loading dashboard data...</p>
         </div>
       ) : (
@@ -168,30 +165,34 @@ export default function Dashboard() {
               value={totalProjects}
               icon={Folder}
               trend={totalProjects > 0 ? { value: 12, isPositive: true } : undefined}
+              className="border-l-4 border-indigo-500"
             />
             <StatCard
               title="Active Projects"
               value={activeProjects}
               icon={Clock}
               trend={activeProjects > 0 ? { value: 5, isPositive: true } : undefined}
+              className="border-l-4 border-purple-500"
             />
             <StatCard
               title="Total Parts"
               value={rfqStatsLoading ? "..." : totalParts}
               icon={FileText}
               trend={totalParts > 0 ? { value: 8, isPositive: true } : undefined}
+              className="border-l-4 border-indigo-500"
             />
             <StatCard
               title="Organization Suppliers"
               value={suppliersLoading ? "..." : totalSuppliers}
               icon={Building2}
               trend={totalSuppliers > 0 ? { value: 3, isPositive: true } : undefined}
+              className="border-l-4 border-purple-500"
             />
           </div>
           
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-lg">Top Projects by Parts Count</CardTitle>
+          <Card className="mb-6 shadow-md hover:shadow-lg transition-all duration-300 border-none bg-white">
+            <CardHeader className="border-b border-gray-100">
+              <CardTitle className="text-lg text-gray-900">Top Projects by Parts Count</CardTitle>
             </CardHeader>
             <CardContent>
               {recentProjects.length > 0 ? (
@@ -199,20 +200,20 @@ export default function Dashboard() {
                   {recentProjects.map(project => (
                     <div 
                       key={project.id} 
-                      className="flex items-center justify-between p-3 rounded-md hover:bg-muted cursor-pointer transition-colors"
+                      className="flex items-center justify-between p-3 rounded-md hover:bg-indigo-50 cursor-pointer transition-colors"
                       onClick={() => navigate(`/dashboard/projects`)}
                     >
                       <div>
-                        <h3 className="font-medium">{project.name}</h3>
+                        <h3 className="font-medium text-gray-900">{project.name}</h3>
                         <p className="text-sm text-muted-foreground line-clamp-1">{project.description || 'No description'}</p>
                       </div>
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center">
-                          <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
+                          <FileText className="h-4 w-4 mr-1 text-indigo-500" />
                           <span>{rfqStatsLoading ? "..." : getProjectPartsCount(project.id)}</span>
                         </div>
                         <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-1 text-muted-foreground" />
+                          <Users className="h-4 w-4 mr-1 text-purple-500" />
                           <span>{project.suppliers_count || 0}</span>
                         </div>
                       </div>
@@ -227,15 +228,15 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Recent Activity</CardTitle>
+          <Card className="shadow-md hover:shadow-lg transition-all duration-300 border-none bg-white">
+            <CardHeader className="border-b border-gray-100">
+              <CardTitle className="text-lg text-gray-900">Recent Activity</CardTitle>
             </CardHeader>
             <CardContent>
               {projects.length > 0 ? (
                 <div className="space-y-4">
                   <div className="flex items-start gap-4 p-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
                       <Mail className="h-5 w-5" />
                     </div>
                     <div className="space-y-1">
@@ -244,7 +245,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="flex items-start gap-4 p-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 text-purple-600">
                       <FileText className="h-5 w-5" />
                     </div>
                     <div className="space-y-1">
@@ -253,7 +254,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="flex items-start gap-4 p-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
                       <Folder className="h-5 w-5" />
                     </div>
                     <div className="space-y-1">
