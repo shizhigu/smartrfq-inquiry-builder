@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +20,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useEmailStore } from '@/stores/emailStore';
+import { Badge } from '@/components/ui/badge';
 import { API_CONFIG, useMockData } from '@/lib/config';
 
 interface QuotationTableProps {
@@ -26,15 +28,6 @@ interface QuotationTableProps {
   conversationId: string;
   supplierId?: string;
 }
-
-const cleanSupplierId = (supplierId: string | null): string | null => {
-  if (!supplierId) return null;
-  
-  return supplierId
-    .replace(/^["']|["']$/g, '')
-    .replace(/\s*HTTP\/\d\.\d\s*$/i, '')
-    .trim();
-};
 
 const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
   const items: QuotationItem[] = [];
@@ -100,7 +93,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [historyLoading, setHistoryLoading] = useState<Record<string, boolean>>({});
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [supplierId, setSupplierId] = useState<string | null>(cleanSupplierId(initialSupplierId || null));
+  const [supplierId, setSupplierId] = useState<string | null>(initialSupplierId || null);
   const { getToken } = useAuth();
   const { conversations, selectedProjectId } = useEmailStore();
   
@@ -211,12 +204,11 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
       
       const item = quotationItems.find(item => item.item_id === itemId);
       
-      let supplierIdToUse = cleanSupplierId(
-        item?.supplier_id || 
-        initialSupplierId || 
-        supplierId || 
-        currentConversation?.supplierId
-      );
+      let supplierIdToUse = item?.supplier_id || initialSupplierId || supplierId;
+      
+      if (!supplierIdToUse && currentConversation) {
+        supplierIdToUse = currentConversation.supplierId;
+      }
       
       if (!supplierIdToUse) {
         toast.error('Unable to fetch history: Missing supplier information');
@@ -226,6 +218,11 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
           [itemId]: []
         }));
         return;
+      }
+      
+      // Remove any quotes that might be around the supplier ID
+      if (typeof supplierIdToUse === 'string') {
+        supplierIdToUse = supplierIdToUse.replace(/^["']|["']$/g, '');
       }
       
       const history = await getQuotationHistory(token, itemId, supplierIdToUse);
