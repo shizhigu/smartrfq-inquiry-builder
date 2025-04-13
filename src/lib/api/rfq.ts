@@ -196,6 +196,77 @@ export async function addRfqPart(
   return response.json();
 }
 
+// Insert a new RFQ item manually
+export async function insertRfqItem(
+  token: string,
+  projectId: string,
+  itemData: {
+    index_no: number;
+    part_number: string;
+    name: string;
+    quantity: string;
+    material?: string;
+    size?: string;
+    process?: string;
+    delivery_time?: string;
+    unit: string;
+    tolerance?: string;
+    drawing_url?: string;
+    surface_finish?: string;
+    remarks?: string;
+    other?: Record<string, any>;
+    project_id: string;
+  }
+): Promise<RfqPart> {
+  // Use mock data if mocks are enabled
+  if (useMockData()) {
+    console.log('Using mock data for insertRfqItem');
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 600));
+    
+    const newPart: RfqPart = {
+      id: `part_${Date.now()}`,
+      name: itemData.name,
+      partNumber: itemData.part_number,
+      quantity: parseInt(itemData.quantity, 10) || 1,
+      unit: itemData.unit,
+      material: itemData.material,
+      surfaceFinish: itemData.surface_finish,
+      process: itemData.process,
+      deliveryTime: itemData.delivery_time,
+      tolerance: itemData.tolerance,
+      drawingNumber: itemData.drawing_url,
+      remarks: itemData.remarks,
+      projectId: projectId,
+      status: 'open'
+    };
+    
+    if (!mockRfqParts[projectId]) {
+      mockRfqParts[projectId] = [];
+    }
+    
+    mockRfqParts[projectId].push(newPart);
+    
+    return newPart;
+  }
+  
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/rfq-items/insert`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(itemData),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error?.message || 'Failed to insert RFQ item');
+  }
+
+  return response.json();
+}
+
 // Delete RFQ parts
 export async function deleteRfqParts(
   token: string,

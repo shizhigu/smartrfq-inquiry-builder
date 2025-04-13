@@ -23,4 +23,5 @@ export interface RfqAddPartFormProps {
   defaultValues?: PartFormValues;
   onSubmit: (values: PartFormValues) => void;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }

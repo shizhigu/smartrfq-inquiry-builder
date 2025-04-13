@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -13,7 +14,6 @@ import { RfqFile, RfqPart } from "@/stores/rfqStore";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useAuth, useOrganization } from "@clerk/clerk-react";
 
 export default function RfqItems() {
   const [activeTab, setActiveTab] = useState("parts");
@@ -35,25 +35,28 @@ export default function RfqItems() {
     selectAllParts,
     clearPartSelection,
     addPart,
-    deleteSelectedParts
+    deleteSelectedParts,
+    insertManualItem
   } = useRfqData();
   
   const handleAddPart = () => {
     setIsAddPartDialogOpen(true);
   };
 
-  const handleSubmitNewPart = (partData: Omit<RfqPart, "id">) => {
+  const handleSubmitNewPart = async (partData: Omit<RfqPart, "id">) => {
     try {
-      const newPartWithId: RfqPart = {
-        ...partData,
-        id: `part_${Date.now()}`, // Generate a temporary ID for the new part
-      };
+      // Use the new insertManualItem function instead of directly adding to the store
+      const result = await insertManualItem(partData);
       
-      addPart(newPartWithId);
-      toast.success("Part added successfully");
+      if (!result) {
+        toast.error("Failed to add part");
+      }
+      
+      return result;
     } catch (error) {
       console.error("Failed to add part:", error);
       toast.error("Failed to add part");
+      throw error;
     }
   };
   

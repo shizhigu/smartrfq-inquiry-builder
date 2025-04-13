@@ -7,8 +7,9 @@ import { PartFormValues, partFormSchema, RfqAddPartFormProps } from "./types";
 import { RfqPartBasicInfoFields } from "./RfqPartBasicInfoFields";
 import { RfqPartManufacturingFields } from "./RfqPartManufacturingFields";
 import { RfqPartTechnicalFields } from "./RfqPartTechnicalFields";
+import { Loader2 } from "lucide-react";
 
-export function RfqAddPartForm({ defaultValues, onSubmit, onCancel }: RfqAddPartFormProps) {
+export function RfqAddPartForm({ defaultValues, onSubmit, onCancel, isSubmitting }: RfqAddPartFormProps) {
   const form = useForm<PartFormValues>({
     resolver: zodResolver(partFormSchema),
     defaultValues: defaultValues || {
@@ -34,10 +35,19 @@ export function RfqAddPartForm({ defaultValues, onSubmit, onCancel }: RfqAddPart
         <RfqPartTechnicalFields form={form} />
 
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-          <Button variant="outline" type="button" onClick={onCancel}>
+          <Button variant="outline" type="button" onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button type="submit">Add Part</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Adding Part...
+              </>
+            ) : (
+              "Add Part"
+            )}
+          </Button>
         </div>
       </form>
     </Form>

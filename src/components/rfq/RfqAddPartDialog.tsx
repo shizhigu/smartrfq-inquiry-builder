@@ -4,6 +4,7 @@ import { RfqPart } from "@/stores/rfqStore";
 import { toast } from "sonner";
 import { RfqAddPartForm } from "./partDialog/RfqAddPartForm";
 import { PartFormValues } from "./partDialog/types";
+import { useState } from "react";
 
 interface RfqAddPartDialogProps {
   open: boolean;
@@ -13,8 +14,12 @@ interface RfqAddPartDialogProps {
 }
 
 export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: RfqAddPartDialogProps) {
-  const handleSubmit = (values: PartFormValues) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const handleSubmit = async (values: PartFormValues) => {
     try {
+      setIsSubmitting(true);
+      
       const newPart: Omit<RfqPart, "id"> = {
         name: values.name,
         partNumber: values.partNumber,
@@ -30,12 +35,13 @@ export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: R
         remarks: values.remarks || undefined,
       };
       
-      onAddPart(newPart);
+      await onAddPart(newPart);
       onOpenChange(false);
-      toast.success("Part added successfully");
     } catch (error) {
       console.error("Failed to add part:", error);
       toast.error("Failed to add part");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -53,7 +59,11 @@ export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: R
           </DialogDescription>
         </DialogHeader>
 
-        <RfqAddPartForm onSubmit={handleSubmit} onCancel={handleCancel} />
+        <RfqAddPartForm 
+          onSubmit={handleSubmit} 
+          onCancel={handleCancel} 
+          isSubmitting={isSubmitting}
+        />
       </DialogContent>
     </Dialog>
   );

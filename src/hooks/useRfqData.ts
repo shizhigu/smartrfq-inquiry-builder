@@ -1,5 +1,4 @@
-
-import { fetchRfqFiles, fetchRfqParts, deleteRfqParts } from "@/lib/api/rfq";
+import { fetchRfqFiles, fetchRfqParts, deleteRfqParts, insertRfqItem } from "@/lib/api/rfq";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { RfqPart, useRfqStore } from "@/stores/rfqStore";
@@ -40,21 +39,17 @@ export function useRfqData() {
   
   const setCurrentPage = useAppStore(state => state.setCurrentPage);
   
-  // Use a ref to track if data has been loaded to prevent infinite loops
   const dataLoadedRef = useRef({
     parts: false,
     files: false,
     suppliers: false
   });
   
-  // Helper function to check if mock data should be used
   const useMockData = () => {
     return API_CONFIG.USE_MOCK_DATA === true;
   };
   
-  // Memoize the loadRfqData function to prevent it from being recreated on each render
   const loadRfqData = useCallback(async () => {
-    // If no project is selected, redirect to projects page
     if (!selectedProjectId) {
       toast.error('Please select a project first');
       navigate('/dashboard/projects');
@@ -62,23 +57,18 @@ export function useRfqData() {
     }
     
     try {
-      // For demo purposes, we'll simulate being authenticated
-      // In a real app, we'd redirect to login if no token
       const simulatedToken = 'simulated-token';
       const simulatedOrgId = 'simulated-org';
       
-      // Get token from Clerk if available
       const token = await getToken() || simulatedToken;
       const currentOrgId = orgId || simulatedOrgId;
       
-      // Only fetch parts if they don't exist for this project and haven't been loaded yet
       if ((!parts[selectedProjectId] || parts[selectedProjectId].length === 0) && 
           !dataLoadedRef.current.parts) {
         console.log('Fetching parts from API as they are not in store');
         setLoading(true);
         
         try {
-          // Fetch parts for the selected project
           const fetchedParts = await fetchRfqParts(
             token, 
             currentOrgId,
@@ -94,14 +84,12 @@ export function useRfqData() {
         console.log('Using parts from Zustand store');
       }
       
-      // Only fetch files if they don't exist for this project and haven't been loaded yet
       if ((!files[selectedProjectId] || files[selectedProjectId].length === 0) && 
           !dataLoadedRef.current.files) {
         console.log('Fetching files from API as they are not in store');
         setLoading(true);
         
         try {
-          // Fetch files for the selected project
           const fetchedFiles = await fetchRfqFiles(
             token, 
             currentOrgId,
@@ -117,14 +105,11 @@ export function useRfqData() {
         console.log('Using files from Zustand store');
       }
       
-      // Load suppliers if they don't exist for this project and haven't been loaded yet
       if ((!suppliers[selectedProjectId] || suppliers[selectedProjectId].length === 0) && 
           !dataLoadedRef.current.suppliers) {
         console.log('Loading mock suppliers as they are not in store');
         
         try {
-          // For demo purposes, we'll use mock suppliers
-          // In a real app, we'd fetch these from an API
           if (mockSuppliers[selectedProjectId]) {
             setSuppliers(selectedProjectId, mockSuppliers[selectedProjectId]);
             dataLoadedRef.current.suppliers = true;
@@ -134,7 +119,6 @@ export function useRfqData() {
           toast.error('Failed to load suppliers');
         }
       }
-      
     } catch (error) {
       console.error('Failed to load RFQ data', error);
       toast.error('Failed to load RFQ data');
@@ -146,7 +130,6 @@ export function useRfqData() {
   useEffect(() => {
     setCurrentPage('rfq');
     
-    // Reset our loading tracker when the project changes
     if (selectedProjectId) {
       dataLoadedRef.current = {
         parts: parts[selectedProjectId]?.length > 0,
@@ -156,12 +139,8 @@ export function useRfqData() {
       
       loadRfqData();
     }
-    
-    // Only include dependencies that should trigger a re-load
-    // Notably NOT including parts, files, or suppliers here
   }, [selectedProjectId, setCurrentPage, loadRfqData]);
 
-  // Helper function to delete parts from the local store and the backend
   const deleteSelectedParts = useCallback(async (partIds: string[]) => {
     if (!selectedProjectId || partIds.length === 0) return;
     
@@ -171,8 +150,6 @@ export function useRfqData() {
         throw new Error('Authentication required');
       }
       
-      // Filter for valid UUID formatted IDs (the backend expects UUIDs)
-      // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       const validPartIds = partIds.filter(id => uuidRegex.test(id));
       
@@ -182,7 +159,6 @@ export function useRfqData() {
         return;
       }
       
-      // Call the API to delete parts
       await deleteRfqParts(
         token,
         organization?.id || '',
@@ -190,7 +166,6 @@ export function useRfqData() {
         validPartIds
       );
       
-      // Update the local store
       validPartIds.forEach(id => {
         deletePart(id);
       });
@@ -202,6 +177,59 @@ export function useRfqData() {
       toast.error('Failed to delete parts');
     }
   }, [selectedProjectId, deletePart, clearPartSelection, getToken, organization?.id]);
+
+  const insertManualItem = useCallback(async (partData: Omit<RfqPart, "id">) => {
+    if (!selectedProjectId) {
+      toast.error('No project selected');
+      return null;
+    }
+    
+    try {
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+      
+      const itemData = {
+        index_no: 0,
+        part_number: partData.partNumber,
+        name: partData.name,
+        quantity: partData.quantity.toString(),
+        material: partData.material || "",
+        size: "",
+        process: partData.process || "",
+        delivery_time: partData.deliveryTime || "",
+        unit: partData.unit,
+        tolerance: partData.tolerance || "",
+        drawing_url: partData.drawingNumber || "",
+        surface_finish: partData.surfaceFinish || "",
+        remarks: partData.remarks || "",
+        other: {},
+        project_id: selectedProjectId
+      };
+      
+      console.log('Inserting manual item:', itemData);
+      
+      const result = await insertRfqItem(
+        token,
+        organization?.id || '',
+        selectedProjectId,
+        itemData
+      );
+      
+      if (result && result.id) {
+        addPart(result);
+        toast.success('Item added successfully');
+        return result;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Failed to insert manual item:', error);
+      toast.error('Failed to add item');
+      return null;
+    }
+  }, [selectedProjectId, getToken, organization?.id, addPart]);
 
   const navigateToSuppliers = () => {
     navigate('/dashboard/suppliers');
@@ -219,6 +247,7 @@ export function useRfqData() {
     clearPartSelection,
     addPart,
     deleteSelectedParts,
+    insertManualItem,
     navigateToSuppliers
   };
 }
