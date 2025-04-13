@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -103,15 +102,9 @@ export default function RfqItems() {
   };
 
   const handleFileAction = (file: RfqFile) => {
-    // Check if file is already parsed
-    const isParsed = file.ocr_text && file.ocr_text.trim().length > 0;
-    
-    if (!isParsed) {
-      setSelectedFile(file);
-      setIsParseDialogOpen(true);
-    } else {
-      toast.info('This file has already been parsed');
-    }
+    // Always open the parse dialog whether the file has been parsed before or not
+    setSelectedFile(file);
+    setIsParseDialogOpen(true);
   };
   
   const isPartSelected = (partId: string) => selectedPartIds.includes(partId);
