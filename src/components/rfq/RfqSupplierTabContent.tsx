@@ -46,7 +46,10 @@ export function RfqSupplierTabContent({
     }
   };
 
-  const toggleExpand = () => {
+  const toggleExpand = (e: React.MouseEvent) => {
+    // Prevent event propagation to avoid form submission
+    e.preventDefault();
+    e.stopPropagation();
     setIsExpanded(!isExpanded);
   };
 
@@ -93,6 +96,7 @@ export function RfqSupplierTabContent({
             variant="ghost"
             size="sm"
             onClick={toggleExpand}
+            type="button" // Explicitly set button type to prevent form submission
             title={isExpanded ? "Shrink" : "Expand"}
             className={cn(
               "transition-all duration-300 rounded-full p-2",
