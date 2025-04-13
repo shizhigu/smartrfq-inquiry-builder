@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { RfqPart } from "@/stores/rfqStore";
 import { Loader2, Mail, Wand2 } from "lucide-react";
@@ -66,7 +66,7 @@ export function RfqSendInquiryDialog({
     }
   }, [open]);
 
-  const handleGenerateTemplate = async () => {
+  const handleGenerateTemplate = useCallback(async () => {
     if (!selectedParts || selectedParts.length === 0) {
       toast.error('No parts selected');
       return;
@@ -102,9 +102,9 @@ export function RfqSendInquiryDialog({
     } finally {
       setIsGeneratingTemplate(false);
     }
-  };
+  }, [selectedParts, selectedSupplierId, getToken, projectId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedSupplierId) {
@@ -170,18 +170,18 @@ export function RfqSendInquiryDialog({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedSupplierId, suppliers, selectedParts, getToken, projectId, message, subject, conversationId, attachments, onOpenChange, navigate]);
 
-  const handleSupplierSelect = (supplierId: string) => {
+  const handleSupplierSelect = useCallback((supplierId: string) => {
     if (supplierId && supplierId !== 'no-selection') {
       setSelectedSupplierId(supplierId);
       setConversationId(null);
     } else {
       setSelectedSupplierId("");
     }
-  };
+  }, []);
   
-  const handleAddSupplier = async (supplierData: Supplier) => {
+  const handleAddSupplier = useCallback(async (supplierData: Supplier) => {
     if (supplierData && supplierData.id) {
       toast.success(`${supplierData.name} has been added to your suppliers`);
       
@@ -190,7 +190,7 @@ export function RfqSendInquiryDialog({
     }
     
     setIsAddSupplierOpen(false);
-  };
+  }, [loadSuppliers]);
   
   return (
     <>
@@ -247,7 +247,7 @@ export function RfqSendInquiryDialog({
               <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading || !selectedSupplierId}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

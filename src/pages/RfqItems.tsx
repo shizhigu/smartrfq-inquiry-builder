@@ -200,12 +200,15 @@ export default function RfqItems() {
         onAddPart={handleSubmitNewPart}
       />
 
-      <RfqSendInquiryDialog
-        open={isSendInquiryDialogOpen}
-        onOpenChange={setIsSendInquiryDialogOpen}
-        selectedParts={selectedParts}
-        projectId={project?.id || ''}
-      />
+      {/* Only render dialog when it's open to avoid mount/unmount issues */}
+      {isSendInquiryDialogOpen && (
+        <RfqSendInquiryDialog
+          open={isSendInquiryDialogOpen}
+          onOpenChange={setIsSendInquiryDialogOpen}
+          selectedParts={selectedParts}
+          projectId={project?.id || ''}
+        />
+      )}
 
       <RfqParseConfirmDialog
         open={isParseDialogOpen}
