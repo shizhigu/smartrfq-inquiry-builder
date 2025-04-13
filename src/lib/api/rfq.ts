@@ -2,47 +2,11 @@
 import { API_CONFIG, useMockData } from '../config';
 import { mockRfqParts, mockRfqFiles } from '../mock/mockData';
 import { v4 as uuidv4 } from 'uuid';
+import { RfqPart as StoreRfqPart, RfqFile as StoreRfqFile } from '@/stores/rfqStore';
 
-export interface RfqPart {
-  id: string;
-  name: string;
-  partNumber: string;
-  part_number: string;
-  description?: string;
-  quantity: number;
-  unit: string;
-  targetPrice?: number;
-  category?: string;
-  status: string;
-  projectId: string;
-  project_id: string;
-  material?: string;
-  surfaceFinish?: string;
-  surface_finish?: string;
-  process?: string;
-  deliveryTime?: string;
-  delivery_time?: string;
-  tolerance?: string;
-  drawingNumber?: string;
-  drawing_url?: string;
-  remarks?: string;
-  supplierId?: string;
-  supplier_id?: string;
-}
-
-export interface RfqFile {
-  id: string;
-  filename: string;
-  file_url: string;
-  size: number;
-  project_id: string;
-  status: 'processing' | 'completed' | 'failed';  // Keeping for compatibility but we'll interpret differently
-  uploaded_at: string;
-  ocr_text?: string;  // This will determine if a file is parsed or not
-  organization_id?: string;
-  type?: string;
-  uploadedBy?: string;
-}
+// Use the store's RfqPart type to avoid duplication and keep things in sync
+export type RfqPart = StoreRfqPart;
+export type RfqFile = StoreRfqFile;
 
 // Interface for parsed items from RFQ document
 export interface ParsedRfqItem {

@@ -20,9 +20,10 @@ export interface RfqPart {
   drawing_url?: string;
   remarks?: string;
   projectId: string;
-  project_id?: string; // Added for consistency
+  project_id: string; // Required, not optional
   supplierId?: string;
   supplier_id?: string; // Added for consistency
+  status?: string; // Add status property
 }
 
 export interface RfqFile {

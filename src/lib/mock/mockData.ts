@@ -1,4 +1,3 @@
-
 import { API_CONFIG, useMockData } from '../config';
 import { RfqFile, RfqPart } from '@/stores/rfqStore';
 import { Supplier } from '@/stores/supplierStore';
