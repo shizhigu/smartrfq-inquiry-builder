@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useProjectStore } from "@/stores/projectStore";
 import { useState, useEffect } from "react";
@@ -18,6 +17,7 @@ import { useAppStore } from "@/stores/appStore";
 import { useUserStore } from "@/stores/userStore";
 import { useSupplierStore } from "@/stores/supplierStore";
 import { useRfqStore } from "@/stores/rfqStore";
+import { useEmailStore } from "@/stores/emailStore";
 import { toast } from "sonner";
 
 export function Topbar() {
@@ -36,6 +36,7 @@ export function Topbar() {
   const resetProjectState = useProjectStore((state) => state.resetState);
   const resetSupplierState = useSupplierStore((state) => state.resetState);
   const resetRfqState = useRfqStore((state) => state.resetState);
+  const resetEmailState = useEmailStore((state) => state.resetState);
   
   // Previous organization ID ref
   const [previousOrgId, setPreviousOrgId] = useState<string | undefined>(organizationId);
@@ -45,7 +46,7 @@ export function Topbar() {
     
     // If this is not the initial load and the organization has changed
     if (previousOrgId && previousOrgId !== organization?.id) {
-      console.log('Organization switched, resetting all stores');
+      console.log('Organization switched, resetting all stores and clearing localStorage');
       
       // Reset all Zustand stores
       resetAppState();
@@ -53,14 +54,26 @@ export function Topbar() {
       resetProjectState();
       resetSupplierState();
       resetRfqState();
+      resetEmailState();
+      
+      // Clear localStorage for all stores to ensure fresh data is loaded
+      localStorage.removeItem('smartrfq-user-state');
+      localStorage.removeItem('smartrfq-app-state');
+      localStorage.removeItem('smartrfq-project-state');
+      localStorage.removeItem('smartrfq-supplier-state');
+      localStorage.removeItem('smartrfq-rfq-state');
+      // Email store doesn't use persist, so no need to clear it
       
       // Show notification to user
       toast.info('Switched organization. Data has been reset.');
+      
+      // Force reload the page to ensure clean state
+      window.location.reload();
     }
     
     // Update previous org ID
     setPreviousOrgId(organization?.id);
-  }, [organization?.id, previousOrgId, resetAppState, resetUserState, resetProjectState, resetSupplierState, resetRfqState]);
+  }, [organization?.id, previousOrgId, resetAppState, resetUserState, resetProjectState, resetSupplierState, resetRfqState, resetEmailState]);
   
   return (
     <div className="h-16 border-b border-border flex items-center justify-between px-4 bg-background">

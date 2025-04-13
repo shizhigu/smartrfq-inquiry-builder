@@ -6,6 +6,7 @@ import { useAppStore } from '@/stores/appStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { useSupplierStore } from '@/stores/supplierStore';
 import { useRfqStore } from '@/stores/rfqStore';
+import { useEmailStore } from '@/stores/emailStore';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -32,28 +33,41 @@ export function useAuthManager() {
   const projectStore = useProjectStore();
   const supplierStore = useSupplierStore();
   const rfqStore = useRfqStore();
+  const emailStore = useEmailStore();
   
   // Timer references
   const idleTimerRef = useRef<number | null>(null);
   const dialogTimerRef = useRef<number | null>(null);
   
-  // Function to reset all store states
+  // Function to reset all store states and clear localStorage
   const resetAllStores = useCallback(() => {
+    // First reset all stores (this updates the memory state)
     userStore.resetState();
     appStore.resetState();
     projectStore.resetState();
     supplierStore.resetState();
     rfqStore.resetState();
-  }, [userStore, appStore, projectStore, supplierStore, rfqStore]);
+    emailStore.resetState();
+    
+    // Clear all Zustand persistent stores from localStorage
+    localStorage.removeItem('smartrfq-user-state');
+    localStorage.removeItem('smartrfq-app-state');
+    localStorage.removeItem('smartrfq-project-state');
+    localStorage.removeItem('smartrfq-supplier-state');
+    localStorage.removeItem('smartrfq-rfq-state');
+    // No need to clear email store as it doesn't use persist
+    
+    console.log('All Zustand stores reset and localStorage cleared');
+  }, [userStore, appStore, projectStore, supplierStore, rfqStore, emailStore]);
   
   // Handle logout
   const handleLogout = useCallback(async () => {
     try {
+      // Reset all stores and clear localStorage first
+      resetAllStores();
+      
       // Sign out with Clerk
       await signOut();
-      
-      // Reset all stores
-      resetAllStores();
       
       // Redirect to homepage
       navigate('/');
