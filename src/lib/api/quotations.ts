@@ -118,7 +118,24 @@ export async function getConversationQuotations(
       throw new Error(errorData.message || 'Failed to fetch conversation quotations');
     }
 
-    return response.json();
+    // Get the response data
+    const data = await response.json();
+    
+    // Check if the response is an array or has a quotations property
+    if (Array.isArray(data)) {
+      return data;
+    } else if (data && typeof data === 'object') {
+      // If the response is an object, look for a quotations array property
+      if (Array.isArray(data.quotations)) {
+        return data.quotations;
+      } else if (data.data && Array.isArray(data.data)) {
+        return data.data;
+      }
+    }
+    
+    // If no valid data format was found, return an empty array
+    console.warn('Unexpected response format from quotations API:', data);
+    return [];
   } catch (error) {
     console.error('Error fetching conversation quotations:', error);
     return [];

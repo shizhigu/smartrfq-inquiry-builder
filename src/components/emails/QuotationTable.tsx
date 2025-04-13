@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,13 +7,13 @@ import { getMaxItemNumber } from './EmailConversation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, ChevronDown, History, DollarSign, Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { QuotationHistory } from './QuotationHistory';
 import { QuotationItem } from '@/stores/emailStore';
 import { Quotation, getLatestQuotation, getQuotationHistory, getConversationQuotations } from '@/lib/api/quotations';
 import { useAuth } from '@clerk/clerk-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 interface QuotationTableProps {
   emails: Email[];
@@ -82,6 +83,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   const [quotationHistories, setQuotationHistories] = useState<Record<string, Quotation[]>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const { getToken } = useAuth();
   
   const safeEmails = Array.isArray(emails) ? emails : [];
@@ -93,6 +95,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     if (!conversationId) return;
     
     setIsLoading(true);
+    setFetchError(null);
     
     try {
       const token = await getToken();
@@ -100,8 +103,17 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         throw new Error('Unable to get authentication token');
       }
       
+      console.log(`Fetching quotations for conversation: ${conversationId}`);
+      
       // Get all quotations for this conversation
       const quotations = await getConversationQuotations(token, conversationId);
+      
+      console.log('Received quotations:', quotations);
+      
+      if (!Array.isArray(quotations)) {
+        console.error('Expected array but got:', typeof quotations, quotations);
+        throw new Error('Received invalid quotation data format');
+      }
       
       // Update state with fetched data
       const quotationMap: Record<string, Quotation | null> = {};
@@ -127,6 +139,8 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
       setQuotationHistoryCounts(historyCountMap);
     } catch (error) {
       console.error('Failed to fetch conversation quotations:', error);
+      setFetchError(error instanceof Error ? error.message : 'Failed to fetch quotation data');
+      toast.error('Failed to load quotation data');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -145,12 +159,21 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
       
       const response = await getQuotationHistory(token, rfqItemId, supplierId);
       
-      setQuotationHistories(prev => ({
-        ...prev,
-        [`item_${rfqItemId}`]: response.quotations
-      }));
+      if (response && Array.isArray(response.quotations)) {
+        setQuotationHistories(prev => ({
+          ...prev,
+          [`item_${rfqItemId}`]: response.quotations
+        }));
+      } else {
+        console.warn('Unexpected response format from quotation history API:', response);
+        setQuotationHistories(prev => ({
+          ...prev,
+          [`item_${rfqItemId}`]: []
+        }));
+      }
     } catch (error) {
       console.error('Failed to fetch quotation history:', error);
+      toast.error('Failed to load quotation history');
     }
   };
   
@@ -212,6 +235,14 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
           </div>
+        ) : fetchError ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              {fetchError}
+            </AlertDescription>
+          </Alert>
         ) : quotationItems.length > 0 ? (
           <Table>
             <TableHeader>
