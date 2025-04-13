@@ -1,5 +1,5 @@
 
-import { fetchRfqFiles, fetchRfqParts } from "@/lib/api/rfq";
+import { fetchRfqFiles, fetchRfqParts, deleteRfqParts } from "@/lib/api/rfq";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { RfqPart, useRfqStore } from "@/stores/rfqStore";
@@ -31,7 +31,8 @@ export function useRfqData() {
     togglePartSelection,
     selectAllParts,
     clearPartSelection,
-    addPart
+    addPart,
+    deletePart
   } = useRfqStore();
   
   const { suppliers, setSuppliers } = useSupplierStore();
@@ -154,6 +155,20 @@ export function useRfqData() {
     // Notably NOT including parts, files, or suppliers here
   }, [selectedProjectId, setCurrentPage, loadRfqData]);
 
+  // Helper function to delete parts from the local store after successful API call
+  const deleteSelectedParts = useCallback(async (partIds: string[]) => {
+    if (!selectedProjectId) return;
+    
+    try {
+      // Update the local store
+      partIds.forEach(id => {
+        deletePart(id);
+      });
+    } catch (error) {
+      console.error('Failed to delete parts from store:', error);
+    }
+  }, [selectedProjectId, deletePart]);
+
   const navigateToSuppliers = () => {
     navigate('/dashboard/suppliers');
   };
@@ -169,6 +184,7 @@ export function useRfqData() {
     selectAllParts,
     clearPartSelection,
     addPart,
+    deleteSelectedParts,
     navigateToSuppliers
   };
 }

@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RfqPart } from "@/stores/rfqStore";
-import { ListFilter, Download, Trash, Edit, X, Send, FileUp, Pencil } from "lucide-react";
+import { ListFilter, Download, Trash, Edit, X, Send, FileUp, Pencil, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -150,15 +151,19 @@ export function RfqPartsList({
                     variant="outline" 
                     size="sm" 
                     onClick={handleDeleteSelected}
-                    disabled={selectedPartIds.length === 0}
+                    disabled={selectedPartIds.length === 0 || isLoading}
                   >
-                    <Trash className="h-4 w-4 mr-2" />
-                    Delete
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Trash className="h-4 w-4 mr-2" />
+                    )}
+                    {isLoading ? 'Deleting...' : 'Delete'}
                   </Button>
                   <Button 
                     size="sm" 
                     onClick={handleSendInquiry}
-                    disabled={selectedPartIds.length === 0}
+                    disabled={selectedPartIds.length === 0 || isLoading}
                   >
                     <Send className="h-4 w-4 mr-2" />
                     Send Inquiry
