@@ -2,7 +2,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format, parseISO } from 'date-fns';
-import { TrendingDown, TrendingUp, TrendingFlat } from 'lucide-react';
+import { TrendingDown, TrendingUp, Minus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface Quotation {
@@ -63,7 +63,7 @@ export const QuotationHistory: React.FC<QuotationHistoryProps> = ({
     if (change === 0) {
       return (
         <div className="flex items-center">
-          <TrendingFlat className="h-4 w-4 text-muted-foreground mr-1" />
+          <Minus className="h-4 w-4 text-muted-foreground mr-1" />
           <span>No change</span>
         </div>
       );
