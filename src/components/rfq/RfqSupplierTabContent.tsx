@@ -1,13 +1,11 @@
 
-// Since RfqSupplierTabContent is in the read-only files, we'll create a wrapper component
-// that adds the subject functionality while using the original component
-
 import { useState, useEffect } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { RfqSupplierSelector } from "./RfqSupplierSelector";
+import { Supplier } from "@/stores/supplierStore";
 
 interface RfqSupplierTabContentProps {
   selectedSupplierId: string;
@@ -16,6 +14,9 @@ interface RfqSupplierTabContentProps {
   onMessageChange: (message: string) => void;
   subject?: string;
   onSubjectChange?: (subject: string) => void;
+  suppliers?: Supplier[];
+  isLoading?: boolean;
+  onAddNew?: () => void;
 }
 
 export function RfqSupplierTabContent({
@@ -24,7 +25,10 @@ export function RfqSupplierTabContent({
   message,
   onMessageChange,
   subject,
-  onSubjectChange
+  onSubjectChange,
+  suppliers = [],
+  isLoading = false,
+  onAddNew = () => {}
 }: RfqSupplierTabContentProps) {
   // Handle the special "no-selection" value
   const handleSupplierSelect = (supplierId: string) => {
@@ -43,8 +47,9 @@ export function RfqSupplierTabContent({
         <RfqSupplierSelector
           selectedSupplierId={selectedSupplierId}
           onSupplierSelect={handleSupplierSelect}
-          suppliers={[]}
-          onAddNew={() => {}}
+          suppliers={suppliers}
+          onAddNew={onAddNew}
+          isLoading={isLoading}
         />
       </div>
       

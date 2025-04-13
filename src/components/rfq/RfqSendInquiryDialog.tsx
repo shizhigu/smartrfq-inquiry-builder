@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { RfqPart } from "@/stores/rfqStore";
@@ -20,6 +21,9 @@ import { RfqSupplierTabContent } from "./RfqSupplierTabContent";
 import { RfqEmailTabContent } from "./RfqEmailTabContent";
 import { RfqSelectedPartsTable } from "./RfqSelectedPartsTable";
 import { getSupplier } from "@/lib/api/suppliers";
+import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
+import { SupplierAddSheet } from "./suppliers/SupplierAddSheet";
+import { useSuppliers } from "@/hooks/useSuppliers";
 
 interface RfqSendInquiryDialogProps {
   open: boolean;
@@ -44,6 +48,19 @@ export function RfqSendInquiryDialog({
   const [message, setMessage] = useState("");
   const [selectedSupplierId, setSelectedSupplierId] = useState("");
   const [supplierEmail, setSupplierEmail] = useState<string | null>(null);
+  const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
+  const [subject, setSubject] = useState("Request for Quote");
+  
+  // Get suppliers using the hook
+  const { suppliers, isLoading: suppliersLoading, loadSuppliers } = useOrganizationSuppliers();
+  const { handleAddSupplier } = useSuppliers();
+  
+  // Load suppliers when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadSuppliers(true);
+    }
+  }, [open, loadSuppliers]);
   
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -52,6 +69,7 @@ export function RfqSendInquiryDialog({
       setSelectedSupplierId("");
       setActiveTab("supplier");
       setSupplierEmail(null);
+      setSubject("Request for Quote");
     }
     onOpenChange(open);
   };
@@ -81,6 +99,29 @@ export function RfqSendInquiryDialog({
     
     fetchSupplierEmail();
   }, [selectedSupplierId, getToken]);
+  
+  const handleAddNewSupplier = async (supplierData: Omit<any, 'id' | 'projectId'>) => {
+    try {
+      // Call the handleAddSupplier function from useSuppliers
+      await handleAddSupplier({
+        name: supplierData.name,
+        email: supplierData.email,
+        phone: supplierData.phone || '',
+        tags: supplierData.tags || []
+      });
+      
+      // Refresh the suppliers list
+      loadSuppliers(true);
+      
+      // Close the add supplier dialog
+      setIsAddSupplierOpen(false);
+      
+      toast.success(`${supplierData.name} has been added as a supplier`);
+    } catch (error) {
+      console.error('Failed to add supplier:', error);
+      toast.error('Failed to add supplier');
+    }
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,7 +169,7 @@ export function RfqSendInquiryDialog({
       
       const partIds = selectedParts.map(part => part.id);
       
-      await sendRfqInquiry(token, orgId, projectId, partIds, emailAddress);
+      await sendRfqInquiry(token, orgId, projectId, partIds, emailAddress, subject);
       
       toast.success(`Inquiry sent to ${emailAddress}`);
       onOpenChange(false);
@@ -151,58 +192,73 @@ export function RfqSendInquiryDialog({
   };
   
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Send RFQ Inquiry</DialogTitle>
-          <DialogDescription>
-            Send an inquiry to a supplier about the selected parts.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="mt-4">
-            <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="supplier">Select Supplier</TabsTrigger>
-                <TabsTrigger value="email">Enter Email</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="supplier" className="space-y-4 py-4">
-                <RfqSupplierTabContent
-                  selectedSupplierId={selectedSupplierId}
-                  onSupplierSelect={setSelectedSupplierId}
-                  message={message}
-                  onMessageChange={setMessage}
-                />
-              </TabsContent>
-              
-              <TabsContent value="email" className="space-y-4 py-4">
-                <RfqEmailTabContent
-                  email={emailToSend}
-                  onEmailChange={setEmailToSend}
-                  message={message}
-                  onMessageChange={setMessage}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+    <>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Send RFQ Inquiry</DialogTitle>
+            <DialogDescription>
+              Send an inquiry to a supplier about the selected parts.
+            </DialogDescription>
+          </DialogHeader>
           
-          <div className="mt-4">
-            <RfqSelectedPartsTable selectedParts={selectedParts} />
-          </div>
-          
-          <DialogFooter className="mt-6">
-            <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isLoading}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoading ? 'Sending...' : 'Send Inquiry'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          <form onSubmit={handleSubmit}>
+            <div className="mt-4">
+              <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="supplier">Select Supplier</TabsTrigger>
+                  <TabsTrigger value="email">Enter Email</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="supplier" className="space-y-4 py-4">
+                  <RfqSupplierTabContent
+                    selectedSupplierId={selectedSupplierId}
+                    onSupplierSelect={setSelectedSupplierId}
+                    message={message}
+                    onMessageChange={setMessage}
+                    subject={subject}
+                    onSubjectChange={setSubject}
+                    suppliers={suppliers}
+                    isLoading={suppliersLoading}
+                    onAddNew={() => setIsAddSupplierOpen(true)}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="email" className="space-y-4 py-4">
+                  <RfqEmailTabContent
+                    email={emailToSend}
+                    onEmailChange={setEmailToSend}
+                    message={message}
+                    onMessageChange={setMessage}
+                    subject={subject}
+                    onSubjectChange={setSubject}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+            
+            <div className="mt-4">
+              <RfqSelectedPartsTable selectedParts={selectedParts} />
+            </div>
+            
+            <DialogFooter className="mt-6">
+              <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading ? 'Sending...' : 'Send Inquiry'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      <SupplierAddSheet
+        open={isAddSupplierOpen}
+        onOpenChange={setIsAddSupplierOpen}
+        onSave={handleAddNewSupplier}
+      />
+    </>
   );
 }

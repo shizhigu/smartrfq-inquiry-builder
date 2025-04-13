@@ -10,8 +10,6 @@ interface RfqEmailTabContentProps {
   onMessageChange: (message: string) => void;
   subject?: string;
   onSubjectChange?: (subject: string) => void;
-  hideEmailInput?: boolean;
-  hideSubjectInput?: boolean;
 }
 
 export function RfqEmailTabContent({
@@ -20,34 +18,30 @@ export function RfqEmailTabContent({
   message,
   onMessageChange,
   subject,
-  onSubjectChange,
-  hideEmailInput = false,
-  hideSubjectInput = false
+  onSubjectChange
 }: RfqEmailTabContentProps) {
   return (
     <div className="space-y-4">
-      {!hideEmailInput && (
-        <div className="space-y-2">
-          <Label htmlFor="email">Email Address</Label>
-          <Input 
-            id="email" 
-            type="email" 
-            placeholder="supplier@example.com"
-            value={email}
-            onChange={(e) => onEmailChange(e.target.value)}
-          />
-        </div>
-      )}
+      <div className="space-y-2">
+        <Label htmlFor="email">Email Address</Label>
+        <Input 
+          id="email" 
+          type="email" 
+          placeholder="Enter email address..." 
+          value={email}
+          onChange={(e) => onEmailChange(e.target.value)} 
+        />
+      </div>
       
-      {!hideSubjectInput && onSubjectChange && (
+      {onSubjectChange && (
         <div className="space-y-2">
           <Label htmlFor="subject">Subject</Label>
           <Input 
             id="subject" 
             type="text" 
-            placeholder="Enter subject..."
-            value={subject}
-            onChange={(e) => onSubjectChange(e.target.value)}
+            placeholder="Enter subject..." 
+            value={subject || ""}
+            onChange={(e) => onSubjectChange(e.target.value)} 
           />
         </div>
       )}
@@ -61,6 +55,10 @@ export function RfqEmailTabContent({
           onChange={(e) => onMessageChange(e.target.value)}
           rows={4}
         />
+      </div>
+      
+      <div className="text-sm text-muted-foreground mt-2">
+        <p>This message will be sent to the specified email address.</p>
       </div>
     </div>
   );

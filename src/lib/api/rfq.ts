@@ -291,35 +291,48 @@ export async function deleteRfqParts(
 }
 
 // Send inquiry to supplier
-export async function sendRfqInquiry(
-  token: string,
-  organizationId: string,
-  projectId: string,
-  partIds: string[],
-  supplierEmail: string
-): Promise<void> {
-  // Use mock data if mocks are enabled
+export const sendRfqInquiry = async (
+  token: string, 
+  orgId: string, 
+  projectId: string, 
+  partIds: string[], 
+  email: string,
+  subject?: string
+): Promise<any> => {
+  console.log(`Sending RFQ inquiry for project ${projectId} to ${email}`);
+  
   if (useMockData()) {
-    console.log('Using mock data for sendRfqInquiry');
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 800));
-    return;
+    
+    // Simulate sending inquiry
+    return {
+      success: true,
+      message: `RFQ inquiry sent to ${email}`
+    };
   }
   
-  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/inquiries`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/rfq/inquiries`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ item_ids: partIds, supplier_email: supplierEmail }),
+    body: JSON.stringify({
+      organization_id: orgId,
+      project_id: projectId,
+      part_ids: partIds,
+      email: email,
+      subject: subject || 'Request for Quote'
+    }),
   });
-
+  
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error?.message || 'Failed to send RFQ inquiry');
+    throw new Error(`Failed to send RFQ inquiry: ${response.statusText}`);
   }
-}
+  
+  return response.json();
+};
 
 // Parse RFQ file
 export async function parseRfqFile(
