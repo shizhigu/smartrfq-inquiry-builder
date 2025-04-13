@@ -251,11 +251,6 @@ const Emails = () => {
         </PageHeader>
         
         <div className="mt-6">
-          <div className="mb-4 p-3 bg-muted rounded-md text-xs">
-            <div><strong>Conversation ID:</strong> {selectedConversation.id}</div>
-            <div><strong>Supplier ID:</strong> {selectedConversation.supplierId || "Not available"}</div>
-          </div>
-          
           <ImportQuotation 
             conversationId={selectedConversation.id} 
           />

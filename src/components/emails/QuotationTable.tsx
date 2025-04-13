@@ -285,9 +285,41 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     setExpandedItem(itemId);
     await fetchQuotationHistory(itemId);
   };
+  
+  // Calculate total for an item, safely handling null latest_quotation
+  const calculateItemTotal = (item: QuotationItemResponse): number => {
+    if (!item.latest_quotation || item.latest_quotation.unit_price === null || item.latest_quotation.unit_price === undefined) {
+      return 0;
+    }
+    return item.latest_quotation.unit_price * item.quantity;
+  };
+
+  // Create a default latest_quotation for items that don't have one
+  const createDefaultQuotation = (item: QuotationItemResponse): QuotationItemResponse => {
+    if (!item.latest_quotation) {
+      return {
+        ...item,
+        latest_quotation: {
+          id: `fallback_quote_${item.item_number}`,
+          unit_price: 0,
+          currency: 'USD',
+          lead_time: 'Not specified',
+          quote_time: new Date().toISOString()
+        }
+      };
+    }
+    return item;
+  };
+
+  // Sort items by total price
+  const getSortedItems = (items: QuotationItemResponse[]): QuotationItemResponse[] => {
+    return [...items].map(createDefaultQuotation).sort((a, b) => {
+      return calculateItemTotal(b) - calculateItemTotal(a);
+    });
+  };
 
   const displayItems = quotationItems.length > 0 
-    ? quotationItems 
+    ? getSortedItems(quotationItems)
     : extractedItems.map(item => ({
         item_id: `fallback_${item.itemNumber}`,
         item_number: item.itemNumber,
@@ -302,7 +334,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
           quote_time: new Date().toISOString()
         },
         history_count: 0
-      }));
+      })).sort((a, b) => calculateItemTotal(b) - calculateItemTotal(a));
   
   return (
     <Card className="mb-6">
@@ -354,6 +386,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
               {displayItems.map((item) => {
                 const hasHistory = item.history_count > 0;
                 const isHistoryLoading = historyLoading[item.item_id] || false;
+                const itemTotal = calculateItemTotal(item);
                 
                 return (
                   <React.Fragment key={item.item_id}>
@@ -365,18 +398,18 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
                         <div className="flex items-center justify-end gap-1">
                           <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
                           <span className="font-medium">
-                            {item.latest_quotation.unit_price.toFixed(2)} {item.latest_quotation.currency}
+                            {item.latest_quotation ? item.latest_quotation.unit_price.toFixed(2) : '0.00'} {item.latest_quotation ? item.latest_quotation.currency : 'USD'}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span>{item.latest_quotation.lead_time}</span>
+                          <span>{item.latest_quotation ? item.latest_quotation.lead_time : 'Not specified'}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        ${(item.latest_quotation.unit_price * item.quantity).toFixed(2)}
+                        ${itemTotal.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-center">
                         <Button 
@@ -418,7 +451,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
                 <TableCell colSpan={5} className="text-right font-medium">Total</TableCell>
                 <TableCell className="text-right font-medium">
                   ${displayItems.reduce((total, item) => {
-                    return total + (item.latest_quotation.unit_price * item.quantity);
+                    return total + calculateItemTotal(item);
                   }, 0).toFixed(2)}
                 </TableCell>
                 <TableCell></TableCell>
