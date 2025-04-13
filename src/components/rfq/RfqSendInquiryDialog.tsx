@@ -35,22 +35,27 @@ export function RfqSendInquiryDialog({
   selectedParts,
   projectId
 }: RfqSendInquiryDialogProps) {
+  // Clerk hooks
   const { getToken } = useAuth();
   const { organization } = useOrganization();
   const navigate = useNavigate();
+  
+  // Custom hook for suppliers
   const { suppliers, isLoading: isSuppliersLoading, loadSuppliers } = useOrganizationSuppliers();
   
-  // Move state declarations outside of conditional renders
+  // Dialog state
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false);
   const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
+  
+  // Form state
   const [selectedSupplierId, setSelectedSupplierId] = useState("");
   const [subject, setSubject] = useState("Request for Quote");
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
 
-  // Reset state when dialog closes
+  // Reset form state when dialog closes
   useEffect(() => {
     if (!open) {
       setSelectedSupplierId("");
@@ -187,8 +192,6 @@ export function RfqSendInquiryDialog({
     setIsAddSupplierOpen(false);
   };
   
-  // Avoiding direct conditional rendering of the Dialog based on open prop
-  // Instead, always render the Dialog and let it handle its own open state
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -244,7 +247,7 @@ export function RfqSendInquiryDialog({
               <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading || !selectedSupplierId}>
+              <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
