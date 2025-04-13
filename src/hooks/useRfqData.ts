@@ -1,3 +1,4 @@
+
 import { fetchRfqFiles, fetchRfqParts, deleteRfqParts, insertRfqItem } from "@/lib/api/rfq";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -217,6 +218,7 @@ export function useRfqData() {
       );
       
       if (result && result.id) {
+        // Add the new part to the Zustand store to update UI immediately
         addPart(result);
         toast.success('Item added successfully');
         return result;

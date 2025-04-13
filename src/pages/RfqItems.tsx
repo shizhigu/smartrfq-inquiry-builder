@@ -45,7 +45,7 @@ export default function RfqItems() {
 
   const handleSubmitNewPart = async (partData: Omit<RfqPart, "id">) => {
     try {
-      // Use the new insertManualItem function instead of directly adding to the store
+      // Use the insertManualItem function from useRfqData
       const result = await insertManualItem(partData);
       
       if (!result) {

@@ -10,7 +10,7 @@ interface RfqAddPartDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projectId: string;
-  onAddPart: (part: Omit<RfqPart, "id">) => void;
+  onAddPart: (part: Omit<RfqPart, "id">) => Promise<any>;
 }
 
 export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: RfqAddPartDialogProps) {
@@ -35,8 +35,11 @@ export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: R
         remarks: values.remarks || undefined,
       };
       
-      await onAddPart(newPart);
-      onOpenChange(false);
+      const result = await onAddPart(newPart);
+      
+      if (result) {
+        onOpenChange(false);
+      }
     } catch (error) {
       console.error("Failed to add part:", error);
       toast.error("Failed to add part");
