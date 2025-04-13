@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { RfqPart } from "@/stores/rfqStore";
 import { Loader2, Mail, Wand2 } from "lucide-react";
@@ -40,16 +40,18 @@ export function RfqSendInquiryDialog({
   const navigate = useNavigate();
   const { suppliers, isLoading: isSuppliersLoading, loadSuppliers } = useOrganizationSuppliers();
   
+  // Move state declarations outside of conditional renders
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false);
   const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
-  const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
+  const [selectedSupplierId, setSelectedSupplierId] = useState("");
   const [subject, setSubject] = useState("Request for Quote");
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
 
-  const handleOpenChange = (open: boolean) => {
+  // Reset state when dialog closes
+  useEffect(() => {
     if (!open) {
       setSelectedSupplierId("");
       setSubject("Request for Quote");
@@ -57,8 +59,7 @@ export function RfqSendInquiryDialog({
       setConversationId(null);
       setAttachments([]);
     }
-    onOpenChange(open);
-  };
+  }, [open]);
 
   const handleGenerateTemplate = async () => {
     if (!selectedParts || selectedParts.length === 0) {
@@ -167,7 +168,6 @@ export function RfqSendInquiryDialog({
   };
 
   const handleSupplierSelect = (supplierId: string) => {
-    // Only update if we have an actual supplier ID
     if (supplierId && supplierId !== 'no-selection') {
       setSelectedSupplierId(supplierId);
       setConversationId(null);
@@ -177,23 +177,21 @@ export function RfqSendInquiryDialog({
   };
   
   const handleAddSupplier = async (supplierData: Supplier) => {
-    // Use the supplier that was created on the backend with the correct ID
     if (supplierData && supplierData.id) {
       toast.success(`${supplierData.name} has been added to your suppliers`);
       
-      // Refresh the suppliers list
       await loadSuppliers(true);
-      
-      // Select the newly created supplier
       setSelectedSupplierId(supplierData.id);
     }
     
     setIsAddSupplierOpen(false);
   };
   
+  // Avoiding direct conditional rendering of the Dialog based on open prop
+  // Instead, always render the Dialog and let it handle its own open state
   return (
     <>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Send RFQ Inquiry</DialogTitle>
