@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -52,6 +51,8 @@ export function RfqPartsList({
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>("");
   const [filterMaterial, setFilterMaterial] = useState<string>("");
+  
+  const tableKey = parts.length;
   
   const handleEditPart = (part: RfqPart) => {
     setCurrentPart(part);
@@ -230,7 +231,7 @@ export function RfqPartsList({
             </div>
           )}
           
-          <Table>
+          <Table key={tableKey}>
             <TableHeader>
               <TableRow>
                 {isEditMode && <TableHead className="w-[40px]"></TableHead>}
