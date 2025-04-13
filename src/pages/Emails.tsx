@@ -256,19 +256,16 @@ const Emails = () => {
             <div><strong>Supplier ID:</strong> {selectedConversation.supplierId || "Not available"}</div>
           </div>
           
-          {/* Import Quotation Component */}
           <ImportQuotation 
             conversationId={selectedConversation.id} 
           />
           
-          {/* Quotation Table Component - Now passing supplier_id */}
           <QuotationTable 
             emails={emails} 
             conversationId={selectedConversation.id}
             supplierId={selectedConversation.supplierId}
           />
           
-          {/* Collapsible Email Conversation Component */}
           <EmailConversation 
             emails={emails} 
             conversationId={selectedConversation.id}

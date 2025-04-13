@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useEmailStore } from '@/stores/emailStore';
 import { Badge } from '@/components/ui/badge';
+import { API_CONFIG, useMockData } from '@/lib/config';
 
 interface QuotationTableProps {
   emails: Email[];
@@ -103,41 +103,53 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     ? conversations[selectedProjectId].find(conv => conv.id === conversationId)
     : null;
   
-  // Debug logs for supplier and conversation IDs
-  useEffect(() => {
-    console.log("Component loaded with props:", { 
-      conversationId, 
-      initialSupplierId,
-      currentConversationId: currentConversation?.id,
-      currentConversationSupplierId: currentConversation?.supplierId,
-      supplierName: currentConversation?.supplierName,
-      supplierEmail: currentConversation?.supplierEmail
-    });
-  }, [conversationId, initialSupplierId, currentConversation]);
-  
   useEffect(() => {
     if (initialSupplierId) {
-      console.log("Using passed supplier ID:", initialSupplierId);
       setSupplierId(initialSupplierId);
     }
     else if (currentConversation?.supplierId) {
-      console.log("Setting supplier ID from conversation:", currentConversation.supplierId);
       setSupplierId(currentConversation.supplierId);
     } else {
-      const supplierEmail = currentConversation?.supplierEmail;
-      const supplierName = currentConversation?.supplierName;
-      
-      console.log("No direct supplier ID found, using supplier info:", { 
-        supplierEmail, 
-        supplierName,
-        conversationId
-      });
-      
-      if (supplierEmail && supplierEmail !== "No email available") {
-        console.log("Using supplier email for identification:", supplierEmail);
-      }
+      fetchSupplierIdFromApi();
     }
   }, [currentConversation, conversationId, initialSupplierId]);
+
+  const fetchSupplierIdFromApi = async () => {
+    if (!conversationId) return;
+
+    try {
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Unable to get authentication token');
+      }
+
+      if (useMockData()) {
+        const mockSupplierId = `supplier_${conversationId.substring(0, 8)}`;
+        setSupplierId(mockSupplierId);
+        return;
+      }
+
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/conversations/get-supplier-id/${conversationId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch supplier ID');
+      }
+
+      const supplierIdFromApi = await response.text();
+      if (supplierIdFromApi) {
+        setSupplierId(supplierIdFromApi);
+      }
+    } catch (error) {
+      console.error('Error fetching supplier ID:', error);
+    }
+  };
   
   useEffect(() => {
     const items = extractQuotationItems(safeEmails);
@@ -156,20 +168,14 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         throw new Error('Unable to get authentication token');
       }
       
-      console.log(`Fetching quotations for conversation: ${conversationId}`);
-      
       const items = await getConversationQuotations(token, conversationId);
       
-      console.log('Received quotations:', items);
-      
       if (!Array.isArray(items)) {
-        console.error('Expected array but got:', typeof items, items);
         throw new Error('Received invalid quotation data format');
       }
       
       const supplierIdFromItems = items.find(item => item.supplier_id)?.supplier_id;
       if (supplierIdFromItems && !supplierId) {
-        console.log("Found supplier ID from items:", supplierIdFromItems);
         setSupplierId(supplierIdFromItems);
       }
       
@@ -201,11 +207,9 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
       
       if (!supplierIdToUse && currentConversation) {
         supplierIdToUse = currentConversation.supplierId;
-        console.log(`Using conversation's supplier ID as fallback: ${supplierIdToUse}`);
       }
       
       if (!supplierIdToUse) {
-        console.error('Missing supplier ID for quotation history, cannot fetch history');
         toast.error('Unable to fetch history: Missing supplier information');
         setHistoryLoading(prev => ({ ...prev, [itemId]: false }));
         setQuotationHistories(prev => ({
@@ -214,8 +218,6 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         }));
         return;
       }
-      
-      console.log(`Fetching quotation history for item ${itemId} from supplier ${supplierIdToUse}`);
       
       const history = await getQuotationHistory(token, itemId, supplierIdToUse);
       
@@ -229,7 +231,6 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
           toast.info('No quotation history available for this item');
         }
       } else {
-        console.warn('Received unexpected history format:', history);
         setQuotationHistories(prev => ({
           ...prev,
           [itemId]: []
@@ -288,10 +289,6 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         history_count: 0
       }));
   
-  const displaySupplierId = supplierId || 
-    quotationItems.find(item => item.supplier_id)?.supplier_id || 
-    (currentConversation?.supplierId) || "Unknown";
-  
   return (
     <Card className="mb-6">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -308,12 +305,6 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
           <div className="text-sm text-muted-foreground">
             {displayItems.length} item{displayItems.length !== 1 ? 's' : ''}
           </div>
-          <Badge variant="outline" className="ml-2">
-            Supplier ID: {displaySupplierId}
-          </Badge>
-          <Badge variant="outline" className="ml-2">
-            Conversation ID: {conversationId.substring(0, 8)}...
-          </Badge>
         </div>
       </CardHeader>
       <CardContent>
