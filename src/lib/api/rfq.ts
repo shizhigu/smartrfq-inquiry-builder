@@ -216,28 +216,18 @@ export async function deleteRfqParts(
     return;
   }
   
-  // Filter out any IDs that don't match UUID format (backend requires valid UUIDs)
-  const validUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const validPartIds = partIds.filter(id => validUuidRegex.test(id));
-  
-  if (validPartIds.length === 0) {
-    console.log('No valid UUIDs to delete');
-    return;
-  }
-  
   const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/rfq-items/batch-delete`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ item_ids: validPartIds }),
+    body: JSON.stringify({ item_ids: partIds }),
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    console.error('Delete RFQ parts failed:', errorData);
-    throw new Error(errorData.detail?.message || errorData.message || 'Failed to delete RFQ parts');
+    throw new Error(errorData.error?.message || 'Failed to delete RFQ parts');
   }
 }
 

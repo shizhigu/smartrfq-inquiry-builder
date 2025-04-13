@@ -1,3 +1,4 @@
+
 import { fetchRfqFiles, fetchRfqParts, deleteRfqParts } from "@/lib/api/rfq";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -38,13 +39,16 @@ export function useRfqData() {
   
   const setCurrentPage = useAppStore(state => state.setCurrentPage);
   
+  // Use a ref to track if data has been loaded to prevent infinite loops
   const dataLoadedRef = useRef({
     parts: false,
     files: false,
     suppliers: false
   });
   
+  // Memoize the loadRfqData function to prevent it from being recreated on each render
   const loadRfqData = useCallback(async () => {
+    // If no project is selected, redirect to projects page
     if (!selectedProjectId) {
       toast.error('Please select a project first');
       navigate('/dashboard/projects');
@@ -52,18 +56,23 @@ export function useRfqData() {
     }
     
     try {
+      // For demo purposes, we'll simulate being authenticated
+      // In a real app, we'd redirect to login if no token
       const simulatedToken = 'simulated-token';
       const simulatedOrgId = 'simulated-org';
       
+      // Get token from Clerk if available
       const token = await getToken() || simulatedToken;
       const currentOrgId = orgId || simulatedOrgId;
       
+      // Only fetch parts if they don't exist for this project and haven't been loaded yet
       if ((!parts[selectedProjectId] || parts[selectedProjectId].length === 0) && 
           !dataLoadedRef.current.parts) {
         console.log('Fetching parts from API as they are not in store');
         setLoading(true);
         
         try {
+          // Fetch parts for the selected project
           const fetchedParts = await fetchRfqParts(
             token, 
             currentOrgId,
@@ -79,12 +88,14 @@ export function useRfqData() {
         console.log('Using parts from Zustand store');
       }
       
+      // Only fetch files if they don't exist for this project and haven't been loaded yet
       if ((!files[selectedProjectId] || files[selectedProjectId].length === 0) && 
           !dataLoadedRef.current.files) {
         console.log('Fetching files from API as they are not in store');
         setLoading(true);
         
         try {
+          // Fetch files for the selected project
           const fetchedFiles = await fetchRfqFiles(
             token, 
             currentOrgId,
@@ -100,11 +111,14 @@ export function useRfqData() {
         console.log('Using files from Zustand store');
       }
       
+      // Load suppliers if they don't exist for this project and haven't been loaded yet
       if ((!suppliers[selectedProjectId] || suppliers[selectedProjectId].length === 0) && 
           !dataLoadedRef.current.suppliers) {
         console.log('Loading mock suppliers as they are not in store');
         
         try {
+          // For demo purposes, we'll use mock suppliers
+          // In a real app, we'd fetch these from an API
           if (mockSuppliers[selectedProjectId]) {
             setSuppliers(selectedProjectId, mockSuppliers[selectedProjectId]);
             dataLoadedRef.current.suppliers = true;
@@ -126,6 +140,7 @@ export function useRfqData() {
   useEffect(() => {
     setCurrentPage('rfq');
     
+    // Reset our loading tracker when the project changes
     if (selectedProjectId) {
       dataLoadedRef.current = {
         parts: parts[selectedProjectId]?.length > 0,
@@ -135,46 +150,24 @@ export function useRfqData() {
       
       loadRfqData();
     }
+    
+    // Only include dependencies that should trigger a re-load
+    // Notably NOT including parts, files, or suppliers here
   }, [selectedProjectId, setCurrentPage, loadRfqData]);
 
+  // Helper function to delete parts from the local store after successful API call
   const deleteSelectedParts = useCallback(async (partIds: string[]) => {
     if (!selectedProjectId) return;
     
     try {
-      const token = await getToken();
-      const currentOrgId = orgId || 'simulated-org';
-      
-      if (useMockData && typeof useMockData === 'function' && useMockData()) {
-        partIds.forEach(id => {
-          deletePart(id);
-        });
-        toast.success(`${partIds.length} parts deleted`);
-        clearPartSelection();
-        return;
-      }
-      
-      if (token) {
-        await deleteRfqParts(
-          token,
-          currentOrgId,
-          selectedProjectId,
-          partIds
-        );
-        
-        partIds.forEach(id => {
-          deletePart(id);
-        });
-        
-        toast.success(`${partIds.length} parts deleted successfully`);
-        clearPartSelection();
-      } else {
-        throw new Error('Authentication required');
-      }
+      // Update the local store
+      partIds.forEach(id => {
+        deletePart(id);
+      });
     } catch (error) {
-      console.error('Failed to delete parts:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to delete parts');
+      console.error('Failed to delete parts from store:', error);
     }
-  }, [selectedProjectId, deletePart, clearPartSelection, getToken, orgId]);
+  }, [selectedProjectId, deletePart]);
 
   const navigateToSuppliers = () => {
     navigate('/dashboard/suppliers');

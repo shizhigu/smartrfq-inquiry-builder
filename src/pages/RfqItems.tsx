@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -68,7 +69,27 @@ export default function RfqItems() {
     
     try {
       setIsDeleting(true);
-      await deleteSelectedParts(selectedPartIds);
+      
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const projectId = project?.id;
+      if (!projectId) {
+        throw new Error('No project selected');
+      }
+
+      // Call the batch delete API with the selected part IDs
+      await deleteRfqParts(
+        token,
+        organization?.id || '',
+        projectId,
+        selectedPartIds
+      );
+      
+      toast.success(`${selectedPartIds.length} parts deleted successfully`);
+      clearPartSelection();
       setIsEditMode(false);
     } catch (error) {
       console.error('Failed to delete parts:', error);
