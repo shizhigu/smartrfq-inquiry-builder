@@ -72,6 +72,7 @@ export function RfqSendInquiryDialog({
     onOpenChange(open);
   };
   
+  // Fixed useEffect to handle the case when selectedSupplierId is empty or "no-selection"
   useEffect(() => {
     const fetchSupplierEmail = async () => {
       if (selectedSupplierId && selectedSupplierId !== 'no-selection') {
@@ -205,9 +206,10 @@ export function RfqSendInquiryDialog({
                     onMessageChange={setMessage}
                     subject={subject}
                     onSubjectChange={setSubject}
-                    suppliers={suppliers}
+                    suppliers={suppliers || []}
                     isLoading={suppliersLoading}
                     onAddNew={() => setIsAddSupplierOpen(true)}
+                    hideSubjectInput={false}
                   />
                 </TabsContent>
                 
@@ -225,7 +227,7 @@ export function RfqSendInquiryDialog({
             </div>
             
             <div className="mt-4">
-              <RfqSelectedPartsTable selectedParts={selectedParts} />
+              <RfqSelectedPartsTable selectedParts={selectedParts || []} />
             </div>
             
             <DialogFooter className="mt-6">
