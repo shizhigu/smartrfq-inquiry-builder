@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RfqPart } from "@/stores/rfqStore";
@@ -48,10 +47,8 @@ export function RfqSendInquiryDialog({
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
 
-  // Reset form when dialog opens/closes
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      // Reset form state when closing
       setSelectedSupplierId("");
       setSubject("Request for Quote");
       setMessage("");
@@ -84,7 +81,6 @@ export function RfqSendInquiryDialog({
       
       const template = await generateEmailTemplate(token, projectId, partIds, selectedSupplierId);
       
-      // Fill form with generated template
       setSubject(template.subject);
       setMessage(template.content);
       setConversationId(template.conversation_id);
@@ -101,7 +97,6 @@ export function RfqSendInquiryDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Determine which email to use from selected supplier
     if (!selectedSupplierId) {
       toast.error('Please select a supplier');
       return;
@@ -115,7 +110,6 @@ export function RfqSendInquiryDialog({
     
     const emailTo = selectedSupplier.email;
     
-    // Validate form
     if (!selectedParts || selectedParts.length === 0) {
       toast.error('No parts selected');
       return;
@@ -167,22 +161,19 @@ export function RfqSendInquiryDialog({
 
   const handleSupplierSelect = (supplierId: string) => {
     setSelectedSupplierId(supplierId);
-    // Clear conversation ID when supplier changes
     setConversationId(null);
   };
   
   const handleAddSupplier = (supplierData: Omit<Supplier, 'id' | 'projectId'>) => {
-    // In a real implementation, this would be connected to addSupplier API
     toast.success(`${supplierData.name} has been added to your suppliers`);
     setIsAddSupplierOpen(false);
-    // Refresh suppliers list
     loadSuppliers(true);
   };
   
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[800px] sm:min-h-[600px]">
           <DialogHeader>
             <DialogTitle>Send RFQ Inquiry</DialogTitle>
             <DialogDescription>

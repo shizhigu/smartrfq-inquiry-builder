@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -77,10 +76,6 @@ export function RfqSupplierTabContent({
           onChange={(e) => onMessageChange(e.target.value)}
           rows={4}
         />
-      </div>
-      
-      <div className="text-sm text-muted-foreground mt-2">
-        <p>This message will be sent to the selected supplier.</p>
       </div>
     </div>
   );
