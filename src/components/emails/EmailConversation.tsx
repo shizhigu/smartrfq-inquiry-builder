@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 import { Paperclip, Download, ChevronDown, ChevronRight, XCircle } from 'lucide-react';
@@ -16,6 +15,15 @@ interface EmailConversationProps {
 
 interface ExpandedEmailState {
   [key: string]: boolean;
+}
+
+// Function to extract part number count from email content
+function getMaxPartNumberCount(text: string): number {
+  const matches = [...text.matchAll(/^(\d+)\. Part Number:/gm)];
+  if (matches.length === 0) return 0;
+  
+  const numbers = matches.map(match => parseInt(match[1], 10));
+  return Math.max(...numbers);
 }
 
 export const EmailConversation: React.FC<EmailConversationProps> = ({ 
@@ -69,96 +77,107 @@ export const EmailConversation: React.FC<EmailConversationProps> = ({
 
   return (
     <div className="space-y-4">
-      {emails.map((email) => (
-        <Card key={email.id} className="overflow-hidden">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-4">
-              <div className="flex-1 space-y-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    {email.status && email.status.toLowerCase() === 'failed' && (
-                      <Badge variant="destructive" className="mb-2 flex items-center gap-1">
-                        <XCircle className="h-3 w-3" />
-                        Failed
-                      </Badge>
-                    )}
-                    {email.status && email.status.toLowerCase() !== 'failed' && (
-                      <div className="text-xs mt-1 inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                        {email.status}
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {formatDate(email.sent_at)}
-                  </div>
-                </div>
-                
-                <Separator className="my-2" />
-                
-                <div className="text-sm">
-                  <div className="whitespace-pre-line">
-                    {expandedEmails[email.id] 
-                      ? email.content 
-                      : truncateText(email.content)}
-                    
-                    {email.content.length > 150 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleEmailExpanded(email.id)}
-                        className="mt-1 h-auto py-1 px-2 text-xs font-medium text-blue-600 hover:text-blue-800 flex items-center"
-                      >
-                        {expandedEmails[email.id] ? (
-                          <>
-                            <ChevronDown className="h-3 w-3 mr-1" />
-                            Show Less
-                          </>
-                        ) : (
-                          <>
-                            <ChevronRight className="h-3 w-3 mr-1" />
-                            Show More
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                
-                {email.attachments && email.attachments.length > 0 && (
-                  <div className="mt-4 pt-2 border-t">
-                    <div className="flex items-center text-sm text-muted-foreground mb-2">
-                      <Paperclip className="h-4 w-4 mr-2" />
-                      <span>{email.attachments.length} attachment{email.attachments.length !== 1 ? 's' : ''}</span>
-                    </div>
-                    <div className="space-y-2">
-                      {email.attachments.map((attachment) => (
-                        <div 
-                          key={attachment.id} 
-                          className="flex items-center justify-between p-2 rounded bg-muted/50"
-                        >
-                          <div className="flex items-center">
-                            <div className="text-sm">{attachment.name}</div>
-                            <div className="text-xs text-muted-foreground ml-2">
-                              ({formatFileSize(attachment.size)})
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDownload(attachment)}
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
+      {emails.map((email) => {
+        // Calculate part count for each email
+        const partCount = getMaxPartNumberCount(email.content);
+        
+        return (
+          <Card key={email.id} className="overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-4">
+                <div className="flex-1 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-2">
+                      {email.status && email.status.toLowerCase() === 'failed' && (
+                        <Badge variant="destructive" className="mb-2 flex items-center gap-1">
+                          <XCircle className="h-3 w-3" />
+                          Failed
+                        </Badge>
+                      )}
+                      {email.status && email.status.toLowerCase() !== 'failed' && (
+                        <div className="text-xs mt-1 inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                          {email.status}
                         </div>
-                      ))}
+                      )}
+                      
+                      {partCount > 0 && (
+                        <Badge variant="success" className="mb-2 flex items-center gap-1">
+                          {partCount} {partCount === 1 ? 'Part' : 'Parts'}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {formatDate(email.sent_at)}
                     </div>
                   </div>
-                )}
+                  
+                  <Separator className="my-2" />
+                  
+                  <div className="text-sm">
+                    <div className="whitespace-pre-line">
+                      {expandedEmails[email.id] 
+                        ? email.content 
+                        : truncateText(email.content)}
+                      
+                      {email.content.length > 150 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleEmailExpanded(email.id)}
+                          className="mt-1 h-auto py-1 px-2 text-xs font-medium text-blue-600 hover:text-blue-800 flex items-center"
+                        >
+                          {expandedEmails[email.id] ? (
+                            <>
+                              <ChevronDown className="h-3 w-3 mr-1" />
+                              Show Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronRight className="h-3 w-3 mr-1" />
+                              Show More
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {email.attachments && email.attachments.length > 0 && (
+                    <div className="mt-4 pt-2 border-t">
+                      <div className="flex items-center text-sm text-muted-foreground mb-2">
+                        <Paperclip className="h-4 w-4 mr-2" />
+                        <span>{email.attachments.length} attachment{email.attachments.length !== 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="space-y-2">
+                        {email.attachments.map((attachment) => (
+                          <div 
+                            key={attachment.id} 
+                            className="flex items-center justify-between p-2 rounded bg-muted/50"
+                          >
+                            <div className="flex items-center">
+                              <div className="text-sm">{attachment.name}</div>
+                              <div className="text-xs text-muted-foreground ml-2">
+                                ({formatFileSize(attachment.size)})
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleDownload(attachment)}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };
