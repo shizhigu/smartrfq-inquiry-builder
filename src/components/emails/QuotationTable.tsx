@@ -1,12 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Email } from '@/lib/api/emails';
 import { getMaxItemNumber } from './EmailConversation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, ChevronDown, History, DollarSign, Clock, RefreshCw } from 'lucide-react';
+import { AlertCircle, History, DollarSign, Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { QuotationHistory } from './QuotationHistory';
 import { QuotationItem } from '@/stores/emailStore';
 import { 
@@ -88,6 +88,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   const [quotationHistories, setQuotationHistories] = useState<Record<string, Quotation[]>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState<Record<string, boolean>>({});
   const [fetchError, setFetchError] = useState<string | null>(null);
   const { getToken } = useAuth();
   
@@ -137,8 +138,10 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   };
   
   // Fetch history for a specific item
-  const fetchQuotationHistory = async (itemId: string) => {
+  const fetchQuotationHistory = async (itemId: string, supplierId: string) => {
     if (!itemId) return;
+    
+    setHistoryLoading(prev => ({ ...prev, [itemId]: true }));
     
     try {
       const token = await getToken();
@@ -146,17 +149,37 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         throw new Error('Unable to get authentication token');
       }
       
-      // In real implementation, you would call getQuotationHistory with the right parameters
-      // For now, we'll just simulate it with an empty array
+      console.log(`Fetching quotation history for item ${itemId} from supplier ${supplierId}`);
+      
+      // Fetch the actual history data from the API
+      const history = await getQuotationHistory(token, itemId, supplierId);
+      
+      if (history && Array.isArray(history.quotations)) {
+        setQuotationHistories(prev => ({
+          ...prev,
+          [itemId]: history.quotations
+        }));
+        
+        if (history.quotations.length === 0) {
+          toast.info('No quotation history available for this item');
+        }
+      } else {
+        console.warn('Received unexpected history format:', history);
+        setQuotationHistories(prev => ({
+          ...prev,
+          [itemId]: []
+        }));
+        toast.warning('Unable to fetch quotation history');
+      }
+    } catch (error) {
+      console.error('Failed to fetch quotation history:', error);
       setQuotationHistories(prev => ({
         ...prev,
         [itemId]: []
       }));
-      
-      toast.info('Quotation history functionality is not yet implemented');
-    } catch (error) {
-      console.error('Failed to fetch quotation history:', error);
       toast.error('Failed to load quotation history');
+    } finally {
+      setHistoryLoading(prev => ({ ...prev, [itemId]: false }));
     }
   };
   
@@ -184,8 +207,11 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     setExpandedItem(itemId);
     
     // Fetch history if not already loaded
-    if (!quotationHistories[itemId]) {
-      await fetchQuotationHistory(itemId);
+    const item = quotationItems.find(item => item.item_id === itemId);
+    if (item && !quotationHistories[itemId]) {
+      // Extract supplier ID from the API data or use a default
+      const supplierId = item.supplier_id || "default-supplier-id";
+      await fetchQuotationHistory(itemId, supplierId);
     }
   };
 
@@ -197,6 +223,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         item_number: item.itemNumber,
         description: item.description,
         quantity: item.quantity,
+        supplier_id: "default-supplier-id",
         latest_quotation: {
           id: `fallback_quote_${item.itemNumber}`,
           unit_price: item.unitPrice,
@@ -256,6 +283,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
             <TableBody>
               {displayItems.map((item) => {
                 const hasHistory = item.history_count > 0;
+                const isHistoryLoading = historyLoading[item.item_id] || false;
                 
                 return (
                   <React.Fragment key={item.item_id}>
@@ -286,10 +314,10 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
                           size="sm" 
                           className={`px-2 ${!hasHistory ? 'text-muted-foreground' : ''}`}
                           onClick={() => hasHistory && toggleHistory(item.item_id)}
-                          disabled={!hasHistory || isRefreshing}
+                          disabled={!hasHistory || isRefreshing || isHistoryLoading}
                         >
                           <History className="h-4 w-4 mr-1" />
-                          {item.history_count}
+                          {isHistoryLoading ? '...' : item.history_count}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -297,10 +325,16 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
                       <TableRow>
                         <TableCell colSpan={7} className="p-0 border-0">
                           <div className="p-4 bg-muted/30">
-                            <QuotationHistory 
-                              quotations={quotationHistories[item.item_id] || []} 
-                              itemName={item.description}
-                            />
+                            {isHistoryLoading ? (
+                              <div className="py-4 flex justify-center">
+                                <Skeleton className="h-32 w-full" />
+                              </div>
+                            ) : (
+                              <QuotationHistory 
+                                quotations={quotationHistories[item.item_id] || []} 
+                                itemName={item.description}
+                              />
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

@@ -1,3 +1,4 @@
+
 import { API_CONFIG, useMockData } from '../config';
 
 export interface Quotation {
@@ -26,6 +27,7 @@ export interface QuotationItemResponse {
   item_number: number;
   description: string;
   quantity: number;
+  supplier_id?: string;
   latest_quotation: {
     id: string;
     unit_price: number;
@@ -82,7 +84,22 @@ export async function getQuotationHistory(
 ): Promise<QuotationHistoryResponse> {
   if (useMockData()) {
     console.log('Using mock data for getQuotationHistory');
-    return { quotations: [], count: 0 };
+    return { 
+      quotations: Array.from({ length: 5 }, (_, i) => ({
+        id: `mock-history-${i}`,
+        rfqItemId,
+        supplierId,
+        projectId: 'mock-project',
+        unitPrice: 100 - i * 5,
+        currency: 'USD',
+        leadTime: `${30 - i} days`,
+        remarks: i === 0 ? 'Latest quote' : `Previous quote ${i}`,
+        quoteTime: new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000).toISOString(),
+        organizationId: 'mock-org',
+        supplierName: 'Mock Supplier Inc.'
+      })), 
+      count: 5 
+    };
   }
 
   try {
@@ -120,6 +137,7 @@ export async function getConversationQuotations(
       item_number: i + 1,
       description: `Mock Item ${i + 1}`,
       quantity: Math.floor(Math.random() * 10) + 1,
+      supplier_id: 'mock-supplier-id',
       latest_quotation: {
         id: `mock-quote-${i}`,
         unit_price: parseFloat((Math.random() * 100 + 20).toFixed(2)),
@@ -127,7 +145,7 @@ export async function getConversationQuotations(
         lead_time: '30 days',
         quote_time: new Date().toISOString()
       },
-      history_count: Math.floor(Math.random() * 3)
+      history_count: Math.floor(Math.random() * 3) + 1
     }));
   }
 

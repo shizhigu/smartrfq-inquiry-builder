@@ -91,42 +91,48 @@ export const QuotationHistory: React.FC<QuotationHistoryProps> = ({
   return (
     <div className="space-y-2">
       <h4 className="text-sm font-medium mb-2">Quote History for {itemName}</h4>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Supplier</TableHead>
-            <TableHead className="text-right">Unit Price</TableHead>
-            <TableHead className="text-right">Lead Time</TableHead>
-            <TableHead className="text-right">Price Change</TableHead>
-            <TableHead>Remarks</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {quotationsWithChanges.map((quote) => (
-            <TableRow key={quote.id}>
-              <TableCell className="whitespace-nowrap">
-                {formatDate(quote.quoteTime)}
-              </TableCell>
-              <TableCell>{quote.supplierName || 'Unknown Supplier'}</TableCell>
-              <TableCell className="text-right font-medium whitespace-nowrap">
-                {quote.unitPrice.toFixed(2)} {quote.currency}
-              </TableCell>
-              <TableCell className="text-right whitespace-nowrap">
-                {quote.leadTime}
-              </TableCell>
-              <TableCell className="text-right">
-                {quote.change !== undefined && quote.changePercent !== undefined 
-                  ? renderPriceChange(quote.change, quote.changePercent) 
-                  : null}
-              </TableCell>
-              <TableCell>
-                {quote.remarks}
-              </TableCell>
+      {quotationsWithChanges.length > 0 ? (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>Supplier</TableHead>
+              <TableHead className="text-right">Unit Price</TableHead>
+              <TableHead className="text-right">Lead Time</TableHead>
+              <TableHead className="text-right">Price Change</TableHead>
+              <TableHead>Remarks</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {quotationsWithChanges.map((quote) => (
+              <TableRow key={quote.id}>
+                <TableCell className="whitespace-nowrap">
+                  {formatDate(quote.quoteTime)}
+                </TableCell>
+                <TableCell>{quote.supplierName || 'Unknown Supplier'}</TableCell>
+                <TableCell className="text-right font-medium whitespace-nowrap">
+                  {quote.unitPrice.toFixed(2)} {quote.currency}
+                </TableCell>
+                <TableCell className="text-right whitespace-nowrap">
+                  {quote.leadTime}
+                </TableCell>
+                <TableCell className="text-right">
+                  {quote.change !== undefined && quote.changePercent !== undefined 
+                    ? renderPriceChange(quote.change, quote.changePercent) 
+                    : null}
+                </TableCell>
+                <TableCell>
+                  {quote.remarks}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <div className="text-sm text-muted-foreground italic">
+          No quotation history available for this item
+        </div>
+      )}
     </div>
   );
 };
