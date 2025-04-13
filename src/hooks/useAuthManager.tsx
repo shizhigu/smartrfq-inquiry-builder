@@ -20,12 +20,15 @@ import {
 import { Button } from "@/components/ui/button";
 
 // Idle timeout in milliseconds (15 minutes)
-const IDLE_TIMEOUT = 1 * 60 * 1000;
+const IDLE_TIMEOUT = 15 * 60 * 1000;
+// Dialog countdown duration (30 seconds)
+const COUNTDOWN_DURATION = 30;
 
 export function useAuthManager() {
   const { signOut, isSignedIn } = useAuth();
   const navigate = useNavigate();
   const [showIdleDialog, setShowIdleDialog] = useState(false);
+  const [countdownTime, setCountdownTime] = useState(COUNTDOWN_DURATION);
   
   // Get reset methods from all stores
   const userStore = useUserStore();
@@ -38,6 +41,7 @@ export function useAuthManager() {
   // Timer references
   const idleTimerRef = useRef<number | null>(null);
   const dialogTimerRef = useRef<number | null>(null);
+  const countdownIntervalRef = useRef<number | null>(null);
   
   // Function to reset all store states and clear localStorage
   const resetAllStores = useCallback(() => {
@@ -76,8 +80,27 @@ export function useAuthManager() {
     try {
       console.log('Manual logout initiated, resetting all stores');
       
+      // Clear all timers
+      if (idleTimerRef.current) {
+        window.clearTimeout(idleTimerRef.current);
+        idleTimerRef.current = null;
+      }
+      
+      if (dialogTimerRef.current) {
+        window.clearTimeout(dialogTimerRef.current);
+        dialogTimerRef.current = null;
+      }
+      
+      if (countdownIntervalRef.current) {
+        window.clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+      
       // Reset all stores and clear localStorage first
       resetAllStores();
+      
+      // Close the dialog
+      setShowIdleDialog(false);
       
       // Sign out with Clerk
       await signOut();
@@ -92,6 +115,35 @@ export function useAuthManager() {
     }
   }, [signOut, resetAllStores, navigate]);
   
+  // Start countdown timer for auto logout
+  const startCountdown = useCallback(() => {
+    // Reset countdown time
+    setCountdownTime(COUNTDOWN_DURATION);
+    
+    // Clear any existing interval
+    if (countdownIntervalRef.current) {
+      window.clearInterval(countdownIntervalRef.current);
+    }
+    
+    // Set up countdown interval that updates every second
+    countdownIntervalRef.current = window.setInterval(() => {
+      setCountdownTime(prevTime => {
+        // If time is up, clear interval and trigger logout
+        if (prevTime <= 1) {
+          if (countdownIntervalRef.current) {
+            window.clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
+          }
+          // Automatically log out when countdown reaches zero
+          handleLogout();
+          return 0;
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
+    
+  }, [handleLogout]);
+  
   // Reset idle timer
   const resetIdleTimer = useCallback(() => {
     // Clear existing timers
@@ -103,6 +155,11 @@ export function useAuthManager() {
       window.clearTimeout(dialogTimerRef.current);
     }
     
+    if (countdownIntervalRef.current) {
+      window.clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    
     // Close idle dialog if open
     if (showIdleDialog) {
       setShowIdleDialog(false);
@@ -110,15 +167,11 @@ export function useAuthManager() {
     
     // Set new idle timer
     idleTimerRef.current = window.setTimeout(() => {
-      // Show idle dialog
+      // Show idle dialog and start countdown
       setShowIdleDialog(true);
-      
-      // Set auto-logout timer (1 minute after dialog shown)
-      dialogTimerRef.current = window.setTimeout(() => {
-        handleLogout();
-      }, 60000);
+      startCountdown();
     }, IDLE_TIMEOUT);
-  }, [handleLogout, showIdleDialog]);
+  }, [handleLogout, showIdleDialog, startCountdown]);
   
   // Handle user activity
   useEffect(() => {
@@ -153,22 +206,43 @@ export function useAuthManager() {
       if (dialogTimerRef.current) {
         window.clearTimeout(dialogTimerRef.current);
       }
+      
+      if (countdownIntervalRef.current) {
+        window.clearInterval(countdownIntervalRef.current);
+      }
     };
   }, [resetIdleTimer]);
   
   // Handle staying active
   const handleStayActive = () => {
+    // Clear countdown timer
+    if (countdownIntervalRef.current) {
+      window.clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    
+    // Reset the idle timer
     resetIdleTimer();
   };
   
   // Idle dialog component
   const IdleDialog = (
-    <Dialog open={showIdleDialog} onOpenChange={setShowIdleDialog}>
-      <DialogContent>
+    <Dialog open={showIdleDialog} onOpenChange={(open) => {
+      if (!open) {
+        handleStayActive();
+      }
+    }}>
+      <DialogContent onEscapeKeyDown={(e) => {
+        e.preventDefault();
+        handleStayActive();
+      }} onInteractOutside={(e) => {
+        e.preventDefault();
+        // Don't close when clicking outside
+      }}>
         <DialogHeader>
           <DialogTitle>Are you still there?</DialogTitle>
           <DialogDescription>
-            You've been inactive for a while. For security reasons, you'll be logged out automatically in 1 minute.
+            You've been inactive for a while. For security reasons, you'll be logged out automatically in {countdownTime} seconds.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
