@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { QuotationHistory } from './QuotationHistory';
 import { QuotationItem } from '@/stores/emailStore';
 
-// Interface representing a quotation for an item
+// Updated Quotation interface to match API
 interface Quotation {
   id: string;
   rfqItemId: string;
@@ -24,100 +24,14 @@ interface Quotation {
   quoteTime: string;
   organizationId: string;
   supplierName?: string;
+  change?: number;
+  changePercent?: number;
 }
 
 interface QuotationTableProps {
   emails: Email[];
   conversationId: string;
 }
-
-// Mock data for quotation history
-const mockQuotations: Record<string, Quotation[]> = {
-  'item_1': [
-    {
-      id: 'quote_1',
-      rfqItemId: 'item_1',
-      supplierId: 'supplier_1',
-      projectId: 'project_1',
-      unitPrice: 120.50,
-      currency: 'USD',
-      leadTime: '30 days',
-      remarks: 'Initial quote',
-      quoteTime: '2024-03-15T10:00:00Z',
-      organizationId: 'org_1',
-      supplierName: 'ABC Manufacturing'
-    },
-    {
-      id: 'quote_2',
-      rfqItemId: 'item_1',
-      supplierId: 'supplier_1',
-      projectId: 'project_1',
-      unitPrice: 115.75,
-      currency: 'USD',
-      leadTime: '25 days',
-      remarks: 'Revised offer with bulk discount',
-      quoteTime: '2024-03-20T14:30:00Z',
-      organizationId: 'org_1',
-      supplierName: 'ABC Manufacturing'
-    },
-    {
-      id: 'quote_3',
-      rfqItemId: 'item_1',
-      supplierId: 'supplier_1',
-      projectId: 'project_1',
-      unitPrice: 110.00,
-      currency: 'USD',
-      leadTime: '28 days',
-      remarks: 'Final negotiated price',
-      quoteTime: '2024-04-02T09:15:00Z',
-      organizationId: 'org_1',
-      supplierName: 'ABC Manufacturing'
-    }
-  ],
-  'item_2': [
-    {
-      id: 'quote_4',
-      rfqItemId: 'item_2',
-      supplierId: 'supplier_1',
-      projectId: 'project_1',
-      unitPrice: 45.25,
-      currency: 'USD',
-      leadTime: '15 days',
-      remarks: 'Standard pricing',
-      quoteTime: '2024-03-15T10:05:00Z',
-      organizationId: 'org_1',
-      supplierName: 'ABC Manufacturing'
-    },
-    {
-      id: 'quote_5',
-      rfqItemId: 'item_2',
-      supplierId: 'supplier_1',
-      projectId: 'project_1',
-      unitPrice: 42.50,
-      currency: 'USD',
-      leadTime: '15 days',
-      remarks: 'Adjusted after negotiation',
-      quoteTime: '2024-04-01T16:20:00Z',
-      organizationId: 'org_1',
-      supplierName: 'ABC Manufacturing'
-    }
-  ],
-  'item_3': [
-    {
-      id: 'quote_6',
-      rfqItemId: 'item_3',
-      supplierId: 'supplier_1',
-      projectId: 'project_1',
-      unitPrice: 75.00,
-      currency: 'USD',
-      leadTime: '21 days',
-      remarks: 'One-time quote',
-      quoteTime: '2024-03-18T11:30:00Z',
-      organizationId: 'org_1',
-      supplierName: 'ABC Manufacturing'
-    }
-  ]
-};
 
 // Extract quotation items from email content
 const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
@@ -169,14 +83,10 @@ const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
   return items.sort((a, b) => a.itemNumber - b.itemNumber);
 };
 
-// Get the most recent quotation for an item
+// Function to fetch latest quotations - will be replaced with actual API call
 const getLatestQuotation = (itemId: string): Quotation | undefined => {
-  const quotes = mockQuotations[itemId] || [];
-  if (quotes.length === 0) return undefined;
-  
-  return quotes.sort((a, b) => 
-    new Date(b.quoteTime).getTime() - new Date(a.quoteTime).getTime()
-  )[0];
+  console.warn(`Fetching latest quotation for ${itemId} - API integration needed`);
+  return undefined;
 };
 
 export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversationId }) => {
@@ -200,109 +110,108 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
       </CardHeader>
       <CardContent>
         {quotationItems.length > 0 ? (
-          <div className="space-y-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Item #</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Quantity</TableHead>
-                  <TableHead className="text-right">Latest Quote</TableHead>
-                  <TableHead className="text-right">Lead Time</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-center">History</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {quotationItems.map((item) => {
-                  const itemId = `item_${item.itemNumber}`;
-                  const latestQuote = getLatestQuotation(itemId);
-                  const hasHistory = (mockQuotations[itemId]?.length || 0) > 1;
-                  
-                  return (
-                    <React.Fragment key={item.itemNumber}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Item #</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Quantity</TableHead>
+                <TableHead className="text-right">Latest Quote</TableHead>
+                <TableHead className="text-right">Lead Time</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-center">History</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {quotationItems.map((item) => {
+                const itemId = `item_${item.itemNumber}`;
+                const latestQuote = getLatestQuotation(itemId);
+                const hasHistory = false; // TODO: Replace with API call to check history
+                
+                return (
+                  <React.Fragment key={item.itemNumber}>
+                    <TableRow>
+                      <TableCell className="font-medium">{item.itemNumber}</TableCell>
+                      <TableCell>{item.description}</TableCell>
+                      <TableCell className="text-right">{item.quantity}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
+                          {latestQuote ? (
+                            <span className="font-medium">
+                              {latestQuote.unitPrice.toFixed(2)} {latestQuote.currency}
+                            </span>
+                          ) : (
+                            <span className="font-medium">
+                              {item.unitPrice.toFixed(2)} USD
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span>{latestQuote?.leadTime || 'Not specified'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        ${(latestQuote ? latestQuote.unitPrice * item.quantity : item.totalPrice).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className={`px-2 ${!hasHistory ? 'text-muted-foreground' : ''}`}
+                          onClick={() => hasHistory && toggleHistory(itemId)}
+                          disabled={!hasHistory}
+                        >
+                          <History className="h-4 w-4 mr-1" />
+                          0 {/* TODO: Replace with actual history count from API */}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    {expandedItem === itemId && (
                       <TableRow>
-                        <TableCell className="font-medium">{item.itemNumber}</TableCell>
-                        <TableCell>{item.description}</TableCell>
-                        <TableCell className="text-right">{item.quantity}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
-                            {latestQuote ? (
-                              <span className="font-medium">
-                                {latestQuote.unitPrice.toFixed(2)} {latestQuote.currency}
-                              </span>
-                            ) : (
-                              <span className="font-medium">
-                                {item.unitPrice.toFixed(2)} USD
-                              </span>
-                            )}
+                        <TableCell colSpan={7} className="p-0 border-0">
+                          <div className="p-4 bg-muted/30">
+                            {/* TODO: Replace with API call to fetch quotation history */}
+                            <QuotationHistory 
+                              quotations={[]} 
+                              itemName={item.description}
+                            />
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{latestQuote?.leadTime || 'Not specified'}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          ${(latestQuote ? latestQuote.unitPrice * item.quantity : item.totalPrice).toFixed(2)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className={`px-2 ${!hasHistory ? 'text-muted-foreground' : ''}`}
-                            onClick={() => hasHistory && toggleHistory(itemId)}
-                            disabled={!hasHistory}
-                          >
-                            <History className="h-4 w-4 mr-1" />
-                            {mockQuotations[itemId]?.length || 0}
-                          </Button>
                         </TableCell>
                       </TableRow>
-                      {expandedItem === itemId && (
-                        <TableRow>
-                          <TableCell colSpan={7} className="p-0 border-0">
-                            <div className="p-4 bg-muted/30">
-                              <QuotationHistory 
-                                quotations={mockQuotations[itemId] || []} 
-                                itemName={item.description}
-                              />
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={5} className="text-right font-medium">Total</TableCell>
-                  <TableCell className="text-right font-medium">
-                    ${quotationItems.reduce((total, item) => {
-                      const itemId = `item_${item.itemNumber}`;
-                      const latestQuote = getLatestQuotation(itemId);
-                      const itemTotal = latestQuote 
-                        ? latestQuote.unitPrice * item.quantity 
-                        : item.totalPrice;
-                      return total + itemTotal;
-                    }, 0).toFixed(2)}
-                  </TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </div>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={5} className="text-right font-medium">Total</TableCell>
+                <TableCell className="text-right font-medium">
+                  ${quotationItems.reduce((total, item) => {
+                    const itemId = `item_${item.itemNumber}`;
+                    const latestQuote = getLatestQuotation(itemId);
+                    const itemTotal = latestQuote 
+                      ? latestQuote.unitPrice * item.quantity 
+                      : item.totalPrice;
+                    return total + itemTotal;
+                  }, 0).toFixed(2)}
+                </TableCell>
+                <TableCell></TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
         ) : (
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>No Quotation Items Found</AlertTitle>
             <AlertDescription>
               {hasItemsFormat 
-                ? "No valid quotation items could be extracted from the emails. Items should be in [ITEM-X] format."
-                : "No quotation items found in this conversation. Use the Import Quotation button above to add items or format items as [ITEM-1] in your emails."}
+                ? "No valid quotation items could be extracted from the emails." 
+                : "No quotation items found in this conversation."}
             </AlertDescription>
           </Alert>
         )}
