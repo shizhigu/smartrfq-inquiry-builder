@@ -115,7 +115,21 @@ export async function getConversationQuotations(
 ): Promise<QuotationItemResponse[]> {
   if (useMockData()) {
     console.log('Using mock data for getConversationQuotations');
-    return [];
+    // Return mock data in the expected format
+    return Array.from({ length: 3 }, (_, i) => ({
+      item_id: `mock-item-${i}`,
+      item_number: i + 1,
+      description: `Mock Item ${i + 1}`,
+      quantity: Math.floor(Math.random() * 10) + 1,
+      latest_quotation: {
+        id: `mock-quote-${i}`,
+        unit_price: parseFloat((Math.random() * 100 + 20).toFixed(2)),
+        currency: 'USD',
+        lead_time: '30 days',
+        quote_time: new Date().toISOString()
+      },
+      history_count: Math.floor(Math.random() * 3)
+    }));
   }
 
   try {
@@ -165,5 +179,73 @@ export async function getConversationQuotations(
   } catch (error) {
     console.error('Error fetching conversation quotations:', error);
     return [];
+  }
+}
+
+// Import quotation document/image
+export async function importQuotationDocument(
+  token: string,
+  projectId: string,
+  conversationId: string,
+  file: File
+): Promise<QuotationItemResponse[]> {
+  if (useMockData()) {
+    console.log('Using mock data for importQuotationDocument');
+    
+    // Simulate API processing delay
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Return mock processed items
+        resolve(Array.from({ length: 4 }, (_, i) => ({
+          item_id: `imported-item-${i}`,
+          item_number: i + 1,
+          description: `Imported Item ${i + 1} from ${file.name}`,
+          quantity: Math.floor(Math.random() * 10) + 1,
+          latest_quotation: {
+            id: `imported-quote-${i}`,
+            unit_price: parseFloat((Math.random() * 100 + 20).toFixed(2)),
+            currency: 'USD',
+            lead_time: '30 days',
+            quote_time: new Date().toISOString()
+          },
+          history_count: 0
+        })));
+      }, 2000);
+    });
+  }
+
+  try {
+    // Create form data for file upload
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('conversation_id', conversationId);
+    
+    const response = await fetch(
+      `${API_CONFIG.BASE_URL}/projects/${projectId}/import-quotation`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to import quotation');
+    }
+
+    const data = await response.json();
+    console.log('Import quotation response:', data);
+    
+    if (data && data.items && Array.isArray(data.items)) {
+      return data.items;
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Error importing quotation document:', error);
+    throw error;
   }
 }
