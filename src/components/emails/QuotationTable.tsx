@@ -90,6 +90,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [historyLoading, setHistoryLoading] = useState<Record<string, boolean>>({});
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [supplierId, setSupplierId] = useState<string | null>(null);
   const { getToken } = useAuth();
   const { conversations, selectedProjectId } = useEmailStore();
   
@@ -99,6 +100,28 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   const currentConversation = selectedProjectId && conversations[selectedProjectId]
     ? conversations[selectedProjectId].find(conv => conv.id === conversationId)
     : null;
+  
+  // Extract supplier ID from conversation early on
+  useEffect(() => {
+    if (currentConversation?.supplierId) {
+      setSupplierId(currentConversation.supplierId);
+      console.log("Setting supplier ID from conversation:", currentConversation.supplierId);
+    } else {
+      // Try to find this conversation's email addresses
+      const supplierEmail = currentConversation?.supplierEmail;
+      const supplierName = currentConversation?.supplierName;
+      
+      console.log("No direct supplier ID found, using supplier info:", { 
+        supplierEmail, 
+        supplierName,
+        conversationId
+      });
+      
+      if (supplierEmail && supplierEmail !== "No email available") {
+        console.log("Using supplier email for identification:", supplierEmail);
+      }
+    }
+  }, [currentConversation, conversationId]);
   
   useEffect(() => {
     const items = extractQuotationItems(safeEmails);
@@ -128,6 +151,13 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         throw new Error('Received invalid quotation data format');
       }
       
+      // Check if any item has supplier_id, and store it if found
+      const supplierIdFromItems = items.find(item => item.supplier_id)?.supplier_id;
+      if (supplierIdFromItems && !supplierId) {
+        console.log("Found supplier ID from items:", supplierIdFromItems);
+        setSupplierId(supplierIdFromItems);
+      }
+      
       setQuotationItems(items);
     } catch (error) {
       console.error('Failed to fetch conversation quotations:', error);
@@ -139,7 +169,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     }
   };
   
-  const fetchQuotationHistory = async (itemId: string, supplierId: string | undefined) => {
+  const fetchQuotationHistory = async (itemId: string) => {
     if (!itemId) return;
     
     setHistoryLoading(prev => ({ ...prev, [itemId]: true }));
@@ -150,11 +180,17 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         throw new Error('Unable to get authentication token');
       }
       
-      let supplierIdToUse = supplierId;
+      // Priority order for supplier ID:
+      // 1. Item-specific supplier_id
+      // 2. Already stored supplier ID from other sources
+      // 3. Conversation's supplierId
       
-      if (!supplierIdToUse && currentConversation && currentConversation.supplierId) {
+      const item = quotationItems.find(item => item.item_id === itemId);
+      let supplierIdToUse = item?.supplier_id || supplierId;
+      
+      if (!supplierIdToUse && currentConversation) {
         supplierIdToUse = currentConversation.supplierId;
-        console.log(`Using supplier ID from conversation: ${supplierIdToUse}`);
+        console.log(`Using conversation's supplier ID as fallback: ${supplierIdToUse}`);
       }
       
       if (!supplierIdToUse) {
@@ -220,26 +256,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     }
     
     setExpandedItem(itemId);
-    
-    const item = quotationItems.find(item => item.item_id === itemId);
-    
-    // Get supplier ID from the item or fallback to conversation's supplier ID
-    let supplierIdToUse = item?.supplier_id;
-    
-    // If supplier_id is not available from the item, use the conversation's supplierId
-    if (!supplierIdToUse && currentConversation) {
-      supplierIdToUse = currentConversation.supplierId;
-      console.log(`Using conversation's supplier ID as fallback: ${supplierIdToUse}`);
-    }
-    
-    if (!supplierIdToUse) {
-      toast.error('Cannot fetch history: Missing supplier information');
-      return;
-    }
-    
-    console.log('Using supplier ID for history:', supplierIdToUse);
-    
-    await fetchQuotationHistory(itemId, supplierIdToUse);
+    await fetchQuotationHistory(itemId);
   };
 
   const displayItems = quotationItems.length > 0 
