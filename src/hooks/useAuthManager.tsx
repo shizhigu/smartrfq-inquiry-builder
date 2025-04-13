@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 // Idle timeout in milliseconds (15 minutes)
-const IDLE_TIMEOUT = 15 * 60 * 1000;
+const IDLE_TIMEOUT = 1 * 60 * 1000;
 
 export function useAuthManager() {
   const { signOut, isSignedIn } = useAuth();
