@@ -109,13 +109,14 @@ export function RfqSupplierTabContent({
           onChange={(e) => onMessageChange(e.target.value)}
           rows={isExpanded ? 16 : 4}
           className={cn(
-            "w-full transition-all duration-500 ease-in-out",
+            "w-full transition-all duration-500 ease-in-out resize-none",
             isExpanded 
               ? "animate-fade-in shadow-lg" 
               : "shadow-sm animate-fade-out"
           )}
           style={{
             maxHeight: isExpanded ? "60vh" : "initial",
+            height: isExpanded ? "60vh" : "auto",
           }}
         />
       </div>
