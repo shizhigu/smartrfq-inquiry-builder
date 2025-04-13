@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useEmails } from '@/hooks/useEmails';
 import { useProjectStore } from '@/stores/projectStore';
@@ -249,10 +250,11 @@ const Emails = () => {
             conversationId={selectedConversation.id} 
           />
           
-          {/* Quotation Table Component */}
+          {/* Quotation Table Component - Now passing supplier_id */}
           <QuotationTable 
             emails={emails} 
             conversationId={selectedConversation.id}
+            supplierId={selectedConversation.supplierId}
           />
           
           {/* Collapsible Email Conversation Component */}

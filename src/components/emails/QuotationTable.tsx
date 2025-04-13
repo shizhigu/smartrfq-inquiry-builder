@@ -24,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 interface QuotationTableProps {
   emails: Email[];
   conversationId: string;
+  supplierId?: string;
 }
 
 const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
@@ -81,7 +82,7 @@ const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
   return items.sort((a, b) => a.itemNumber - b.itemNumber);
 };
 
-export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversationId }) => {
+export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversationId, supplierId: initialSupplierId }) => {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [quotationItems, setQuotationItems] = useState<QuotationItemResponse[]>([]);
   const [extractedItems, setExtractedItems] = useState<QuotationItem[]>([]);
@@ -90,7 +91,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [historyLoading, setHistoryLoading] = useState<Record<string, boolean>>({});
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [supplierId, setSupplierId] = useState<string | null>(null);
+  const [supplierId, setSupplierId] = useState<string | null>(initialSupplierId || null);
   const { getToken } = useAuth();
   const { conversations, selectedProjectId } = useEmailStore();
   
@@ -102,7 +103,11 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     : null;
   
   useEffect(() => {
-    if (currentConversation?.supplierId) {
+    if (initialSupplierId) {
+      setSupplierId(initialSupplierId);
+      console.log("Using passed supplier ID:", initialSupplierId);
+    }
+    else if (currentConversation?.supplierId) {
       setSupplierId(currentConversation.supplierId);
       console.log("Setting supplier ID from conversation:", currentConversation.supplierId);
     } else {
@@ -119,7 +124,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         console.log("Using supplier email for identification:", supplierEmail);
       }
     }
-  }, [currentConversation, conversationId]);
+  }, [currentConversation, conversationId, initialSupplierId]);
   
   useEffect(() => {
     const items = extractQuotationItems(safeEmails);
@@ -178,7 +183,8 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
       }
       
       const item = quotationItems.find(item => item.item_id === itemId);
-      let supplierIdToUse = item?.supplier_id || supplierId;
+      
+      let supplierIdToUse = item?.supplier_id || initialSupplierId || supplierId;
       
       if (!supplierIdToUse && currentConversation) {
         supplierIdToUse = currentConversation.supplierId;
@@ -258,7 +264,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         item_number: item.itemNumber,
         description: item.description,
         quantity: item.quantity,
-        supplier_id: currentConversation?.supplierId || null,
+        supplier_id: initialSupplierId || currentConversation?.supplierId || null,
         latest_quotation: {
           id: `fallback_quote_${item.itemNumber}`,
           unit_price: item.unitPrice,
@@ -268,6 +274,10 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         },
         history_count: 0
       }));
+  
+  const displaySupplierId = supplierId || 
+    quotationItems.find(item => item.supplier_id)?.supplier_id || 
+    (currentConversation?.supplierId) || "Unknown";
   
   return (
     <Card className="mb-6">
@@ -285,11 +295,9 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
           <div className="text-sm text-muted-foreground">
             {displayItems.length} item{displayItems.length !== 1 ? 's' : ''}
           </div>
-          {supplierId && (
-            <Badge variant="outline" className="ml-2">
-              Supplier ID: {supplierId}
-            </Badge>
-          )}
+          <Badge variant="outline" className="ml-2">
+            Supplier ID: {displaySupplierId}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent>
