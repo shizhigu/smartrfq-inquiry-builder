@@ -82,6 +82,7 @@ export function RfqSendInquiryDialog({
       
       const partIds = selectedParts.map(part => part.id);
       
+      console.log(`Generating template for supplier ID: ${selectedSupplierId}`);
       const template = await generateEmailTemplate(token, projectId, partIds, selectedSupplierId);
       
       setSubject(template.subject);
@@ -130,6 +131,8 @@ export function RfqSendInquiryDialog({
       }
       
       const partIds = selectedParts.map(part => part.id);
+      
+      console.log(`Sending inquiry to supplier ID: ${selectedSupplierId}`);
 
       await sendProjectEmail(
         token,
@@ -164,14 +167,28 @@ export function RfqSendInquiryDialog({
   };
 
   const handleSupplierSelect = (supplierId: string) => {
-    setSelectedSupplierId(supplierId);
-    setConversationId(null);
+    // Only update if we have an actual supplier ID
+    if (supplierId && supplierId !== 'no-selection') {
+      setSelectedSupplierId(supplierId);
+      setConversationId(null);
+    } else {
+      setSelectedSupplierId("");
+    }
   };
   
-  const handleAddSupplier = (supplierData: Omit<Supplier, 'id' | 'projectId'>) => {
-    toast.success(`${supplierData.name} has been added to your suppliers`);
+  const handleAddSupplier = async (supplierData: Supplier) => {
+    // Use the supplier that was created on the backend with the correct ID
+    if (supplierData && supplierData.id) {
+      toast.success(`${supplierData.name} has been added to your suppliers`);
+      
+      // Refresh the suppliers list
+      await loadSuppliers(true);
+      
+      // Select the newly created supplier
+      setSelectedSupplierId(supplierData.id);
+    }
+    
     setIsAddSupplierOpen(false);
-    loadSuppliers(true);
   };
   
   return (
@@ -251,6 +268,7 @@ export function RfqSendInquiryDialog({
         open={isAddSupplierOpen}
         onOpenChange={setIsAddSupplierOpen}
         onSave={handleAddSupplier}
+        projectId={projectId}
       />
     </>
   );

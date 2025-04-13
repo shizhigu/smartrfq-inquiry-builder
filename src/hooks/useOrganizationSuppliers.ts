@@ -45,6 +45,9 @@ export function useOrganizationSuppliers() {
       // Use the regular suppliers endpoint - the organization context is in the token
       const fetchedSuppliers = await getSuppliers(token, 'all');
       
+      // Log IDs to help with debugging
+      console.log('Loaded supplier IDs:', fetchedSuppliers.map(s => s.id));
+      
       // Save to the global key in the supplier store
       setStoreSuppliers('global', fetchedSuppliers);
       console.log('Loaded organization suppliers:', fetchedSuppliers.length);

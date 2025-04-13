@@ -1,3 +1,4 @@
+
 import { addSupplier, deleteSupplier, getSuppliers } from '@/lib/api/suppliers';
 import { useProjectStore } from '@/stores/projectStore';
 import { Supplier, useSupplierStore } from '@/stores/supplierStore';
@@ -90,16 +91,18 @@ export const useSuppliers = () => {
   }) => {
     if (!selectedProjectId) {
       toast.error("No project selected");
-      return;
+      return null;
     }
 
     if (!newSupplierData.name || !newSupplierData.email) {
       toast.error("Name and email are required");
-      return;
+      return null;
     }
 
-    const supplier = {
-      id: uuidv4(),
+    // Create a temporary supplier object with a temporary ID
+    // The backend will replace this ID with a real one
+    const tempSupplier = {
+      id: uuidv4(), // Temporary ID
       name: newSupplierData.name,
       email: newSupplierData.email,
       phone: newSupplierData.phone,
@@ -117,13 +120,19 @@ export const useSuppliers = () => {
         throw new Error('Unable to get authentication token');
       }
       
-      await addSupplier(token, supplier);
-      addSupplierToStore(supplier);
+      // Send the supplier to the backend and get the response with the real ID
+      const createdSupplier = await addSupplier(token, tempSupplier);
+      
+      // Use the supplier returned from the API which will have the correct ID
+      addSupplierToStore(createdSupplier);
       setIsAddingSupplier(false);
-      toast.success(`${supplier.name} has been added to your suppliers`);
+      toast.success(`${createdSupplier.name} has been added to your suppliers`);
+      
+      return createdSupplier;
     } catch (error) {
       console.error('Failed to add supplier:', error);
       toast.error('Failed to add supplier');
+      return null;
     } finally {
       setLoading(false);
     }

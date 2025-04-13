@@ -65,6 +65,9 @@ export const addSupplier = async (token: string, supplier: Supplier): Promise<Su
       mockSuppliers[supplier.projectId!] = [];
     }
     
+    // In mock mode, we'll keep the generated ID but add a comment to simulate
+    // what would happen with a real backend
+    console.log('Mock API - using client-generated ID:', supplier.id);
     mockSuppliers[supplier.projectId!].push(supplier);
     return supplier;
   }
@@ -82,6 +85,7 @@ export const addSupplier = async (token: string, supplier: Supplier): Promise<Su
     throw new Error(`Failed to add supplier: ${response.statusText}`);
   }
   
+  // Return the supplier object from the response, which will have the server-generated ID
   return response.json();
 };
 
@@ -114,7 +118,7 @@ export const updateSupplier = async (token: string, id: string, data: Partial<Su
   }
   
   const response = await fetch(`${API_CONFIG.BASE_URL}/suppliers/${id}`, {
-    method: 'PUT', // 使用 PUT 而不是 PATCH，因为后端使用的是 PUT
+    method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
