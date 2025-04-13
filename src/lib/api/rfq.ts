@@ -1,3 +1,4 @@
+
 // Import from configuration instead of hardcoding
 import { API_CONFIG, useMockData } from '../config';
 import { mockRfqParts, mockRfqFiles } from '../mock/mockData';
@@ -297,7 +298,8 @@ export const sendRfqInquiry = async (
   projectId: string, 
   partIds: string[], 
   email: string,
-  subject?: string
+  subject?: string,
+  message?: string
 ): Promise<any> => {
   console.log(`Sending RFQ inquiry for project ${projectId} to ${email}`);
   
@@ -323,7 +325,8 @@ export const sendRfqInquiry = async (
       project_id: projectId,
       part_ids: partIds,
       email: email,
-      subject: subject || 'Request for Quote'
+      subject: subject || 'Request for Quote',
+      message: message || ''
     }),
   });
   

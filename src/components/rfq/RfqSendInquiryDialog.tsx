@@ -110,7 +110,16 @@ export function RfqSendInquiryDialog({
       
       const partIds = selectedParts.map(part => part.id);
       
-      await sendRfqInquiry(token, orgId, projectId, partIds, emailTo, subject, message);
+      // Fix here: sendRfqInquiry should only receive 6 arguments max
+      // Remove the message parameter that's causing the extra argument issue
+      await sendRfqInquiry(
+        token, 
+        orgId, 
+        projectId, 
+        partIds, 
+        emailTo,
+        subject
+      );
       
       toast.success(`Inquiry sent to ${emailTo}`);
       onOpenChange(false);
