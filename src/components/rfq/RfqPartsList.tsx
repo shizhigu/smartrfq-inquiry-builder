@@ -260,16 +260,16 @@ export function RfqPartsList({
                       />
                     </TableCell>
                   )}
-                  <TableCell>{part.partNumber}</TableCell>
+                  <TableCell>{part.partNumber || part.part_number}</TableCell>
                   <TableCell className="font-medium">{part.name}</TableCell>
                   <TableCell className="text-right">{part.quantity}</TableCell>
                   <TableCell>{part.unit}</TableCell>
                   <TableCell>{part.tolerance || '-'}</TableCell>
                   <TableCell>{part.material || '-'}</TableCell>
-                  <TableCell>{part.surfaceFinish || '-'}</TableCell>
+                  <TableCell>{part.surfaceFinish || part.surface_finish || '-'}</TableCell>
                   <TableCell>{part.process || '-'}</TableCell>
-                  <TableCell>{part.deliveryTime || '-'}</TableCell>
-                  <TableCell>{part.drawingNumber || '-'}</TableCell>
+                  <TableCell>{part.deliveryTime || part.delivery_time || '-'}</TableCell>
+                  <TableCell>{part.drawingNumber || part.drawing_url || '-'}</TableCell>
                   <TableCell>{part.remarks || '-'}</TableCell>
                   {!isEditMode && (
                     <TableCell>
@@ -312,7 +312,7 @@ export function RfqPartsList({
                 <Label htmlFor="partNumber">Part Number</Label>
                 <Input 
                   id="partNumber" 
-                  defaultValue={currentPart.partNumber} 
+                  defaultValue={currentPart.partNumber || currentPart.part_number} 
                 />
               </div>
               <div className="space-y-2">
