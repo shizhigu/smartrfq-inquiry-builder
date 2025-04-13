@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-// Idle timeout in milliseconds (15 minutes)
-const IDLE_TIMEOUT = 15 * 60 * 1000;
+// Idle timeout in milliseconds (1 minute for testing)
+const IDLE_TIMEOUT = 1 * 60 * 1000;
 // Dialog countdown duration (30 seconds)
 const COUNTDOWN_DURATION = 30;
 
