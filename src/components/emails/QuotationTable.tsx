@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -96,7 +95,6 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   const safeEmails = Array.isArray(emails) ? emails : [];
   const hasItemsFormat = safeEmails.some(email => email.content && email.content.includes('[ITEM-'));
   
-  // Find the current conversation to get the supplier ID
   const currentConversation = selectedProjectId && conversations[selectedProjectId]
     ? conversations[selectedProjectId].find(conv => conv.id === conversationId)
     : null;
@@ -151,10 +149,8 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         throw new Error('Unable to get authentication token');
       }
       
-      // Try to get the supplier ID from the item first
       let supplierIdToUse = supplierId;
       
-      // If supplier ID is not available from the item, try to get it from the conversation
       if (!supplierIdToUse && currentConversation && currentConversation.supplierId) {
         supplierIdToUse = currentConversation.supplierId;
         console.log(`Using supplier ID from conversation: ${supplierIdToUse}`);
@@ -224,10 +220,8 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     
     setExpandedItem(itemId);
     
-    // Find the item to get its supplier ID
     const item = quotationItems.find(item => item.item_id === itemId);
     
-    // Get supplier ID from the item or use the conversation's supplier ID as fallback
     const supplierIdToUse = item?.supplier_id || (currentConversation?.supplierId);
     
     if (!supplierIdToUse) {
