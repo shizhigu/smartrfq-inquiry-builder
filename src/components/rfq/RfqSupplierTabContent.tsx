@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import { RfqSupplierSelector } from "./RfqSupplierSelector";
 import { Supplier } from "@/stores/supplierStore";
+import { Button } from "@/components/ui/button";
+import { Maximize2, Minimize2 } from "lucide-react";
 
 interface RfqSupplierTabContentProps {
   selectedSupplierId: string;
@@ -31,6 +33,8 @@ export function RfqSupplierTabContent({
   onAddNew = () => {},
   hideSubjectInput = false
 }: RfqSupplierTabContentProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   // Handle the special "no-selection" value
   const handleSupplierSelect = (supplierId: string) => {
     // If 'no-selection' is selected, pass an empty string to clear selection
@@ -41,40 +45,59 @@ export function RfqSupplierTabContent({
     }
   };
 
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="supplier">Select Supplier</Label>
-        <RfqSupplierSelector
-          selectedSupplierId={selectedSupplierId}
-          onSupplierSelect={handleSupplierSelect}
-          suppliers={suppliers}
-          onAddNew={onAddNew}
-          isLoading={isLoading}
-        />
-      </div>
-      
-      {!hideSubjectInput && onSubjectChange && (
-        <div className="space-y-2">
-          <Label htmlFor="subject">Subject</Label>
-          <Input 
-            id="subject" 
-            type="text" 
-            placeholder="Enter subject..." 
-            value={subject || ""}
-            onChange={(e) => onSubjectChange(e.target.value)} 
-          />
-        </div>
+    <div className={`space-y-4 ${isExpanded ? 'expanded-content' : ''}`}>
+      {!isExpanded && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="supplier">Select Supplier</Label>
+            <RfqSupplierSelector
+              selectedSupplierId={selectedSupplierId}
+              onSupplierSelect={handleSupplierSelect}
+              suppliers={suppliers}
+              onAddNew={onAddNew}
+              isLoading={isLoading}
+            />
+          </div>
+          
+          {!hideSubjectInput && onSubjectChange && (
+            <div className="space-y-2">
+              <Label htmlFor="subject">Subject</Label>
+              <Input 
+                id="subject" 
+                type="text" 
+                placeholder="Enter subject..." 
+                value={subject || ""}
+                onChange={(e) => onSubjectChange(e.target.value)} 
+              />
+            </div>
+          )}
+        </>
       )}
       
       <div className="space-y-2">
-        <Label htmlFor="message-supplier">Message</Label>
+        <div className="flex justify-between items-center">
+          <Label htmlFor="message-supplier">Message</Label>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleExpand}
+            title={isExpanded ? "Shrink" : "Expand"}
+          >
+            {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
+        </div>
         <Textarea 
           id="message-supplier"
           placeholder="Write your message here..."
           value={message}
           onChange={(e) => onMessageChange(e.target.value)}
-          rows={4}
+          rows={isExpanded ? 16 : 4}
+          className={isExpanded ? "w-full transition-all duration-300" : "transition-all duration-300"}
         />
       </div>
     </div>

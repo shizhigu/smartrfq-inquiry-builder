@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RfqPart } from "@/stores/rfqStore";
@@ -194,12 +195,6 @@ export function RfqSendInquiryDialog({
                 isLoading={isSuppliersLoading}
                 onAddNew={() => setIsAddSupplierOpen(true)}
               />
-              
-              {conversationId && (
-                <p className="text-xs text-muted-foreground">
-                  Conversation ID: {conversationId}
-                </p>
-              )}
               
               <div className="flex justify-end">
                 <Button 
