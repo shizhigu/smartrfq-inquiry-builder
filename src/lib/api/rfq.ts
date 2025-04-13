@@ -1,4 +1,3 @@
-
 // Import from configuration instead of hardcoding
 import { API_CONFIG, useMockData } from '../config';
 import { mockRfqParts, mockRfqFiles } from '../mock/mockData';
@@ -35,6 +34,50 @@ export interface ParseRfqResponse {
   file_id: string;
   project_id: string;
   message: string;
+}
+
+// Interface for generated email template
+export interface GeneratedEmailTemplate {
+  subject: string;
+  content: string;
+  conversation_id: string;
+}
+
+// Generate email template for selected parts
+export async function generateEmailTemplate(
+  token: string,
+  projectId: string,
+  partIds: string[]
+): Promise<GeneratedEmailTemplate> {
+  // Use mock data if mocks are enabled
+  if (useMockData()) {
+    console.log('Using mock data for generateEmailTemplate');
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Create a mock template response
+    return {
+      subject: "Request for Quote: Parts Inquiry",
+      content: `Dear Supplier,\n\nWe are writing to request a quote for the following parts for our project:\n\n${partIds.map((id, index) => `${index + 1}. Part ID: ${id.substring(0, 8)}`).join('\n')}\n\nPlease provide pricing, lead time, and minimum order quantities for these items.\n\nThank you for your assistance.\n\nBest regards,\nProcurement Team`,
+      conversation_id: `conv_${uuidv4().substring(0, 8)}`
+    };
+  }
+  
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/generate-template`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(partIds),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to generate email template');
+  }
+
+  return response.json();
 }
 
 // Fetch RFQ parts for a project

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RfqPart } from "@/stores/rfqStore";
-import { Loader2, Mail, User } from "lucide-react";
+import { Loader2, Mail, User, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { 
   Dialog, 
@@ -12,7 +12,7 @@ import {
   DialogFooter,
   DialogDescription
 } from "@/components/ui/dialog";
-import { sendRfqInquiry } from "@/lib/api/rfq";
+import { generateEmailTemplate, sendRfqInquiry } from "@/lib/api/rfq";
 import { useAuth, useOrganization } from "@clerk/clerk-react";
 import { useMockData } from "@/lib/config";
 import { useNavigate } from "react-router-dom";
@@ -51,11 +51,13 @@ export function RfqSendInquiryDialog({
   const { suppliers, isLoading: isSuppliersLoading } = useOrganizationSuppliers();
   
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false);
   const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
   const [manualEmail, setManualEmail] = useState("");
   const [subject, setSubject] = useState("Request for Quote");
   const [message, setMessage] = useState("");
+  const [conversationId, setConversationId] = useState<string | null>(null);
 
   // Reset form when dialog opens/closes
   const handleOpenChange = (open: boolean) => {
@@ -65,8 +67,42 @@ export function RfqSendInquiryDialog({
       setManualEmail("");
       setSubject("Request for Quote");
       setMessage("");
+      setConversationId(null);
     }
     onOpenChange(open);
+  };
+
+  const handleGenerateTemplate = async () => {
+    if (!selectedParts || selectedParts.length === 0) {
+      toast.error('No parts selected');
+      return;
+    }
+
+    try {
+      setIsGeneratingTemplate(true);
+      
+      const token = await getToken();
+      if (!token) {
+        toast.error('Authentication error');
+        return;
+      }
+      
+      const partIds = selectedParts.map(part => part.id);
+      
+      const template = await generateEmailTemplate(token, projectId, partIds);
+      
+      // Fill form with generated template
+      setSubject(template.subject);
+      setMessage(template.content);
+      setConversationId(template.conversation_id);
+      
+      toast.success('Template generated successfully');
+    } catch (error) {
+      console.error('Failed to generate template:', error);
+      toast.error('Failed to generate template');
+    } finally {
+      setIsGeneratingTemplate(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,15 +146,14 @@ export function RfqSendInquiryDialog({
       
       const partIds = selectedParts.map(part => part.id);
       
-      // Fix here: sendRfqInquiry should only receive 6 arguments max
-      // Remove the message parameter that's causing the extra argument issue
       await sendRfqInquiry(
         token, 
         orgId, 
         projectId, 
         partIds, 
         emailTo,
-        subject
+        subject,
+        message
       );
       
       toast.success(`Inquiry sent to ${emailTo}`);
@@ -241,7 +276,29 @@ export function RfqSendInquiryDialog({
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="subject">Subject</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="subject">Subject</Label>
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleGenerateTemplate}
+                    disabled={isGeneratingTemplate || selectedParts.length === 0}
+                    className="h-8"
+                  >
+                    {isGeneratingTemplate ? (
+                      <>
+                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="mr-2 h-3 w-3" />
+                        Generate Template
+                      </>
+                    )}
+                  </Button>
+                </div>
                 <Input
                   id="subject"
                   type="text"
@@ -257,8 +314,13 @@ export function RfqSendInquiryDialog({
                   placeholder="Write your message here..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  rows={4}
+                  rows={6}
                 />
+                {conversationId && (
+                  <p className="text-xs text-muted-foreground">
+                    Conversation ID: {conversationId}
+                  </p>
+                )}
               </div>
               
               <RfqSelectedPartsTable selectedParts={selectedParts || []} />
