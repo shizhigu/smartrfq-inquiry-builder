@@ -22,6 +22,21 @@ export interface QuotationHistoryResponse {
   count: number;
 }
 
+export interface QuotationItemResponse {
+  item_id: string;
+  item_number: number;
+  description: string;
+  quantity: number;
+  latest_quotation: {
+    id: string;
+    unit_price: number;
+    currency: string;
+    lead_time: string;
+    quote_time: string;
+  };
+  history_count: number;
+}
+
 // Get the latest quotation for an item from a specific supplier
 export async function getLatestQuotation(
   token: string,
@@ -97,7 +112,7 @@ export async function getQuotationHistory(
 export async function getConversationQuotations(
   token: string,
   conversationId: string
-): Promise<Quotation[]> {
+): Promise<QuotationItemResponse[]> {
   if (useMockData()) {
     console.log('Using mock data for getConversationQuotations');
     return [];
@@ -121,14 +136,25 @@ export async function getConversationQuotations(
     // Get the response data
     const data = await response.json();
     
+    console.log('Raw API response for quotations:', data);
+    
+    // Check for the new format with items array
+    if (data && data.items && Array.isArray(data.items)) {
+      console.log('Using new format with items array');
+      return data.items;
+    }
+    
     // Check if the response is an array or has a quotations property
     if (Array.isArray(data)) {
+      console.log('Response is a direct array');
       return data;
     } else if (data && typeof data === 'object') {
       // If the response is an object, look for a quotations array property
       if (Array.isArray(data.quotations)) {
+        console.log('Response has quotations array property');
         return data.quotations;
       } else if (data.data && Array.isArray(data.data)) {
+        console.log('Response has data array property');
         return data.data;
       }
     }
