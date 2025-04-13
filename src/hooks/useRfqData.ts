@@ -226,21 +226,21 @@ export function useRfqData() {
         itemData
       );
       
-      if (result && result.id) {
+      if (result) {
         const newPart: RfqPart = {
           id: result.id,
           name: result.name,
-          partNumber: result.partNumber || result.part_number,
+          partNumber: result.part_number,
           quantity: typeof result.quantity === 'string' ? parseInt(result.quantity, 10) : result.quantity,
           unit: result.unit,
           projectId: selectedProjectId,
-          material: result.material || undefined,
-          surfaceFinish: result.surfaceFinish || result.surface_finish || undefined,
-          process: result.process || undefined,
-          deliveryTime: result.deliveryTime || result.delivery_time || undefined,
-          tolerance: result.tolerance || undefined,
-          drawingNumber: result.drawingNumber || result.drawing_url || undefined,
-          remarks: result.remarks || undefined,
+          material: result.material,
+          surfaceFinish: result.surface_finish,
+          process: result.process,
+          deliveryTime: result.delivery_time,
+          tolerance: result.tolerance,
+          drawingNumber: result.drawing_url,
+          remarks: result.remarks,
         };
         
         console.log('Adding part to store:', newPart);
