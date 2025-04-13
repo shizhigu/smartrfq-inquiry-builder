@@ -33,6 +33,7 @@ interface EmailState {
   setPage: (page: number) => void;
   setTotalPages: (pages: number) => void;
   setTotalConversations: (total: number) => void;
+  resetState: () => void; // Added the resetState method definition
 }
 
 export const useEmailStore = create<EmailState>((set) => ({
@@ -94,5 +95,18 @@ export const useEmailStore = create<EmailState>((set) => ({
   setError: (error) => set({ error }),
   setPage: (page) => set({ page }),
   setTotalPages: (totalPages) => set({ totalPages }),
-  setTotalConversations: (totalConversations) => set({ totalConversations })
+  setTotalConversations: (totalConversations) => set({ totalConversations }),
+  
+  // Implement the resetState method to clear all store data
+  resetState: () => set({
+    conversations: {},
+    selectedConversationId: null,
+    selectedProjectId: null,
+    isLoading: false,
+    error: null,
+    page: 1,
+    pageSize: 20,
+    totalPages: 0,
+    totalConversations: 0
+  })
 }));
