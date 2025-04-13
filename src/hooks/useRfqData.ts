@@ -228,20 +228,24 @@ export function useRfqData() {
       );
       
       if (result) {
-        // Create a new part with proper camelCase property mapping
+        // Create a new part with both camelCase and snake_case properties
         const newPart: RfqPart = {
           id: result.id,
           name: result.name,
-          partNumber: result.part_number || result.partNumber, // Handle both cases
+          partNumber: result.part_number || result.partNumber,
+          part_number: result.part_number,
           quantity: typeof result.quantity === 'string' ? parseInt(result.quantity, 10) : result.quantity,
           unit: result.unit,
           projectId: selectedProjectId,
           material: result.material,
-          surfaceFinish: result.surface_finish || result.surfaceFinish, // Handle both cases
+          surfaceFinish: result.surface_finish || result.surfaceFinish,
+          surface_finish: result.surface_finish,
           process: result.process,
-          deliveryTime: result.delivery_time || result.deliveryTime, // Handle both cases
+          deliveryTime: result.delivery_time || result.deliveryTime,
+          delivery_time: result.delivery_time,
           tolerance: result.tolerance,
-          drawingNumber: result.drawing_url || result.drawingNumber, // Handle both cases
+          drawingNumber: result.drawing_url || result.drawingNumber,
+          drawing_url: result.drawing_url,
           remarks: result.remarks,
         };
         
