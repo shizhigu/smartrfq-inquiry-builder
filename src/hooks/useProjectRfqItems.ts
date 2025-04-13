@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { API_CONFIG, useMockData } from '@/lib/config';
@@ -34,6 +33,9 @@ export function useProjectRfqItems() {
     parts,
     initialDataLoaded
   } = useRfqStore();
+
+  // Keep track of which projects we've already attempted to fetch data for
+  const [fetchedProjects, setFetchedProjects] = useState<Record<string, boolean>>({});
 
   const fetchRfqItemsForProject = useCallback(async (projectId: string) => {
     try {
@@ -74,13 +76,8 @@ export function useProjectRfqItems() {
     // Skip loading if there are no projects
     if (projects.length === 0) return;
     
-    // Skip loading if we already have data for all projects in the store
-    const allProjectsHaveData = projects.every(project => {
-      return parts[project.id] && parts[project.id].length >= 0;
-    });
-    
-    // If data is already loaded and all projects have entries (even empty arrays), return early
-    if (initialDataLoaded && allProjectsHaveData) {
+    // If data is already loaded and marked as initialized, return early
+    if (initialDataLoaded) {
       console.log('All project RFQ items already loaded in store, skipping API calls');
       return;
     }
@@ -92,14 +89,31 @@ export function useProjectRfqItems() {
     try {
       console.log('Loading RFQ items for all projects:', projects.length);
       
+      // Create a copy of fetchedProjects to update
+      const updatedFetchedProjects = { ...fetchedProjects };
+      
+      // Only fetch for projects we haven't already fetched
+      const projectsToFetch = projects.filter(project => !fetchedProjects[project.id]);
+      
+      if (projectsToFetch.length === 0) {
+        // We've already attempted to fetch all projects, mark as initially loaded
+        setAllProjectItems({}, true);
+        setIsLoading(false);
+        setStatsLoading(false);
+        return;
+      }
+      
       // Use mock data if enabled
       if (useMockData()) {
         console.log('Using mock data for project RFQ items');
         // We'll let the individual API calls handle the mock data
         const results = await Promise.all(
-          projects.map(async (project) => {
+          projectsToFetch.map(async (project) => {
+            // Mark this project as fetched regardless of outcome
+            updatedFetchedProjects[project.id] = true;
+            
             // Check if we already have data for this project in the store
-            if (parts[project.id] && parts[project.id].length >= 0) {
+            if (parts[project.id] !== undefined) {
               console.log(`Using cached data for project ${project.id}`);
               return { projectId: project.id, items: parts[project.id] };
             }
@@ -115,13 +129,17 @@ export function useProjectRfqItems() {
         });
         
         console.log('Loaded RFQ items for all projects:', projectItemsMap);
-        setAllProjectItems(projectItemsMap);
+        setAllProjectItems(projectItemsMap, true); // Mark as initially loaded
+        setFetchedProjects(updatedFetchedProjects);
       } else {
         // Real API call for each project
         const results = await Promise.all(
-          projects.map(async (project) => {
+          projectsToFetch.map(async (project) => {
+            // Mark this project as fetched regardless of outcome
+            updatedFetchedProjects[project.id] = true;
+            
             // Check if we already have data for this project in the store
-            if (parts[project.id] && parts[project.id].length >= 0) {
+            if (parts[project.id] !== undefined) {
               console.log(`Using cached data for project ${project.id}`);
               return { projectId: project.id, items: parts[project.id] };
             }
@@ -137,7 +155,8 @@ export function useProjectRfqItems() {
         });
         
         console.log('Loaded RFQ items for all projects:', projectItemsMap);
-        setAllProjectItems(projectItemsMap, true); // Pass true to mark data as initially loaded
+        setAllProjectItems(projectItemsMap, true); // Mark as initially loaded
+        setFetchedProjects(updatedFetchedProjects);
       }
     } catch (error) {
       console.error('Failed to load project RFQ items:', error);
@@ -148,7 +167,7 @@ export function useProjectRfqItems() {
       setIsLoading(false);
       setStatsLoading(false);
     }
-  }, [projects, getToken, setAllProjectItems, setStatsLoading, setStatsError, parts, fetchRfqItemsForProject, initialDataLoaded]);
+  }, [projects, getToken, setAllProjectItems, setStatsLoading, setStatsError, parts, fetchRfqItemsForProject, initialDataLoaded, fetchedProjects]);
 
   // Load RFQ items when projects change
   useEffect(() => {

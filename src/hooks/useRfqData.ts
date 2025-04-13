@@ -1,3 +1,4 @@
+
 import { fetchRfqFiles, fetchRfqParts, deleteRfqParts, insertRfqItem } from "@/lib/api/rfq";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -32,7 +33,8 @@ export function useRfqData() {
     selectAllParts,
     clearPartSelection,
     addPart,
-    deletePart
+    deletePart,
+    initialDataLoaded
   } = useRfqStore();
   
   const parts = selectedProjectId ? (allParts[selectedProjectId] || []) : [];
@@ -65,8 +67,8 @@ export function useRfqData() {
       const token = await getToken() || simulatedToken;
       const currentOrgId = orgId || simulatedOrgId;
       
-      if ((!allParts[selectedProjectId] || allParts[selectedProjectId].length === 0) && 
-          !dataLoadedRef.current.parts) {
+      // Fix infinite loop: Only fetch if we haven't fetched before for this project
+      if (!dataLoadedRef.current.parts) {
         console.log('Fetching parts from API as they are not in store');
         setLoading(true);
         
@@ -77,17 +79,20 @@ export function useRfqData() {
             selectedProjectId
           );
           setParts(selectedProjectId, fetchedParts);
+          // Mark as loaded even if it's an empty array
           dataLoadedRef.current.parts = true;
         } catch (error) {
           console.error('Failed to load parts:', error);
           toast.error('Failed to load parts');
+          // Still mark as loaded to prevent infinite retries
+          dataLoadedRef.current.parts = true;
         }
       } else {
         console.log('Using parts from Zustand store:', allParts[selectedProjectId]);
       }
       
-      if ((!files[selectedProjectId] || files[selectedProjectId].length === 0) && 
-          !dataLoadedRef.current.files) {
+      // Fix infinite loop: Only fetch if we haven't fetched before for this project
+      if (!dataLoadedRef.current.files) {
         console.log('Fetching files from API as they are not in store');
         setLoading(true);
         
@@ -98,27 +103,33 @@ export function useRfqData() {
             selectedProjectId
           );
           setFiles(selectedProjectId, fetchedFiles);
+          // Mark as loaded even if it's an empty array
           dataLoadedRef.current.files = true;
         } catch (error) {
           console.error('Failed to load files:', error);
           toast.error('Failed to load files');
+          // Still mark as loaded to prevent infinite retries
+          dataLoadedRef.current.files = true;
         }
       } else {
         console.log('Using files from Zustand store');
       }
       
-      if ((!suppliers[selectedProjectId] || suppliers[selectedProjectId].length === 0) && 
-          !dataLoadedRef.current.suppliers) {
+      // Fix infinite loop: Only fetch suppliers if we haven't fetched before for this project
+      if (!dataLoadedRef.current.suppliers) {
         console.log('Loading mock suppliers as they are not in store');
         
         try {
           if (mockSuppliers[selectedProjectId]) {
             setSuppliers(selectedProjectId, mockSuppliers[selectedProjectId]);
-            dataLoadedRef.current.suppliers = true;
           }
+          // Mark as loaded even if there are no suppliers
+          dataLoadedRef.current.suppliers = true;
         } catch (error) {
           console.error('Failed to load suppliers:', error);
           toast.error('Failed to load suppliers');
+          // Still mark as loaded to prevent infinite retries
+          dataLoadedRef.current.suppliers = true;
         }
       }
     } catch (error) {
@@ -133,10 +144,12 @@ export function useRfqData() {
     setCurrentPage('rfq');
     
     if (selectedProjectId) {
+      // Check if we've already loaded data for this project
       dataLoadedRef.current = {
-        parts: allParts[selectedProjectId]?.length > 0,
-        files: files[selectedProjectId]?.length > 0,
-        suppliers: suppliers[selectedProjectId]?.length > 0
+        // Consider data loaded if the array exists in the store at all, even if empty
+        parts: Object.prototype.hasOwnProperty.call(allParts, selectedProjectId),
+        files: Object.prototype.hasOwnProperty.call(files, selectedProjectId),
+        suppliers: Object.prototype.hasOwnProperty.call(suppliers, selectedProjectId)
       };
       
       loadRfqData();
