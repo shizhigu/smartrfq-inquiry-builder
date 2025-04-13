@@ -250,7 +250,10 @@ const Emails = () => {
           />
           
           {/* Quotation Table Component */}
-          <QuotationTable emails={emails} />
+          <QuotationTable 
+            emails={emails} 
+            conversationId={selectedConversation.id}
+          />
           
           {/* Collapsible Email Conversation Component */}
           <EmailConversation 
