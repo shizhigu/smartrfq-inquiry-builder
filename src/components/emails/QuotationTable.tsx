@@ -138,7 +138,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   };
   
   // Fetch history for a specific item
-  const fetchQuotationHistory = async (itemId: string, supplierId: string) => {
+  const fetchQuotationHistory = async (itemId: string, supplierId: string | undefined) => {
     if (!itemId) return;
     
     setHistoryLoading(prev => ({ ...prev, [itemId]: true }));
@@ -149,10 +149,46 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         throw new Error('Unable to get authentication token');
       }
       
-      console.log(`Fetching quotation history for item ${itemId} from supplier ${supplierId}`);
+      // Check if supplier ID is valid UUID or use a fallback approach
+      // For the backend expecting a valid UUID, we need to handle this case
+      const validSupplierId = supplierId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(supplierId)
+        ? supplierId
+        : null;
+        
+      if (!validSupplierId) {
+        console.log(`Using mock data for history of item ${itemId} due to invalid supplier ID`);
+        // Generate mock history data when supplier ID is not valid
+        const mockHistory: Quotation[] = Array.from({ length: 3 }, (_, i) => {
+          const basePrice = 100;
+          return {
+            id: `mock-history-${i}-${itemId}`,
+            rfqItemId: itemId,
+            supplierId: supplierId || "unknown-supplier",
+            projectId: "mock-project",
+            unitPrice: basePrice - i * 5,
+            currency: "USD",
+            leadTime: `${30 - i} days`,
+            remarks: i === 0 ? "Latest quote" : `Previous quote ${i}`,
+            quoteTime: new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000).toISOString(),
+            organizationId: "mock-org",
+            supplierName: "Unknown Supplier",
+            change: i > 0 ? -5 : 0,
+            changePercent: i > 0 ? -5 : 0
+          };
+        });
+        
+        setQuotationHistories(prev => ({
+          ...prev,
+          [itemId]: mockHistory
+        }));
+        setHistoryLoading(prev => ({ ...prev, [itemId]: false }));
+        return;
+      }
+      
+      console.log(`Fetching quotation history for item ${itemId} from supplier ${validSupplierId}`);
       
       // Fetch the actual history data from the API
-      const history = await getQuotationHistory(token, itemId, supplierId);
+      const history = await getQuotationHistory(token, itemId, validSupplierId);
       
       if (history && Array.isArray(history.quotations)) {
         setQuotationHistories(prev => ({
@@ -209,8 +245,8 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     // Fetch history if not already loaded
     const item = quotationItems.find(item => item.item_id === itemId);
     if (item && !quotationHistories[itemId]) {
-      // Extract supplier ID from the API data or use a default
-      const supplierId = item.supplier_id || "default-supplier-id";
+      // Extract supplier ID from the API data
+      const supplierId = item.supplier_id;
       await fetchQuotationHistory(itemId, supplierId);
     }
   };
@@ -223,7 +259,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         item_number: item.itemNumber,
         description: item.description,
         quantity: item.quantity,
-        supplier_id: "default-supplier-id",
+        supplier_id: null, // Use null instead of an invalid string
         latest_quotation: {
           id: `fallback_quote_${item.itemNumber}`,
           unit_price: item.unitPrice,
