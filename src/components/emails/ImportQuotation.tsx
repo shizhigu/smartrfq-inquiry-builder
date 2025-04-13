@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, FileText, AlertCircle } from 'lucide-react';
+import { Upload, FileText, AlertCircle, Image } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useEmailStore } from '@/stores/emailStore';
@@ -38,22 +38,20 @@ export const ImportQuotation: React.FC<ImportQuotationProps> = ({
   const handleFileUpload = async (file: File) => {
     console.log('Uploading file:', file.name, 'Type:', file.type);
     
-    // Validate file type - more permissive check
-    const allowedTypes = [
-      'image/', 
-      'application/pdf',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml',
-      'text/csv',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml'
-    ];
+    // Validate file type - focusing on images for the new API
+    const isImage = file.type.startsWith('image/');
+    const isPNG = file.type === 'image/png';
+    const isJPEG = file.type === 'image/jpeg' || file.type === 'image/jpg';
     
-    const isValidType = allowedTypes.some(type => file.type.includes(type));
-    
-    if (!isValidType) {
+    if (!isImage) {
       console.error('Invalid file type:', file.type);
-      toast.error('Please upload an image or document file (PDF, Excel, Word, CSV)');
+      toast.error('Please upload an image file (PNG or JPEG)');
+      return;
+    }
+    
+    if (!isPNG && !isJPEG) {
+      console.error('Unsupported image format:', file.type);
+      toast.error('Only PNG and JPEG images are supported');
       return;
     }
     
@@ -70,7 +68,7 @@ export const ImportQuotation: React.FC<ImportQuotationProps> = ({
     const activeProjectId = projectId || selectedProjectId;
     
     setIsUploading(true);
-    toast.info('Processing your document, please wait...');
+    toast.info('Processing your quotation image, please wait...');
     
     try {
       const token = await getToken();
@@ -113,7 +111,7 @@ export const ImportQuotation: React.FC<ImportQuotationProps> = ({
         toast.success(`Imported ${importedItems.length} items successfully`);
         setShowTip(false);
       } else {
-        toast.warning('No items found in the uploaded document');
+        toast.warning('No items found in the uploaded image');
       }
     } catch (error) {
       console.error('Import failed:', error);
@@ -137,7 +135,7 @@ export const ImportQuotation: React.FC<ImportQuotationProps> = ({
       <CardHeader>
         <CardTitle className="text-lg">Import Quotation</CardTitle>
         <CardDescription>
-          Upload a quotation document or image to automatically extract pricing information
+          Upload a quotation image to automatically extract pricing information
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -146,7 +144,7 @@ export const ImportQuotation: React.FC<ImportQuotationProps> = ({
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Tip</AlertTitle>
             <AlertDescription>
-              For best results, upload a clear image of a structured quotation or price sheet.
+              For best results, upload a clear PNG or JPEG image of a structured quotation or price sheet.
             </AlertDescription>
           </Alert>
         )}
@@ -165,8 +163,8 @@ export const ImportQuotation: React.FC<ImportQuotationProps> = ({
               </>
             ) : (
               <>
-                <Upload className="mr-2 h-4 w-4" />
-                Import Quotation
+                <Image className="mr-2 h-4 w-4" />
+                Import Quotation Image
               </>
             )}
           </Button>
@@ -174,7 +172,7 @@ export const ImportQuotation: React.FC<ImportQuotationProps> = ({
           <Input
             ref={fileInputRef}
             type="file"
-            accept="image/*,.pdf,.csv,.xlsx,.xls,.doc,.docx"
+            accept="image/png,image/jpeg"
             className="hidden"
             onChange={handleFileChange}
           />

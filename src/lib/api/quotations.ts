@@ -218,12 +218,14 @@ export async function importQuotationDocument(
     // Create form data for file upload
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('project_id', projectId);
     formData.append('conversation_id', conversationId);
     
     console.log(`Sending file to API: ${file.name}, size: ${file.size}, type: ${file.type}`);
     
+    // Using the new API endpoint
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/projects/${projectId}/import-quotation`,
+      `${API_CONFIG.BASE_URL}/quotations/import`,
       {
         method: 'POST',
         headers: {
@@ -238,7 +240,7 @@ export async function importQuotationDocument(
       console.error('API error response:', errorText);
       try {
         const errorData = JSON.parse(errorText);
-        throw new Error(errorData.message || `Failed to import quotation (${response.status})`);
+        throw new Error(errorData.detail || errorData.message || `Failed to import quotation (${response.status})`);
       } catch (e) {
         throw new Error(`Server error (${response.status}): ${errorText.substring(0, 100)}`);
       }
@@ -247,8 +249,23 @@ export async function importQuotationDocument(
     const data = await response.json();
     console.log('Import quotation response:', data);
     
+    // Check for the new API response format with items array
     if (data && data.items && Array.isArray(data.items)) {
-      return data.items;
+      // Convert the new API format to the expected QuotationItemResponse format
+      return data.items.map((item: any, index: number) => ({
+        item_id: item.rfq_item_id || `imported-item-${index}`,
+        item_number: index + 1,
+        description: item.description || `Item ${index + 1}`,
+        quantity: item.quantity || 1,
+        latest_quotation: {
+          id: `imported-quote-${index}`,
+          unit_price: item.unit_price || 0,
+          currency: item.currency || 'USD',
+          lead_time: item.lead_time || 'Not specified',
+          quote_time: new Date().toISOString()
+        },
+        history_count: 0
+      }));
     }
     
     // If response format is different but still valid
