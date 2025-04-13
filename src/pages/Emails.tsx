@@ -25,6 +25,8 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { format, isValid, parseISO } from 'date-fns';
 import { EmailConversation } from '@/components/emails/EmailConversation';
+import { QuotationTable } from '@/components/emails/QuotationTable';
+import { ImportQuotation } from '@/components/emails/ImportQuotation';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ComposeEmailDialog } from '@/components/emails/ComposeEmailDialog';
@@ -243,6 +245,13 @@ const Emails = () => {
         </PageHeader>
         
         <div className="mt-6">
+          {/* Import Quotation Component */}
+          <ImportQuotation />
+          
+          {/* Quotation Table Component */}
+          <QuotationTable emails={emails} />
+          
+          {/* Collapsible Email Conversation Component */}
           <EmailConversation emails={emails} onDownloadAttachment={downloadEmailAttachment} />
         </div>
         
