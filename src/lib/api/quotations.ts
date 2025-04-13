@@ -220,6 +220,8 @@ export async function importQuotationDocument(
     formData.append('file', file);
     formData.append('conversation_id', conversationId);
     
+    console.log(`Sending file to API: ${file.name}, size: ${file.size}, type: ${file.type}`);
+    
     const response = await fetch(
       `${API_CONFIG.BASE_URL}/projects/${projectId}/import-quotation`,
       {
@@ -232,8 +234,14 @@ export async function importQuotationDocument(
     );
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to import quotation');
+      const errorText = await response.text();
+      console.error('API error response:', errorText);
+      try {
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.message || `Failed to import quotation (${response.status})`);
+      } catch (e) {
+        throw new Error(`Server error (${response.status}): ${errorText.substring(0, 100)}`);
+      }
     }
 
     const data = await response.json();
@@ -243,6 +251,12 @@ export async function importQuotationDocument(
       return data.items;
     }
     
+    // If response format is different but still valid
+    if (Array.isArray(data)) {
+      return data;
+    }
+    
+    console.warn('Unexpected response format from import API:', data);
     return [];
   } catch (error) {
     console.error('Error importing quotation document:', error);

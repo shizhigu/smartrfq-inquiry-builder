@@ -36,14 +36,24 @@ export const ImportQuotation: React.FC<ImportQuotationProps> = ({
   };
   
   const handleFileUpload = async (file: File) => {
-    // Validate file type
-    if (!file.type.startsWith('image/') && 
-        !file.type.includes('pdf') && 
-        !file.type.includes('spreadsheet') &&
-        !file.type.includes('csv') &&
-        !file.type.includes('excel') &&
-        !file.type.includes('msword')) {
-      toast.error('Please upload an image or document file');
+    console.log('Uploading file:', file.name, 'Type:', file.type);
+    
+    // Validate file type - more permissive check
+    const allowedTypes = [
+      'image/', 
+      'application/pdf',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml',
+      'text/csv',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml'
+    ];
+    
+    const isValidType = allowedTypes.some(type => file.type.includes(type));
+    
+    if (!isValidType) {
+      console.error('Invalid file type:', file.type);
+      toast.error('Please upload an image or document file (PDF, Excel, Word, CSV)');
       return;
     }
     
@@ -60,12 +70,15 @@ export const ImportQuotation: React.FC<ImportQuotationProps> = ({
     const activeProjectId = projectId || selectedProjectId;
     
     setIsUploading(true);
+    toast.info('Processing your document, please wait...');
     
     try {
       const token = await getToken();
       if (!token) {
         throw new Error('Authentication required');
       }
+      
+      console.log('Starting import with token, project:', activeProjectId, 'conversation:', conversationId);
       
       // Call API to process file and extract items
       const importedItems = await importQuotationDocument(
@@ -75,8 +88,10 @@ export const ImportQuotation: React.FC<ImportQuotationProps> = ({
         file
       );
       
+      console.log('Import response:', importedItems);
+      
       // Handle successful import
-      if (importedItems.length > 0) {
+      if (importedItems && importedItems.length > 0) {
         if (onImportSuccess) {
           onImportSuccess(importedItems);
         }
