@@ -94,11 +94,20 @@ export function Sidebar() {
       <div className="flex items-center justify-between p-4 border-b border-border h-16">
         {!collapsed && (
           <div className="font-semibold text-lg">
-            <div className="flex items-center space-x-1">
-              <span className="text-brand-gold font-bold text-xl">Xinra</span>
-              <span className="text-gray-600">.io</span>
-            </div>
+          <div className="flex items-center space-x-1">
+            <span
+              className="text-xl font-extrabold bg-gradient-to-r from-[#FFD700] via-[#FFB800] to-[#FFA500] text-transparent bg-clip-text drop-shadow-sm animate-gradient-x"
+            >
+              Xinra
+            </span>
+            <span
+              className="text-sky-500 text-sm tracking-wider font-medium drop-shadow-md translate-y-[1px]"
+            >
+              .io
+            </span>
           </div>
+        </div>
+        
         )}
         <Button 
           variant="ghost" 
