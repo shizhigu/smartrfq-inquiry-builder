@@ -1,4 +1,3 @@
-
 import { fetchRfqFiles, fetchRfqParts, deleteRfqParts, insertRfqItem } from "@/lib/api/rfq";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -64,31 +63,29 @@ export function useRfqData() {
       const token = await getToken() || simulatedToken;
       const currentOrgId = orgId || simulatedOrgId;
       
-      if ((!parts[selectedProjectId] || parts[selectedProjectId].length === 0) && 
-          !dataLoadedRef.current.parts) {
-        console.log('Fetching parts from API as they are not in store');
-        setLoading(true);
-        
-        try {
-          const fetchedParts = await fetchRfqParts(
-            token, 
-            currentOrgId,
-            selectedProjectId
-          );
-          setParts(selectedProjectId, fetchedParts);
-          dataLoadedRef.current.parts = true;
-        } catch (error) {
-          console.error('Failed to load parts:', error);
-          toast.error('Failed to load parts');
-        }
-      } else {
-        console.log('Using parts from Zustand store');
+      console.log('Loading RFQ data for project:', selectedProjectId);
+      console.log('Current parts in store:', parts[selectedProjectId] || []);
+      
+      setLoading(true);
+      
+      // Always fetch fresh parts data to ensure we have the latest
+      try {
+        const fetchedParts = await fetchRfqParts(
+          token, 
+          currentOrgId,
+          selectedProjectId
+        );
+        console.log('Fetched parts from API:', fetchedParts);
+        setParts(selectedProjectId, fetchedParts);
+        dataLoadedRef.current.parts = true;
+      } catch (error) {
+        console.error('Failed to load parts:', error);
+        toast.error('Failed to load parts');
       }
       
       if ((!files[selectedProjectId] || files[selectedProjectId].length === 0) && 
           !dataLoadedRef.current.files) {
         console.log('Fetching files from API as they are not in store');
-        setLoading(true);
         
         try {
           const fetchedFiles = await fetchRfqFiles(
@@ -96,6 +93,7 @@ export function useRfqData() {
             currentOrgId,
             selectedProjectId
           );
+          console.log('Fetched files from API:', fetchedFiles);
           setFiles(selectedProjectId, fetchedFiles);
           dataLoadedRef.current.files = true;
         } catch (error) {
@@ -112,6 +110,7 @@ export function useRfqData() {
         
         try {
           if (mockSuppliers[selectedProjectId]) {
+            console.log(`Using ${mockSuppliers[selectedProjectId].length} suppliers from mock data for project ${selectedProjectId}`);
             setSuppliers(selectedProjectId, mockSuppliers[selectedProjectId]);
             dataLoadedRef.current.suppliers = true;
           }
@@ -119,6 +118,8 @@ export function useRfqData() {
           console.error('Failed to load suppliers:', error);
           toast.error('Failed to load suppliers');
         }
+      } else {
+        console.log(`Using ${suppliers[selectedProjectId]?.length || 0} suppliers from Zustand store for project ${selectedProjectId}`);
       }
     } catch (error) {
       console.error('Failed to load RFQ data', error);
@@ -126,7 +127,7 @@ export function useRfqData() {
     } finally {
       setLoading(false);
     }
-  }, [selectedProjectId, setParts, setFiles, setLoading, navigate, getToken, orgId, setSuppliers]);
+  }, [selectedProjectId, setParts, setFiles, setLoading, navigate, getToken, orgId, setSuppliers, parts, files, suppliers]);
 
   useEffect(() => {
     setCurrentPage('rfq');
@@ -219,8 +220,16 @@ export function useRfqData() {
       
       if (result && result.id) {
         // Add the new part to the Zustand store to update UI immediately
-        addPart(result);
         console.log('Part added to store:', result);
+        addPart(result);
+        
+        // Verify the part was added to the store
+        setTimeout(() => {
+          console.log('Current parts in store after adding:', 
+            parts[selectedProjectId] || [], 
+            'Looking for id:', result.id);
+        }, 100);
+        
         toast.success('Item added successfully');
         return result;
       }
@@ -231,7 +240,7 @@ export function useRfqData() {
       toast.error('Failed to add item');
       return null;
     }
-  }, [selectedProjectId, getToken, addPart]);
+  }, [selectedProjectId, getToken, addPart, parts]);
 
   const navigateToSuppliers = () => {
     navigate('/dashboard/suppliers');
@@ -250,6 +259,7 @@ export function useRfqData() {
     addPart,
     deleteSelectedParts,
     insertManualItem,
-    navigateToSuppliers
+    navigateToSuppliers,
+    loadRfqData
   };
 }

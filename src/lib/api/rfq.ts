@@ -246,6 +246,8 @@ export async function insertRfqItem(
     }
     
     mockRfqParts[projectId].push(newPart);
+    console.log('Added new part to mock data:', newPart);
+    console.log('Current mock parts:', mockRfqParts[projectId]);
     
     return newPart;
   }
@@ -264,7 +266,26 @@ export async function insertRfqItem(
     throw new Error(errorData.error?.message || 'Failed to insert RFQ item');
   }
 
-  return response.json();
+  const responseData = await response.json();
+  console.log('Server response for insertRfqItem:', responseData);
+  
+  // Make sure the returned data has the correct structure
+  return {
+    id: responseData.id,
+    name: responseData.name || itemData.name,
+    partNumber: responseData.part_number || itemData.part_number,
+    quantity: parseInt(responseData.quantity || itemData.quantity, 10),
+    unit: responseData.unit || itemData.unit,
+    material: responseData.material || itemData.material,
+    surfaceFinish: responseData.surface_finish || itemData.surface_finish,
+    process: responseData.process || itemData.process,
+    deliveryTime: responseData.delivery_time || itemData.delivery_time,
+    tolerance: responseData.tolerance || itemData.tolerance,
+    drawingNumber: responseData.drawing_url || itemData.drawing_url,
+    remarks: responseData.remarks || itemData.remarks,
+    projectId: projectId,
+    status: responseData.status || 'open'
+  };
 }
 
 // Delete RFQ parts

@@ -33,11 +33,14 @@ export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: R
         tolerance: values.tolerance || undefined,
         drawingNumber: values.drawingNumber || undefined,
         remarks: values.remarks || undefined,
+        status: 'open', // Add default status for the part
       };
       
+      console.log("Submitting new part:", newPart);
       const result = await onAddPart(newPart);
       
       if (result) {
+        console.log("Part added successfully, result:", result);
         toast.success("Part added successfully");
         onOpenChange(false);
       }

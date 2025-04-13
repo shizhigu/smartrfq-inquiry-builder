@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { RfqPageHeader } from "@/components/rfq/RfqPageHeader";
@@ -24,6 +24,7 @@ export default function RfqItems() {
   const [selectedFile, setSelectedFile] = useState<RfqFile | null>(null);
   const [isParseDialogOpen, setIsParseDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // Add a refresh key state
   
   const { 
     project,
@@ -36,8 +37,17 @@ export default function RfqItems() {
     clearPartSelection,
     addPart,
     deleteSelectedParts,
-    insertManualItem
+    insertManualItem,
+    loadRfqData
   } = useRfqData();
+  
+  // Force refetch parts when the component mounts or when refreshKey changes
+  useEffect(() => {
+    if (project?.id) {
+      console.log("Forcing refresh of RFQ data");
+      loadRfqData();
+    }
+  }, [loadRfqData, project?.id, refreshKey]);
   
   const handleAddPart = () => {
     setIsAddPartDialogOpen(true);
@@ -45,12 +55,18 @@ export default function RfqItems() {
 
   const handleSubmitNewPart = async (partData: Omit<RfqPart, "id">) => {
     try {
+      console.log("Submitting new part from RfqItems:", partData);
       // Use the insertManualItem function from useRfqData
       const result = await insertManualItem(partData);
       
       if (!result) {
         toast.error("Failed to add part");
+        return null;
       }
+      
+      console.log("Part added successfully in RfqItems, result:", result);
+      // Force refresh after adding a part
+      setRefreshKey(prev => prev + 1);
       
       return result;
     } catch (error) {
@@ -142,8 +158,8 @@ export default function RfqItems() {
       <div className="flex justify-between items-center mb-4">
         <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
-            <TabsTrigger value="parts">Parts</TabsTrigger>
-            <TabsTrigger value="files">Files</TabsTrigger>
+            <TabsTrigger value="parts">Parts ({parts.length})</TabsTrigger>
+            <TabsTrigger value="files">Files ({files.length})</TabsTrigger>
           </TabsList>
           
           <TabsContent value="parts" className="mt-4 p-0 border-none">
