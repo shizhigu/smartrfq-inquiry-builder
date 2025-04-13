@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -143,10 +142,8 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         throw new Error('Failed to fetch supplier ID');
       }
 
-      // The API returns a UUID string directly, not JSON
       const supplierIdFromApi = await response.text();
       
-      // Clean the supplier ID - trim whitespace and remove quotes
       const cleanSupplierId = supplierIdFromApi.trim().replace(/^["']|["']$/g, '');
       
       if (cleanSupplierId) {
@@ -226,7 +223,6 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         return;
       }
       
-      // Clean the supplier ID - remove any quotes and trim whitespace
       if (typeof supplierIdToUse === 'string') {
         supplierIdToUse = supplierIdToUse.trim().replace(/^["']|["']$/g, '');
       }
@@ -286,15 +282,13 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     await fetchQuotationHistory(itemId);
   };
   
-  // Calculate total for an item, safely handling null latest_quotation
   const calculateItemTotal = (item: QuotationItemResponse): number => {
-    if (!item.latest_quotation || item.latest_quotation.unit_price === null || item.latest_quotation.unit_price === undefined) {
+    if (!item.latest_quotation || item.latest_quotation.unit_price === null || item.latest_quotation.unit_price === undefined || item.latest_quotation.unit_price === -1) {
       return 0;
     }
     return item.latest_quotation.unit_price * item.quantity;
   };
 
-  // Create a default latest_quotation for items that don't have one
   const createDefaultQuotation = (item: QuotationItemResponse): QuotationItemResponse => {
     if (!item.latest_quotation) {
       return {
@@ -311,11 +305,13 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     return item;
   };
 
-  // Sort items by total price
   const getSortedItems = (items: QuotationItemResponse[]): QuotationItemResponse[] => {
-    return [...items].map(createDefaultQuotation).sort((a, b) => {
-      return calculateItemTotal(b) - calculateItemTotal(a);
-    });
+    return [...items]
+      .map(createDefaultQuotation)
+      .filter(item => item.latest_quotation && item.latest_quotation.unit_price !== -1)
+      .sort((a, b) => {
+        return calculateItemTotal(b) - calculateItemTotal(a);
+      });
   };
 
   const displayItems = quotationItems.length > 0 
@@ -334,7 +330,9 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
           quote_time: new Date().toISOString()
         },
         history_count: 0
-      })).sort((a, b) => calculateItemTotal(b) - calculateItemTotal(a));
+      }))
+      .filter(item => item.latest_quotation && item.latest_quotation.unit_price !== -1)
+      .sort((a, b) => calculateItemTotal(b) - calculateItemTotal(a));
   
   return (
     <Card className="mb-6">

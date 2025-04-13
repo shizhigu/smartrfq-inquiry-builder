@@ -31,9 +31,9 @@ export const QuotationHistory: React.FC<QuotationHistoryProps> = ({
   itemName
 }) => {
   // Sort quotations by date, most recent first
-  const sortedQuotations = [...quotations].sort(
-    (a, b) => new Date(b.quoteTime).getTime() - new Date(a.quoteTime).getTime()
-  );
+  const sortedQuotations = [...quotations]
+    .filter(quote => quote.unitPrice !== -1) // Filter out entries with unitPrice of -1
+    .sort((a, b) => new Date(b.quoteTime).getTime() - new Date(a.quoteTime).getTime());
   
   // Calculate price changes between quotations
   const quotationsWithChanges = sortedQuotations.map((quote, index) => {
@@ -43,6 +43,12 @@ export const QuotationHistory: React.FC<QuotationHistoryProps> = ({
     }
     
     const prevQuote = sortedQuotations[index + 1];
+    
+    // Special case: if previous price was -1, don't calculate change
+    if (prevQuote.unitPrice === -1) {
+      return { ...quote, change: 0, changePercent: 0 };
+    }
+    
     const change = quote.unitPrice - prevQuote.unitPrice;
     const changePercent = (change / prevQuote.unitPrice) * 100;
     
