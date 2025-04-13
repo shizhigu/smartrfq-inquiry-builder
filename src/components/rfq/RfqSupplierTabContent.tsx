@@ -111,8 +111,8 @@ export function RfqSupplierTabContent({
           className={cn(
             "w-full transition-all duration-500 ease-in-out resize-none",
             isExpanded 
-              ? "animate-fade-in shadow-lg" 
-              : "shadow-sm animate-fade-out"
+              ? "expanded-textarea shadow-lg" 
+              : "collapsed-textarea shadow-sm"
           )}
           style={{
             maxHeight: isExpanded ? "60vh" : "initial",
