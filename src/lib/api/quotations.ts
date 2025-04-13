@@ -1,4 +1,3 @@
-
 import { API_CONFIG, useMockData } from '../config';
 
 export interface Quotation {
@@ -217,11 +216,11 @@ export async function importQuotationDocument(
   try {
     // Create form data for file upload
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('image', file);
     formData.append('project_id', projectId);
     formData.append('conversation_id', conversationId);
     
-    console.log(`Sending file to API: ${file.name}, size: ${file.size}, type: ${file.type}`);
+    console.log(`Sending file to API as 'image' field: ${file.name}, size: ${file.size}, type: ${file.type}`);
     
     // Using the new API endpoint
     const response = await fetch(
