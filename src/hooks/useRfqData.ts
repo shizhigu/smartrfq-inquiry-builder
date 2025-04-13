@@ -1,4 +1,3 @@
-
 import { fetchRfqFiles, fetchRfqParts, deleteRfqParts, insertRfqItem } from "@/lib/api/rfq";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -36,7 +35,6 @@ export function useRfqData() {
     deletePart
   } = useRfqStore();
   
-  // Get parts for current project - make sure to treat as dependency for useEffect
   const parts = selectedProjectId ? (allParts[selectedProjectId] || []) : [];
   
   const { suppliers, setSuppliers } = useSupplierStore();
@@ -194,7 +192,6 @@ export function useRfqData() {
         throw new Error('Authentication required');
       }
       
-      // Handle cases where undefined objects are coming in from the form
       const sanitizedMaterial = typeof partData.material === 'object' ? '' : partData.material || '';
       const sanitizedSurfaceFinish = typeof partData.surfaceFinish === 'object' ? '' : partData.surfaceFinish || '';
       const sanitizedProcess = typeof partData.process === 'object' ? '' : partData.process || '';
@@ -230,7 +227,6 @@ export function useRfqData() {
       );
       
       if (result && result.id) {
-        // Convert API result to RfqPart format
         const newPart: RfqPart = {
           id: result.id,
           name: result.name,
@@ -247,11 +243,9 @@ export function useRfqData() {
           remarks: result.remarks || undefined,
         };
         
-        // Add the new part to the Zustand store to update UI immediately
         console.log('Adding part to store:', newPart);
         addPart(newPart);
         
-        // Force refresh of parts data if needed
         if (!allParts[selectedProjectId]?.some(p => p.id === newPart.id)) {
           console.log('Part was not added to store correctly, refreshing data...');
           const refreshedParts = await fetchRfqParts(token, organization?.id || '', selectedProjectId);
