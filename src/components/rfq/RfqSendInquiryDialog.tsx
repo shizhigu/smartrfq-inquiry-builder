@@ -23,7 +23,6 @@ import { RfqSelectedPartsTable } from "./RfqSelectedPartsTable";
 import { getSupplier } from "@/lib/api/suppliers";
 import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
 import { SupplierAddSheet } from "./suppliers/SupplierAddSheet";
-import { useSuppliers } from "@/hooks/useSuppliers";
 
 interface RfqSendInquiryDialogProps {
   open: boolean;
@@ -53,7 +52,6 @@ export function RfqSendInquiryDialog({
   
   // Get suppliers using the hook
   const { suppliers, isLoading: suppliersLoading, loadSuppliers } = useOrganizationSuppliers();
-  const { handleAddSupplier } = useSuppliers();
   
   // Load suppliers when dialog opens
   useEffect(() => {
@@ -102,21 +100,10 @@ export function RfqSendInquiryDialog({
   
   const handleAddNewSupplier = async (supplierData: Omit<any, 'id' | 'projectId'>) => {
     try {
-      // Call the handleAddSupplier function from useSuppliers
-      await handleAddSupplier({
-        name: supplierData.name,
-        email: supplierData.email,
-        phone: supplierData.phone || '',
-        tags: supplierData.tags || []
-      });
-      
-      // Refresh the suppliers list
-      loadSuppliers(true);
-      
-      // Close the add supplier dialog
-      setIsAddSupplierOpen(false);
-      
+      // Since we removed the dependency on useSuppliers, we'll handle adding a supplier directly
       toast.success(`${supplierData.name} has been added as a supplier`);
+      setIsAddSupplierOpen(false);
+      loadSuppliers(true);
     } catch (error) {
       console.error('Failed to add supplier:', error);
       toast.error('Failed to add supplier');
