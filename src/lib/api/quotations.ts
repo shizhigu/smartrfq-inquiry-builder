@@ -109,11 +109,14 @@ export async function getQuotationHistory(
       return { quotations: [], count: 0 };
     }
     
+    // Make sure there are no quotes around the supplierId
+    const cleanSupplierId = supplierId.replace(/^["']|["']$/g, '');
+    
     // Log the supplier ID we're trying to use
-    console.log('Getting history with supplier ID:', supplierId);
+    console.log('Getting history with supplier ID:', cleanSupplierId);
     
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/quotations/history/${rfqItemId}?supplier_id=${supplierId}`,
+      `${API_CONFIG.BASE_URL}/quotations/history/${rfqItemId}?supplier_id=${cleanSupplierId}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`,

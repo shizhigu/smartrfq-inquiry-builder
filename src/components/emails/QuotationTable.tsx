@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Email } from '@/lib/api/emails';
@@ -217,6 +218,11 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
           [itemId]: []
         }));
         return;
+      }
+      
+      // Remove any quotes that might be around the supplier ID
+      if (typeof supplierIdToUse === 'string') {
+        supplierIdToUse = supplierIdToUse.replace(/^["']|["']$/g, '');
       }
       
       const history = await getQuotationHistory(token, itemId, supplierIdToUse);
