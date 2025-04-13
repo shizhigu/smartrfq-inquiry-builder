@@ -80,7 +80,7 @@ export const QuotationHistory: React.FC<QuotationHistoryProps> = ({
     
     if (change < 0) {
       return (
-        <div className="flex items-center text-green-600">
+        <div className="flex items-center text-red-600">
           <TrendingDown className="h-4 w-4 mr-1" />
           <span>{changePercent.toFixed(2)}% (${Math.abs(change).toFixed(2)})</span>
         </div>
@@ -88,7 +88,7 @@ export const QuotationHistory: React.FC<QuotationHistoryProps> = ({
     }
     
     return (
-      <div className="flex items-center text-red-600">
+      <div className="flex items-center text-green-600">
         <TrendingUp className="h-4 w-4 mr-1" />
         <span>+{changePercent.toFixed(2)}% (+${change.toFixed(2)})</span>
       </div>
