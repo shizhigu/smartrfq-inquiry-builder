@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useRfqStore, RfqFile } from "@/stores/rfqStore";
 import { useAuth, useOrganization } from "@clerk/clerk-react";
 import { useProjectStore } from "@/stores/projectStore";
+import { API_CONFIG } from "@/lib/config";
 import { v4 as uuidv4 } from "uuid";
 import { RfqParseConfirmDialog } from "./RfqParseConfirmDialog";
 
@@ -58,31 +59,57 @@ export function RfqUploadDialog({ open, onOpenChange }: RfqUploadDialogProps) {
     try {
       setIsUploading(true);
       
-      // Create a file entry
-      const fileId = uuidv4();
+      // Get authentication token
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+      
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      
+      // Call the upload API endpoint
+      const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${selectedProjectId}/upload-rfq`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload file');
+      }
+      
+      // Parse the API response
+      const data = await response.json();
+      
+      // Create a file entry from the API response
       const newFile: RfqFile = {
-        id: fileId,
-        filename: selectedFile.name,
-        file_url: URL.createObjectURL(selectedFile),
-        size: selectedFile.size,
-        project_id: selectedProjectId,
-        status: 'processing', // This will be replaced by parsing logic, but use as placeholder
-        uploaded_at: new Date().toISOString(),
+        id: data.id,
+        filename: data.filename,
+        file_url: data.file_url,
+        size: selectedFile.size, // Use local file size as API might not return it
+        project_id: data.project_id || selectedProjectId,
+        status: data.ocr_text ? 'completed' : 'processing',
+        uploaded_at: data.uploaded_at || new Date().toISOString(),
         organization_id: organization?.id,
-        // ocr_text is intentionally not set to represent an unparsed file
+        ocr_text: data.ocr_text,
       };
       
-      // Add file to store immediately to show progress in UI
+      // Add file to store
       addFile(newFile);
-      
-      // In a real implementation, you would call your API here
-      // For mock purposes, we'll simulate an upload delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
       
       toast.success(`File "${selectedFile.name}" uploaded successfully`);
       
       setUploadedFile(newFile);
-      setShowParseDialog(true);
+      
+      // If the file wasn't already processed, show parse dialog
+      if (!data.ocr_text) {
+        setShowParseDialog(true);
+      }
       
       // Reset file input
       if (fileInputRef.current) {
@@ -94,7 +121,7 @@ export function RfqUploadDialog({ open, onOpenChange }: RfqUploadDialogProps) {
       
     } catch (error) {
       console.error('Failed to upload file', error);
-      toast.error('Failed to upload file');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload file');
     } finally {
       setIsUploading(false);
       setSelectedFile(null);
