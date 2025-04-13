@@ -4,9 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
-import { Paperclip, Download, ChevronDown, ChevronRight } from 'lucide-react';
+import { Paperclip, Download, ChevronDown, ChevronRight, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Email, EmailAttachment } from '@/lib/api/emails';
+import { Badge } from '@/components/ui/badge';
 
 interface EmailConversationProps {
   emails: Email[];
@@ -72,20 +73,16 @@ export const EmailConversation: React.FC<EmailConversationProps> = ({
         <Card key={email.id} className="overflow-hidden">
           <CardContent className="p-4">
             <div className="flex items-start gap-4">
-              <Avatar className="h-10 w-10 mt-1">
-                <div className="bg-primary text-primary-foreground h-full w-full flex items-center justify-center text-lg font-semibold">
-                  {email.from?.name ? email.from.name.charAt(0) : '?'}
-                </div>
-              </Avatar>
-              
               <div className="flex-1 space-y-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="font-medium">{email.from?.name || 'Unknown Sender'}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {email.from?.email || email.to_email || 'No email address'}
-                    </div>
-                    {email.status && (
+                    {email.status && email.status.toLowerCase() === 'failed' && (
+                      <Badge variant="destructive" className="mb-2 flex items-center gap-1">
+                        <XCircle className="h-3 w-3" />
+                        Failed
+                      </Badge>
+                    )}
+                    {email.status && email.status.toLowerCase() !== 'failed' && (
                       <div className="text-xs mt-1 inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
                         {email.status}
                       </div>
