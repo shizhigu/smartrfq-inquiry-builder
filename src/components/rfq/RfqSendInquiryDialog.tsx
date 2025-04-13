@@ -74,7 +74,7 @@ export function RfqSendInquiryDialog({
   
   useEffect(() => {
     const fetchSupplierEmail = async () => {
-      if (selectedSupplierId) {
+      if (selectedSupplierId && selectedSupplierId !== 'no-selection') {
         try {
           const token = await getToken();
           if (!token) return;
@@ -113,7 +113,7 @@ export function RfqSendInquiryDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (activeTab === "supplier" && !selectedSupplierId) {
+    if (activeTab === "supplier" && (!selectedSupplierId || selectedSupplierId === 'no-selection')) {
       toast.error('Please select a supplier');
       return;
     }
@@ -137,7 +137,7 @@ export function RfqSendInquiryDialog({
       let emailAddress = "";
       
       if (activeTab === "supplier") {
-        if (!selectedSupplierId) {
+        if (!selectedSupplierId || selectedSupplierId === 'no-selection') {
           toast.error('Please select a valid supplier');
           setIsLoading(false);
           return;

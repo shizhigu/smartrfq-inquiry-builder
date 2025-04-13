@@ -69,7 +69,7 @@ export function RfqSupplierSelector({
                 </div>
               ) : (
                 <>
-                  {/* Always include a placeholder item with a non-empty value that represents "no selection" */}
+                  {/* Use a placeholder item with a non-empty value */}
                   <SelectItem value="no-selection">
                     Select a supplier
                   </SelectItem>
@@ -81,7 +81,7 @@ export function RfqSupplierSelector({
                     >
                       <div className="flex flex-col">
                         <span className="font-medium">{supplier.name}</span>
-                        <span className="text-xs text-muted-foreground">{supplier.email}</span>
+                        <span className="text-xs text-muted-foreground">{supplier.email || 'No email'}</span>
                       </div>
                     </SelectItem>
                   ))}

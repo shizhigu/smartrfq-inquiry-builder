@@ -17,6 +17,7 @@ interface RfqSupplierTabContentProps {
   suppliers?: Supplier[];
   isLoading?: boolean;
   onAddNew?: () => void;
+  hideSubjectInput?: boolean;
 }
 
 export function RfqSupplierTabContent({
@@ -28,7 +29,8 @@ export function RfqSupplierTabContent({
   onSubjectChange,
   suppliers = [],
   isLoading = false,
-  onAddNew = () => {}
+  onAddNew = () => {},
+  hideSubjectInput = false
 }: RfqSupplierTabContentProps) {
   // Handle the special "no-selection" value
   const handleSupplierSelect = (supplierId: string) => {
@@ -53,7 +55,7 @@ export function RfqSupplierTabContent({
         />
       </div>
       
-      {onSubjectChange && (
+      {!hideSubjectInput && onSubjectChange && (
         <div className="space-y-2">
           <Label htmlFor="subject">Subject</Label>
           <Input 
