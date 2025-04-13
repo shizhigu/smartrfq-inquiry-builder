@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,65 +22,13 @@ import { useEmailStore } from '@/stores/emailStore';
 import { Badge } from '@/components/ui/badge';
 import { API_CONFIG, useMockData } from '@/lib/config';
 
-interface QuotationTableProps {
-  emails: Email[];
-  conversationId: string;
-  supplierId?: string;
-}
-
-const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
-  const items: QuotationItem[] = [];
+const cleanSupplierId = (supplierId: string | null): string | null => {
+  if (!supplierId) return null;
   
-  if (!Array.isArray(emails) || emails.length === 0) {
-    return items;
-  }
-  
-  emails.forEach(email => {
-    if (!email.content) return;
-    
-    const itemMatches = [...email.content.matchAll(/\[ITEM-(\d+)\](.*?)(?=\[ITEM-\d+\]|$)/gs)];
-    
-    itemMatches.forEach(match => {
-      const itemNumber = parseInt(match[1], 10);
-      const itemDetails = match[2].trim();
-      
-      const priceMatch = itemDetails.match(/price:?\s*\$?(\d+(?:\.\d+)?)/i);
-      const qtyMatch = itemDetails.match(/qty:?\s*(\d+)/i);
-      const descMatch = itemDetails.match(/description:?\s*([^,;:]+)/i);
-      
-      const unitPrice = priceMatch ? parseFloat(priceMatch[1]) : Math.floor(Math.random() * 100) + 20;
-      const quantity = qtyMatch ? parseInt(qtyMatch[1], 10) : 1;
-      const description = descMatch ? descMatch[1].trim() : `Item ${itemNumber}`;
-      
-      const existingItem = items.find(item => item.itemNumber === itemNumber);
-      if (!existingItem) {
-        items.push({
-          itemNumber,
-          description,
-          quantity,
-          unitPrice,
-          totalPrice: unitPrice * quantity
-        });
-      }
-    });
-  });
-  
-  if (items.length === 0) {
-    const maxItemNumber = Math.max(0, ...emails.map(email => email.content ? getMaxItemNumber(email.content) : 0));
-    for (let i = 1; i <= maxItemNumber; i++) {
-      const unitPrice = Math.floor(Math.random() * 100) + 20;
-      const quantity = Math.floor(Math.random() * 10) + 1;
-      items.push({
-        itemNumber: i,
-        description: `Sample Item ${i}`,
-        quantity,
-        unitPrice,
-        totalPrice: unitPrice * quantity
-      });
-    }
-  }
-  
-  return items.sort((a, b) => a.itemNumber - b.itemNumber);
+  return supplierId
+    .replace(/^["']|["']$/g, '')
+    .replace(/\s*HTTP\/\d\.\d\s*$/i, '')
+    .trim();
 };
 
 export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversationId, supplierId: initialSupplierId }) => {
@@ -93,7 +40,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [historyLoading, setHistoryLoading] = useState<Record<string, boolean>>({});
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [supplierId, setSupplierId] = useState<string | null>(initialSupplierId || null);
+  const [supplierId, setSupplierId] = useState<string | null>(cleanSupplierId(initialSupplierId || null));
   const { getToken } = useAuth();
   const { conversations, selectedProjectId } = useEmailStore();
   
@@ -204,11 +151,12 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
       
       const item = quotationItems.find(item => item.item_id === itemId);
       
-      let supplierIdToUse = item?.supplier_id || initialSupplierId || supplierId;
-      
-      if (!supplierIdToUse && currentConversation) {
-        supplierIdToUse = currentConversation.supplierId;
-      }
+      let supplierIdToUse = cleanSupplierId(
+        item?.supplier_id || 
+        initialSupplierId || 
+        supplierId || 
+        currentConversation?.supplierId
+      );
       
       if (!supplierIdToUse) {
         toast.error('Unable to fetch history: Missing supplier information');
@@ -218,11 +166,6 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
           [itemId]: []
         }));
         return;
-      }
-      
-      // Remove any quotes that might be around the supplier ID
-      if (typeof supplierIdToUse === 'string') {
-        supplierIdToUse = supplierIdToUse.replace(/^["']|["']$/g, '');
       }
       
       const history = await getQuotationHistory(token, itemId, supplierIdToUse);
