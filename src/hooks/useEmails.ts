@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '@/stores/projectStore';
 import { useAuth } from '@clerk/clerk-react';
@@ -59,6 +60,7 @@ export const useEmails = (): UseEmailsReturn => {
   const { getToken } = useAuth();
   const projectStoreSelectedId = useProjectStore(state => state.selectedProjectId);
   const requestInProgress = useRef(false);
+  const noConversationsDetected = useRef(false);
   
   const { 
     conversations, 
@@ -84,6 +86,8 @@ export const useEmails = (): UseEmailsReturn => {
   
   useEffect(() => {
     setSelectedProjectId(projectStoreSelectedId);
+    // Reset the noConversationsDetected flag when project ID changes
+    noConversationsDetected.current = false;
   }, [projectStoreSelectedId, setSelectedProjectId]);
   
   const [emails, setEmails] = useState<Record<string, Email[]>>({});
@@ -118,6 +122,12 @@ export const useEmails = (): UseEmailsReturn => {
   const fetchConversations = useCallback(async (pageNum: number = 1, forceRefresh: boolean = false) => {
     const projectConversations = conversations[selectedProjectId] || [];
     
+    // If we have already detected no conversations for this project, don't make additional API calls
+    if (noConversationsDetected.current && !forceRefresh) {
+      console.log('Skipping API call as no conversations were detected for this project');
+      return;
+    }
+    
     if (!forceRefresh && projectConversations.length > 0 && pageNum === 1) {
       console.log('Using cached conversations from store');
       return;
@@ -145,6 +155,13 @@ export const useEmails = (): UseEmailsReturn => {
       
       console.log(`Fetching conversations for project: ${selectedProjectId}, page: ${pageNum}`);
       const response = await getConversations(token, selectedProjectId, pageNum, pageSize);
+      
+      // If no conversations are returned, set the flag to prevent additional calls
+      if (response.total === 0) {
+        noConversationsDetected.current = true;
+      } else {
+        noConversationsDetected.current = false;
+      }
       
       const enrichedConversationsPromises = response.items.map(async (conversation) => {
         try {
@@ -364,6 +381,7 @@ export const useEmails = (): UseEmailsReturn => {
     requestInProgress.current = false;
     
     if (selectedProjectId) {
+      // Reset the noConversationsDetected flag when forcing a manual fetch
       fetchConversations();
     }
   }, [selectedProjectId, fetchConversations]);
