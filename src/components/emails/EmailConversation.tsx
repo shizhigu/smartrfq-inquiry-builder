@@ -17,13 +17,11 @@ interface ExpandedEmailState {
   [key: string]: boolean;
 }
 
-// Function to extract part number count from email content
-function getMaxPartNumberCount(text: string): number {
-  const matches = [...text.matchAll(/^(\d+)\. Part Number:/gm)];
-  if (matches.length === 0) return 0;
-  
-  const numbers = matches.map(match => parseInt(match[1], 10));
-  return Math.max(...numbers);
+// Function to extract item number count from email content using the new format
+function getMaxItemNumber(text: string): number {
+  const matches = [...text.matchAll(/\[ITEM-(\d+)\]/g)];
+  const numbers = matches.map((m) => parseInt(m[1], 10));
+  return numbers.length > 0 ? Math.max(...numbers) : 0;
 }
 
 export const EmailConversation: React.FC<EmailConversationProps> = ({ 
@@ -78,8 +76,8 @@ export const EmailConversation: React.FC<EmailConversationProps> = ({
   return (
     <div className="space-y-4">
       {emails.map((email) => {
-        // Calculate part count for each email
-        const partCount = getMaxPartNumberCount(email.content);
+        // Calculate item count for each email using the new function
+        const itemCount = getMaxItemNumber(email.content);
         
         return (
           <Card key={email.id} className="overflow-hidden">
@@ -100,9 +98,9 @@ export const EmailConversation: React.FC<EmailConversationProps> = ({
                         </div>
                       )}
                       
-                      {partCount > 0 && (
+                      {itemCount > 0 && (
                         <Badge variant="success" className="mb-2 flex items-center gap-1">
-                          {partCount} {partCount === 1 ? 'Part' : 'Parts'}
+                          {itemCount} {itemCount === 1 ? 'Item' : 'Items'}
                         </Badge>
                       )}
                     </div>
