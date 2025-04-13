@@ -220,6 +220,7 @@ export function useRfqData() {
       if (result && result.id) {
         // Add the new part to the Zustand store to update UI immediately
         addPart(result);
+        console.log('Part added to store:', result);
         toast.success('Item added successfully');
         return result;
       }

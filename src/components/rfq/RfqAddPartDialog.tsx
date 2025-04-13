@@ -38,6 +38,7 @@ export function RfqAddPartDialog({ open, onOpenChange, projectId, onAddPart }: R
       const result = await onAddPart(newPart);
       
       if (result) {
+        toast.success("Part added successfully");
         onOpenChange(false);
       }
     } catch (error) {
