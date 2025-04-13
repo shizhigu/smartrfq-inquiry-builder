@@ -163,6 +163,7 @@ export default function RfqItems() {
               files={files}
               projectId={project.id}
               handleUploadFile={() => setIsUploadDialogOpen(true)}
+              onParseFile={handleFileAction}
             />
           </TabsContent>
         </Tabs>

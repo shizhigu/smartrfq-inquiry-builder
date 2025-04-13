@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RfqFile } from "@/stores/rfqStore";
@@ -14,9 +15,16 @@ interface RfqFilesListProps {
   files: RfqFile[];
   projectId: string;
   handleUploadFile: () => void;
+  onParseFile?: (file: RfqFile) => void;
 }
 
-export function RfqFilesList({ isLoading, files, projectId, handleUploadFile }: RfqFilesListProps) {
+export function RfqFilesList({ 
+  isLoading, 
+  files, 
+  projectId, 
+  handleUploadFile,
+  onParseFile 
+}: RfqFilesListProps) {
   const { getToken } = useAuth();
   
   // Format file size to human-readable format
@@ -114,7 +122,7 @@ export function RfqFilesList({ isLoading, files, projectId, handleUploadFile }: 
     );
   }
   
-  // Modified to check for ocr_text instead of relying on status
+  // Check if file is parsed based on ocr_text
   const isParsed = (file: RfqFile) => {
     return file.ocr_text && file.ocr_text.trim().length > 0;
   };
@@ -170,6 +178,15 @@ export function RfqFilesList({ isLoading, files, projectId, handleUploadFile }: 
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {!isParsed(file) && onParseFile && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => onParseFile(file)}
+                  >
+                    Parse
+                  </Button>
+                )}
                 <Button 
                   variant="ghost" 
                   size="sm" 
