@@ -96,21 +96,27 @@ export function RfqParseConfirmDialog({ open, onOpenChange, file }: RfqParseConf
 
       const data: ParseRfqResponse = await response.json();
       
-      // Convert parsed items to RfqPart format
+      // Convert parsed items to RfqPart format with both camelCase and snake_case properties
       const parsedParts = data.items.map(item => ({
         id: item.id,
         name: item.name,
         partNumber: item.part_number,
+        part_number: item.part_number,
         quantity: parseInt(item.quantity) || 0,
         unit: item.unit,
+        projectId: selectedProjectId,
+        project_id: selectedProjectId,
         material: item.material,
         surfaceFinish: item.surface_finish,
+        surface_finish: item.surface_finish,
         process: item.process,
         deliveryTime: item.delivery_time,
+        delivery_time: item.delivery_time,
         tolerance: item.tolerance,
         drawingNumber: item.drawing_url,
+        drawing_url: item.drawing_url,
         remarks: item.remarks,
-        projectId: selectedProjectId,
+        status: 'open'
       }));
       
       // Update the store with the new parsed parts
