@@ -35,7 +35,7 @@ export async function getLatestQuotation(
 
   try {
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/api/quotations/latest/${rfqItemId}?supplier_id=${supplierId}`,
+      `${API_CONFIG.BASE_URL}/quotations/latest/${rfqItemId}?supplier_id=${supplierId}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -73,7 +73,7 @@ export async function getQuotationHistory(
 
   try {
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/api/quotations/history/${rfqItemId}?supplier_id=${supplierId}`,
+      `${API_CONFIG.BASE_URL}/quotations/history/${rfqItemId}?supplier_id=${supplierId}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -105,7 +105,7 @@ export async function getConversationQuotations(
 
   try {
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/api/conversations/${conversationId}/quotations`,
+      `${API_CONFIG.BASE_URL}/conversations/${conversationId}/quotations`,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
