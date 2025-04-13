@@ -1,4 +1,3 @@
-
 import { API_CONFIG, useMockData } from '../config';
 
 export interface Quotation {
@@ -82,7 +81,7 @@ export async function getQuotationHistory(
   rfqItemId: string,
   supplierId: string | null
 ): Promise<QuotationHistoryResponse> {
-  if (useMockData() || !supplierId) {
+  if (useMockData()) {
     console.log('Using mock data for getQuotationHistory');
     return { 
       quotations: Array.from({ length: 5 }, (_, i) => ({
@@ -104,26 +103,14 @@ export async function getQuotationHistory(
 
   try {
     // Make sure supplierId is a valid UUID before sending to API
-    if (!supplierId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(supplierId)) {
-      console.warn('Invalid supplier ID format, using mock data instead:', supplierId);
-      return { 
-        quotations: Array.from({ length: 3 }, (_, i) => ({
-          id: `mock-history-${i}`,
-          rfqItemId,
-          supplierId: 'invalid-supplier-id',
-          projectId: 'mock-project',
-          unitPrice: 100 - i * 5,
-          currency: 'USD',
-          leadTime: `${30 - i} days`,
-          remarks: i === 0 ? 'Latest quote' : `Previous quote ${i}`,
-          quoteTime: new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000).toISOString(),
-          organizationId: 'mock-org',
-          supplierName: 'Unknown Supplier'
-        })), 
-        count: 3 
-      };
+    if (!supplierId) {
+      console.error('No supplier ID provided for history lookup');
+      return { quotations: [], count: 0 };
     }
-
+    
+    // Log the supplier ID we're trying to use
+    console.log('Getting history with supplier ID:', supplierId);
+    
     const response = await fetch(
       `${API_CONFIG.BASE_URL}/quotations/history/${rfqItemId}?supplier_id=${supplierId}`,
       {

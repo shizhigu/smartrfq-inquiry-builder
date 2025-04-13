@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +24,6 @@ interface QuotationTableProps {
   conversationId: string;
 }
 
-// Extract quotation items from email content
 const extractQuotationItems = (emails: Email[]): QuotationItem[] => {
   const items: QuotationItem[] = [];
   
@@ -95,13 +93,11 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   const safeEmails = Array.isArray(emails) ? emails : [];
   const hasItemsFormat = safeEmails.some(email => email.content && email.content.includes('[ITEM-'));
   
-  // Extract items from emails on initial load
   useEffect(() => {
     const items = extractQuotationItems(safeEmails);
     setExtractedItems(items);
   }, [safeEmails]);
   
-  // Function to fetch conversation quotations
   const fetchConversationQuotations = async () => {
     if (!conversationId) return;
     
@@ -116,7 +112,6 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
       
       console.log(`Fetching quotations for conversation: ${conversationId}`);
       
-      // Get all quotations for this conversation
       const items = await getConversationQuotations(token, conversationId);
       
       console.log('Received quotations:', items);
@@ -137,7 +132,6 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     }
   };
   
-  // Fetch history for a specific item
   const fetchQuotationHistory = async (itemId: string, supplierId: string | undefined) => {
     if (!itemId) return;
     
@@ -149,46 +143,20 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         throw new Error('Unable to get authentication token');
       }
       
-      // Check if supplier ID is valid UUID or use a fallback approach
-      // For the backend expecting a valid UUID, we need to handle this case
-      const validSupplierId = supplierId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(supplierId)
-        ? supplierId
-        : null;
-        
-      if (!validSupplierId) {
-        console.log(`Using mock data for history of item ${itemId} due to invalid supplier ID`);
-        // Generate mock history data when supplier ID is not valid
-        const mockHistory: Quotation[] = Array.from({ length: 3 }, (_, i) => {
-          const basePrice = 100;
-          return {
-            id: `mock-history-${i}-${itemId}`,
-            rfqItemId: itemId,
-            supplierId: supplierId || "unknown-supplier",
-            projectId: "mock-project",
-            unitPrice: basePrice - i * 5,
-            currency: "USD",
-            leadTime: `${30 - i} days`,
-            remarks: i === 0 ? "Latest quote" : `Previous quote ${i}`,
-            quoteTime: new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000).toISOString(),
-            organizationId: "mock-org",
-            supplierName: "Unknown Supplier",
-            change: i > 0 ? -5 : 0,
-            changePercent: i > 0 ? -5 : 0
-          };
-        });
-        
+      if (!supplierId) {
+        console.error('Missing supplier ID for quotation history');
+        toast.error('Unable to fetch history: Missing supplier ID');
+        setHistoryLoading(prev => ({ ...prev, [itemId]: false }));
         setQuotationHistories(prev => ({
           ...prev,
-          [itemId]: mockHistory
+          [itemId]: []
         }));
-        setHistoryLoading(prev => ({ ...prev, [itemId]: false }));
         return;
       }
       
-      console.log(`Fetching quotation history for item ${itemId} from supplier ${validSupplierId}`);
+      console.log(`Fetching quotation history for item ${itemId} from supplier ${supplierId}`);
       
-      // Fetch the actual history data from the API
-      const history = await getQuotationHistory(token, itemId, validSupplierId);
+      const history = await getQuotationHistory(token, itemId, supplierId);
       
       if (history && Array.isArray(history.quotations)) {
         setQuotationHistories(prev => ({
@@ -219,7 +187,6 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     }
   };
   
-  // Initial data fetch
   useEffect(() => {
     if (conversationId) {
       fetchConversationQuotations();
@@ -233,25 +200,27 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
   };
   
   const toggleHistory = async (itemId: string) => {
-    // If we're already showing history for this item, just hide it
     if (expandedItem === itemId) {
       setExpandedItem(null);
       return;
     }
     
-    // Otherwise, show history for this item
     setExpandedItem(itemId);
     
-    // Fetch history if not already loaded
     const item = quotationItems.find(item => item.item_id === itemId);
     if (item && !quotationHistories[itemId]) {
-      // Extract supplier ID from the API data
       const supplierId = item.supplier_id;
+      console.log('Item supplier ID for history:', supplierId);
+      
+      if (!supplierId) {
+        toast.error('Cannot fetch history: Missing supplier information');
+        return;
+      }
+      
       await fetchQuotationHistory(itemId, supplierId);
     }
   };
 
-  // Determine which items to show - API items if available, otherwise extracted
   const displayItems = quotationItems.length > 0 
     ? quotationItems 
     : extractedItems.map(item => ({
@@ -259,7 +228,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         item_number: item.itemNumber,
         description: item.description,
         quantity: item.quantity,
-        supplier_id: null, // Use null instead of an invalid string
+        supplier_id: null,
         latest_quotation: {
           id: `fallback_quote_${item.itemNumber}`,
           unit_price: item.unitPrice,
