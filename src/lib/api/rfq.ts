@@ -47,7 +47,8 @@ export interface GeneratedEmailTemplate {
 export async function generateEmailTemplate(
   token: string,
   projectId: string,
-  partIds: string[]
+  partIds: string[],
+  supplierId: string
 ): Promise<GeneratedEmailTemplate> {
   // Use mock data if mocks are enabled
   if (useMockData()) {
@@ -63,13 +64,14 @@ export async function generateEmailTemplate(
     };
   }
   
-  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/generate-template`, {
+  // Use the new API endpoint with supplier ID
+  const response = await fetch(`${API_CONFIG.BASE_URL}/projects/${projectId}/conversations/${supplierId}/generate-template`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify(partIds),
+    body: JSON.stringify({ item_ids: partIds }),
   });
 
   if (!response.ok) {

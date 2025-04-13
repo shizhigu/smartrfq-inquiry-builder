@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RfqPart } from "@/stores/rfqStore";
-import { Loader2, Mail, User, Wand2 } from "lucide-react";
+import { Loader2, Mail, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { 
   Dialog, 
@@ -17,20 +17,10 @@ import { useAuth, useOrganization } from "@clerk/clerk-react";
 import { useMockData } from "@/lib/config";
 import { useNavigate } from "react-router-dom";
 import { RfqSelectedPartsTable } from "./RfqSelectedPartsTable";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
 import { SupplierAddSheet } from "./suppliers/SupplierAddSheet";
 import { Supplier } from "@/stores/supplierStore";
-import { 
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
+import { RfqSupplierTabContent } from "./RfqSupplierTabContent";
 
 interface RfqSendInquiryDialogProps {
   open: boolean;
@@ -48,13 +38,12 @@ export function RfqSendInquiryDialog({
   const { getToken } = useAuth();
   const { organization } = useOrganization();
   const navigate = useNavigate();
-  const { suppliers, isLoading: isSuppliersLoading } = useOrganizationSuppliers();
+  const { suppliers, isLoading: isSuppliersLoading, loadSuppliers } = useOrganizationSuppliers();
   
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false);
   const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
-  const [manualEmail, setManualEmail] = useState("");
   const [subject, setSubject] = useState("Request for Quote");
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -64,7 +53,6 @@ export function RfqSendInquiryDialog({
     if (!open) {
       // Reset form state when closing
       setSelectedSupplierId("");
-      setManualEmail("");
       setSubject("Request for Quote");
       setMessage("");
       setConversationId(null);
@@ -75,6 +63,11 @@ export function RfqSendInquiryDialog({
   const handleGenerateTemplate = async () => {
     if (!selectedParts || selectedParts.length === 0) {
       toast.error('No parts selected');
+      return;
+    }
+
+    if (!selectedSupplierId) {
+      toast.error('Please select a supplier first');
       return;
     }
 
@@ -89,7 +82,7 @@ export function RfqSendInquiryDialog({
       
       const partIds = selectedParts.map(part => part.id);
       
-      const template = await generateEmailTemplate(token, projectId, partIds);
+      const template = await generateEmailTemplate(token, projectId, partIds, selectedSupplierId);
       
       // Fill form with generated template
       setSubject(template.subject);
@@ -108,25 +101,21 @@ export function RfqSendInquiryDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Determine which email to use - either from selected supplier or manually entered
-    let emailTo = manualEmail;
-    
-    if (selectedSupplierId && selectedSupplierId !== "manual") {
-      const selectedSupplier = suppliers.find(s => s.id === selectedSupplierId);
-      if (selectedSupplier?.email) {
-        emailTo = selectedSupplier.email;
-      } else {
-        toast.error('Selected supplier has no email address');
-        return;
-      }
-    }
-    
-    // Validate form
-    if (!emailTo) {
-      toast.error('Please enter an email address');
+    // Determine which email to use from selected supplier
+    if (!selectedSupplierId) {
+      toast.error('Please select a supplier');
       return;
     }
     
+    const selectedSupplier = suppliers.find(s => s.id === selectedSupplierId);
+    if (!selectedSupplier?.email) {
+      toast.error('Selected supplier has no email address');
+      return;
+    }
+    
+    const emailTo = selectedSupplier.email;
+    
+    // Validate form
     if (!selectedParts || selectedParts.length === 0) {
       toast.error('No parts selected');
       return;
@@ -176,26 +165,18 @@ export function RfqSendInquiryDialog({
     }
   };
 
-  const handleSupplierSelect = (value: string) => {
-    setSelectedSupplierId(value);
-    
-    // If manually entering email, clear any previously selected supplier email
-    if (value === "manual") {
-      setManualEmail("");
-    } else {
-      // When selecting a supplier, pre-fill with their email and clear manual input
-      const supplier = suppliers.find(s => s.id === value);
-      if (supplier?.email) {
-        setManualEmail(supplier.email);
-      }
-    }
+  const handleSupplierSelect = (supplierId: string) => {
+    setSelectedSupplierId(supplierId);
+    // Clear conversation ID when supplier changes
+    setConversationId(null);
   };
   
   const handleAddSupplier = (supplierData: Omit<Supplier, 'id' | 'projectId'>) => {
     // In a real implementation, this would be connected to addSupplier API
-    // For now, we'll just close the sheet and show a success message
     toast.success(`${supplierData.name} has been added to your suppliers`);
     setIsAddSupplierOpen(false);
+    // Refresh suppliers list
+    loadSuppliers(true);
   };
   
   return (
@@ -211,116 +192,45 @@ export function RfqSendInquiryDialog({
           
           <form onSubmit={handleSubmit} className="space-y-4 py-2">
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="supplier">Supplier</Label>
-                <Select
-                  value={selectedSupplierId || "placeholder"}
-                  onValueChange={handleSupplierSelect}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a supplier or enter email manually" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="placeholder" disabled>
-                        Select a supplier
-                      </SelectItem>
-                      
-                      <SelectItem value="manual">
-                        <div className="flex items-center">
-                          <User className="mr-2 h-4 w-4" />
-                          <span>Enter email manually</span>
-                        </div>
-                      </SelectItem>
-                      
-                      {suppliers.map((supplier) => (
-                        <SelectItem key={supplier.id} value={supplier.id}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{supplier.name}</span>
-                            <span className="text-xs text-muted-foreground">{supplier.email || 'No email'}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                      
-                      <div className="p-2 border-t mt-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full"
-                          onClick={() => {
-                            setIsAddSupplierOpen(true);
-                            // We need to close the select dropdown
-                            document.body.click();
-                          }}
-                          type="button"
-                        >
-                          Add new supplier
-                        </Button>
-                      </div>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
+              <RfqSupplierTabContent
+                selectedSupplierId={selectedSupplierId}
+                onSupplierSelect={handleSupplierSelect}
+                message={message}
+                onMessageChange={setMessage}
+                subject={subject}
+                onSubjectChange={setSubject}
+                suppliers={suppliers}
+                isLoading={isSuppliersLoading}
+                onAddNew={() => setIsAddSupplierOpen(true)}
+              />
               
-              {(selectedSupplierId === "manual" || !selectedSupplierId) && (
-                <div className="space-y-2">
-                  <Label htmlFor="email">Recipient Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="supplier@example.com"
-                    value={manualEmail}
-                    onChange={(e) => setManualEmail(e.target.value)}
-                  />
-                </div>
+              {conversationId && (
+                <p className="text-xs text-muted-foreground">
+                  Conversation ID: {conversationId}
+                </p>
               )}
               
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="subject">Subject</Label>
-                  <Button 
-                    type="button"
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleGenerateTemplate}
-                    disabled={isGeneratingTemplate || selectedParts.length === 0}
-                    className="h-8"
-                  >
-                    {isGeneratingTemplate ? (
-                      <>
-                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Wand2 className="mr-2 h-3 w-3" />
-                        Generate Template
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <Input
-                  id="subject"
-                  type="text"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="message">Message</Label>
-                <Textarea
-                  id="message"
-                  placeholder="Write your message here..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={6}
-                />
-                {conversationId && (
-                  <p className="text-xs text-muted-foreground">
-                    Conversation ID: {conversationId}
-                  </p>
-                )}
+              <div className="flex justify-end">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleGenerateTemplate}
+                  disabled={isGeneratingTemplate || selectedParts.length === 0 || !selectedSupplierId}
+                  className="h-8"
+                >
+                  {isGeneratingTemplate ? (
+                    <>
+                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="mr-2 h-3 w-3" />
+                      Generate Template
+                    </>
+                  )}
+                </Button>
               </div>
               
               <RfqSelectedPartsTable selectedParts={selectedParts || []} />
@@ -330,7 +240,7 @@ export function RfqSendInquiryDialog({
               <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading || !selectedSupplierId}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
