@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { ConversationWithSupplier } from '@/hooks/useEmails';
 
-interface QuotationItem {
+export interface QuotationItem {
   itemNumber: number;
   description: string;
   quantity: number;

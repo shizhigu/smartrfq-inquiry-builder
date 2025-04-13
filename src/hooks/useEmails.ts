@@ -17,9 +17,19 @@ import {
 } from '@/lib/api/emails';
 import { useEmailStore } from '@/stores/emailStore';
 
+interface QuotationItem {
+  itemNumber: number;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
 export interface ConversationWithSupplier extends Conversation {
   supplierName?: string;
   supplierEmail?: string;
+  aiDetectedItems?: QuotationItem[];
+  lastMessageWithItems?: string;
 }
 
 interface UseEmailsReturn {
