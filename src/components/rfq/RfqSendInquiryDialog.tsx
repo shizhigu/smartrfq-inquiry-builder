@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RfqPart } from "@/stores/rfqStore";
@@ -11,9 +12,8 @@ import {
   DialogFooter,
   DialogDescription
 } from "@/components/ui/dialog";
-import { generateEmailTemplate, sendRfqInquiry } from "@/lib/api/rfq";
+import { generateEmailTemplate } from "@/lib/api/rfq";
 import { useAuth, useOrganization } from "@clerk/clerk-react";
-import { useMockData } from "@/lib/config";
 import { useNavigate } from "react-router-dom";
 import { RfqSelectedPartsTable } from "./RfqSelectedPartsTable";
 import { useOrganizationSuppliers } from "@/hooks/useOrganizationSuppliers";
@@ -122,9 +122,8 @@ export function RfqSendInquiryDialog({
       setIsLoading(true);
       
       const token = await getToken();
-      const orgId = organization?.id;
       
-      if (!token || !orgId) {
+      if (!token) {
         toast.error('Authentication error');
         setIsLoading(false);
         return;
@@ -146,27 +145,15 @@ export function RfqSendInquiryDialog({
         attachments.length > 0 ? attachments : undefined
       );
       
-      await sendRfqInquiry(
-        token, 
-        orgId, 
-        projectId, 
-        partIds, 
-        emailTo,
-        subject,
-        message
-      );
-      
       toast.success(`Inquiry sent to ${emailTo}`);
       onOpenChange(false);
       
-      if (!useMockData()) {
-        toast("Would you like to view all suppliers?", {
-          action: {
-            label: "Go to Suppliers",
-            onClick: () => navigate("/dashboard/suppliers")
-          }
-        });
-      }
+      toast("Would you like to view all suppliers?", {
+        action: {
+          label: "Go to Suppliers",
+          onClick: () => navigate("/dashboard/suppliers")
+        }
+      });
       
     } catch (error) {
       console.error('Failed to send inquiry:', error);
