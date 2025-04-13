@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -102,14 +103,26 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
     ? conversations[selectedProjectId].find(conv => conv.id === conversationId)
     : null;
   
+  // Debug logs for supplier and conversation IDs
+  useEffect(() => {
+    console.log("Component loaded with props:", { 
+      conversationId, 
+      initialSupplierId,
+      currentConversationId: currentConversation?.id,
+      currentConversationSupplierId: currentConversation?.supplierId,
+      supplierName: currentConversation?.supplierName,
+      supplierEmail: currentConversation?.supplierEmail
+    });
+  }, [conversationId, initialSupplierId, currentConversation]);
+  
   useEffect(() => {
     if (initialSupplierId) {
-      setSupplierId(initialSupplierId);
       console.log("Using passed supplier ID:", initialSupplierId);
+      setSupplierId(initialSupplierId);
     }
     else if (currentConversation?.supplierId) {
-      setSupplierId(currentConversation.supplierId);
       console.log("Setting supplier ID from conversation:", currentConversation.supplierId);
+      setSupplierId(currentConversation.supplierId);
     } else {
       const supplierEmail = currentConversation?.supplierEmail;
       const supplierName = currentConversation?.supplierName;
@@ -297,6 +310,9 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
           </div>
           <Badge variant="outline" className="ml-2">
             Supplier ID: {displaySupplierId}
+          </Badge>
+          <Badge variant="outline" className="ml-2">
+            Conversation ID: {conversationId.substring(0, 8)}...
           </Badge>
         </div>
       </CardHeader>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useEmails } from '@/hooks/useEmails';
 import { useProjectStore } from '@/stores/projectStore';
@@ -208,6 +207,13 @@ const Emails = () => {
   }
 
   if (selectedConversation) {
+    console.log("Selected conversation details:", {
+      id: selectedConversation.id,
+      supplierId: selectedConversation.supplierId,
+      supplierName: selectedConversation.supplierName,
+      supplierEmail: selectedConversation.supplierEmail
+    });
+    
     return (
       <div className="p-6">
         <PageHeader
@@ -245,6 +251,11 @@ const Emails = () => {
         </PageHeader>
         
         <div className="mt-6">
+          <div className="mb-4 p-3 bg-muted rounded-md text-xs">
+            <div><strong>Conversation ID:</strong> {selectedConversation.id}</div>
+            <div><strong>Supplier ID:</strong> {selectedConversation.supplierId || "Not available"}</div>
+          </div>
+          
           {/* Import Quotation Component */}
           <ImportQuotation 
             conversationId={selectedConversation.id} 
