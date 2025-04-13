@@ -109,10 +109,9 @@ export async function getQuotationHistory(
       return { quotations: [], count: 0 };
     }
     
-    // Make sure there are no quotes around the supplierId
-    const cleanSupplierId = supplierId.replace(/^["']|["']$/g, '');
+    // Clean the supplier ID - remove any quotes and trim
+    const cleanSupplierId = supplierId.trim().replace(/^["']|["']$/g, '');
     
-    // Log the supplier ID we're trying to use
     console.log('Getting history with supplier ID:', cleanSupplierId);
     
     const response = await fetch(
@@ -130,7 +129,40 @@ export async function getQuotationHistory(
       throw new Error(errorData.message || errorData.detail || 'Failed to fetch quotation history');
     }
 
-    return response.json();
+    const rawData = await response.json();
+    
+    // Check if the response is already in our expected format
+    if (Array.isArray(rawData.quotations) || (rawData.quotations && rawData.count !== undefined)) {
+      return rawData;
+    }
+    
+    // If the API returns an array directly (as shown in your example)
+    if (Array.isArray(rawData)) {
+      console.log('Processing array response format for quotation history');
+      
+      // Map the API response to our frontend's expected format
+      const quotations = rawData.map(item => ({
+        id: item.id,
+        rfqItemId: item.rfq_item_id,
+        supplierId: item.supplier_id,
+        projectId: item.project_id,
+        unitPrice: item.unit_price,
+        currency: item.currency || 'USD',
+        leadTime: item.lead_time || 'Not specified',
+        remarks: item.remarks || '',
+        quoteTime: item.quote_time,
+        organizationId: item.organization_id || '',
+        supplierName: item.supplier_name
+      }));
+      
+      return {
+        quotations,
+        count: quotations.length
+      };
+    }
+    
+    console.warn('Unexpected response format from quotation history API:', rawData);
+    return { quotations: [], count: 0 };
   } catch (error) {
     console.error('Error fetching quotation history:', error);
     return { quotations: [], count: 0 };

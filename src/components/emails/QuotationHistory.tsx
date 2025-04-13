@@ -57,6 +57,7 @@ export const QuotationHistory: React.FC<QuotationHistoryProps> = ({
     try {
       return format(parseISO(dateString), 'MMM d, yyyy h:mm a');
     } catch (error) {
+      console.error('Date formatting error:', error, 'for date:', dateString);
       return 'Invalid date';
     }
   };

@@ -143,9 +143,15 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         throw new Error('Failed to fetch supplier ID');
       }
 
+      // The API returns a UUID string directly, not JSON
       const supplierIdFromApi = await response.text();
-      if (supplierIdFromApi) {
-        setSupplierId(supplierIdFromApi);
+      
+      // Clean the supplier ID - trim whitespace and remove quotes
+      const cleanSupplierId = supplierIdFromApi.trim().replace(/^["']|["']$/g, '');
+      
+      if (cleanSupplierId) {
+        console.log('Received supplier ID from API:', cleanSupplierId);
+        setSupplierId(cleanSupplierId);
       }
     } catch (error) {
       console.error('Error fetching supplier ID:', error);
@@ -220,14 +226,16 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
         return;
       }
       
-      // Remove any quotes that might be around the supplier ID
+      // Clean the supplier ID - remove any quotes and trim whitespace
       if (typeof supplierIdToUse === 'string') {
-        supplierIdToUse = supplierIdToUse.replace(/^["']|["']$/g, '');
+        supplierIdToUse = supplierIdToUse.trim().replace(/^["']|["']$/g, '');
       }
       
+      console.log(`Fetching history for item ${itemId} with supplier ${supplierIdToUse}`);
       const history = await getQuotationHistory(token, itemId, supplierIdToUse);
       
       if (history && Array.isArray(history.quotations)) {
+        console.log(`Received ${history.quotations.length} history items for ${itemId}`);
         setQuotationHistories(prev => ({
           ...prev,
           [itemId]: history.quotations
@@ -237,6 +245,7 @@ export const QuotationTable: React.FC<QuotationTableProps> = ({ emails, conversa
           toast.info('No quotation history available for this item');
         }
       } else {
+        console.warn('Unexpected history response format:', history);
         setQuotationHistories(prev => ({
           ...prev,
           [itemId]: []
