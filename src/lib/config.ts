@@ -6,7 +6,7 @@
 // API Configuration
 export const API_CONFIG = {
   // Base URL for the backend API
-  BASE_URL: 'http://uqjpqskash.a.pinggy.link/api',
+  BASE_URL: 'https://uqjpqskash.a.pinggy.link/api',
   
   // Set to false to use real API endpoints instead of mock data
   // This can be overridden by localStorage for development convenience
