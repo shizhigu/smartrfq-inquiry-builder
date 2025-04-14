@@ -117,6 +117,7 @@ export function useAuthManager() {
   
   // Start countdown timer for auto logout
   const startCountdown = useCallback(() => {
+    console.log('Starting countdown timer');
     // Reset countdown time
     setCountdownTime(COUNTDOWN_DURATION);
     
@@ -128,8 +129,10 @@ export function useAuthManager() {
     // Set up countdown interval that updates every second
     countdownIntervalRef.current = window.setInterval(() => {
       setCountdownTime(prevTime => {
+        console.log('Countdown: ', prevTime);
         // If time is up, clear interval and trigger logout
         if (prevTime <= 1) {
+          console.log('Countdown finished, logging out automatically');
           if (countdownIntervalRef.current) {
             window.clearInterval(countdownIntervalRef.current);
             countdownIntervalRef.current = null;
@@ -141,40 +144,35 @@ export function useAuthManager() {
         return prevTime - 1;
       });
     }, 1000);
-    
   }, [handleLogout]);
   
   // Reset idle timer
   const resetIdleTimer = useCallback(() => {
+    // Only reset if user is not already being shown the idle dialog
+    if (showIdleDialog) {
+      return;
+    }
+    
     // Clear existing timers
     if (idleTimerRef.current) {
       window.clearTimeout(idleTimerRef.current);
     }
     
-    if (dialogTimerRef.current) {
-      window.clearTimeout(dialogTimerRef.current);
-    }
-    
-    if (countdownIntervalRef.current) {
-      window.clearInterval(countdownIntervalRef.current);
-      countdownIntervalRef.current = null;
-    }
-    
-    // Close idle dialog if open
-    if (showIdleDialog) {
-      setShowIdleDialog(false);
-    }
-    
     // Set new idle timer
     idleTimerRef.current = window.setTimeout(() => {
-      // Show idle dialog and start countdown
+      console.log('User idle detected, showing idle dialog');
       setShowIdleDialog(true);
       startCountdown();
     }, IDLE_TIMEOUT);
-  }, [handleLogout, showIdleDialog, startCountdown]);
+  }, [showIdleDialog, startCountdown]);
   
   // Handle user activity
   useEffect(() => {
+    // Only set up event listeners if the user is signed in
+    if (!isSignedIn) return;
+    
+    console.log('Setting up idle detection');
+    
     // List of events to reset the idle timer
     const events = [
       'mousedown',
@@ -195,6 +193,7 @@ export function useAuthManager() {
     
     // Cleanup event listeners and timers
     return () => {
+      console.log('Cleaning up idle detection');
       events.forEach(event => {
         window.removeEventListener(event, resetIdleTimer);
       });
@@ -211,33 +210,48 @@ export function useAuthManager() {
         window.clearInterval(countdownIntervalRef.current);
       }
     };
-  }, [resetIdleTimer]);
+  }, [resetIdleTimer, isSignedIn]);
   
   // Handle staying active
-  const handleStayActive = () => {
+  const handleStayActive = useCallback(() => {
+    console.log('User clicked "Stay active"');
     // Clear countdown timer
     if (countdownIntervalRef.current) {
       window.clearInterval(countdownIntervalRef.current);
       countdownIntervalRef.current = null;
     }
     
+    // Hide the dialog
+    setShowIdleDialog(false);
+    
     // Reset the idle timer
-    resetIdleTimer();
-  };
+    if (idleTimerRef.current) {
+      window.clearTimeout(idleTimerRef.current);
+    }
+    
+    // Set new idle timer
+    idleTimerRef.current = window.setTimeout(() => {
+      console.log('User idle detected, showing idle dialog');
+      setShowIdleDialog(true);
+      startCountdown();
+    }, IDLE_TIMEOUT);
+  }, [startCountdown]);
   
   // Idle dialog component
   const IdleDialog = (
     <Dialog open={showIdleDialog} onOpenChange={(open) => {
       if (!open) {
-        handleStayActive();
+        // Prevent the dialog from being closed by clicking outside
+        // We want the user to explicitly choose an option
+        return;
       }
     }}>
       <DialogContent onEscapeKeyDown={(e) => {
+        // Prevent closing on escape key
         e.preventDefault();
-        handleStayActive();
       }} onInteractOutside={(e) => {
+        // Prevent closing when clicking outside
         e.preventDefault();
-        // Don't close when clicking outside
       }}>
         <DialogHeader>
           <DialogTitle>Are you still there?</DialogTitle>
@@ -261,6 +275,6 @@ export function useAuthManager() {
     logout: handleLogout,
     resetIdleTimer,
     IdleDialog,
-    resetAllStores // Export this so it can be used elsewhere if needed
+    resetAllStores
   };
 }
