@@ -124,21 +124,20 @@ export function useAuthManager() {
     // Clear any existing interval
     if (countdownIntervalRef.current) {
       window.clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
     }
     
     // Set up countdown interval that updates every second
-    countdownIntervalRef.current = window.setInterval(() => {
+    const intervalId = window.setInterval(() => {
       setCountdownTime(prevTime => {
         const newTime = prevTime - 1;
-        console.log('Countdown: ', newTime);
+        console.log(`Countdown: ${newTime} seconds remaining`);
         
         // If time is up, clear interval and trigger logout
         if (newTime <= 0) {
           console.log('Countdown finished, logging out automatically');
-          if (countdownIntervalRef.current) {
-            window.clearInterval(countdownIntervalRef.current);
-            countdownIntervalRef.current = null;
-          }
+          window.clearInterval(intervalId);
+          countdownIntervalRef.current = null;
           // Automatically log out when countdown reaches zero
           handleLogout();
           return 0;
@@ -146,6 +145,9 @@ export function useAuthManager() {
         return newTime;
       });
     }, 1000);
+    
+    // Store the interval ID for later cleanup
+    countdownIntervalRef.current = intervalId;
   }, [handleLogout]);
   
   // Reset idle timer
