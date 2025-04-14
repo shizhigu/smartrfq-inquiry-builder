@@ -129,9 +129,11 @@ export function useAuthManager() {
     // Set up countdown interval that updates every second
     countdownIntervalRef.current = window.setInterval(() => {
       setCountdownTime(prevTime => {
-        console.log('Countdown: ', prevTime);
+        const newTime = prevTime - 1;
+        console.log('Countdown: ', newTime);
+        
         // If time is up, clear interval and trigger logout
-        if (prevTime <= 1) {
+        if (newTime <= 0) {
           console.log('Countdown finished, logging out automatically');
           if (countdownIntervalRef.current) {
             window.clearInterval(countdownIntervalRef.current);
@@ -141,7 +143,7 @@ export function useAuthManager() {
           handleLogout();
           return 0;
         }
-        return prevTime - 1;
+        return newTime;
       });
     }, 1000);
   }, [handleLogout]);
@@ -256,7 +258,7 @@ export function useAuthManager() {
         <DialogHeader>
           <DialogTitle>Are you still there?</DialogTitle>
           <DialogDescription>
-            You've been inactive for a while. For security reasons, you'll be logged out automatically in {countdownTime} seconds.
+            You've been inactive for a while. For security reasons, you'll be logged out automatically in <strong>{countdownTime}</strong> seconds.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
